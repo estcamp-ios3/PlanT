@@ -44,6 +44,13 @@ struct SignUpView: View {
                     .padding(6)
                 TextField("비밀번호를 입력하세요", text: $userAuthModel.password)
                     .authTextFieldStyle()
+                
+                Text("Password Confirm")
+                    .font(.system(size: 24, weight: .bold))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(6)
+                TextField("입력한 비밀번호를 확인합니다", text: $userAuthModel.password)
+                    .authTextFieldStyle()
             }
         }
         .padding()
