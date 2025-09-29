@@ -16,13 +16,13 @@ final class UserAuthModel: ObservableObject {
     @Published var password: String = ""
 }
 
-// 뷰모디파이어 임시
+// 텍스트 필드 모디파이어 임시
 struct AuthTextFieldModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
             .padding()
             .background(Color(.systemGray6))
-            .cornerRadius(30)
+            .cornerRadius(24)
             .textInputAutocapitalization(.never)
             .autocorrectionDisabled(true)
     }
