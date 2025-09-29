@@ -9,13 +9,29 @@ import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        TabView {
+            // 리스트 탭
+            NavigationStack {
+                RoutineTodoListTabView()
+                    .navigationTitle("루틴/할일 목록")
+                    .navigationBarTitleDisplayMode(.inline)
+            }
+            .tabItem {
+                Label("리스트", systemImage: "list.bullet")
+            }
+            .tag(0)
+
+            // 마이페이지 탭
+            NavigationStack {
+                MypageMainView()
+                    .navigationTitle("마이페이지")
+                    .navigationBarTitleDisplayMode(.inline)
+            }
+            .tabItem {
+                Label("마이페이지", systemImage: "person.crop.circle")
+            }
+            .tag(1)
         }
-        .padding()
     }
 }
 
