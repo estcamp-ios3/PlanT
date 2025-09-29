@@ -84,17 +84,12 @@ struct RoutineTemplateView: View {
                         RoutineCategorySectionView(category: category)
                     }
 
-                    Button(action: {
-                        print("다음 버튼 눌림")
-                    }) {
+                   
+                    NavigationLink(destination: SeedStatusView(state: .notPlanted)) {
                         Text("다음")
-                            .font(.headline)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.green)
-                            .foregroundColor(.white)
-                            .cornerRadius(12)
                     }
+                    .plantPrimaryButton()
+                    
                     .padding(.top, 20)
                 }
                 .padding()
