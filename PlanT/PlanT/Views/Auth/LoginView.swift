@@ -18,8 +18,8 @@ struct LoginView: View {
                 .padding(.top, 10)
             
             // 입력 필드 / 레이아웃 스타일은 임시
-            VStack(spacing: 15) {
-                TextField("ID", text: $userAuthModel.userName)
+            VStack(spacing: 16) {
+                TextField("ID", text: $userAuthModel.email)
                     .authTextFieldStyle()
 
                 SecureField("PW", text: $userAuthModel.password)
@@ -29,14 +29,8 @@ struct LoginView: View {
                 Button(action: {
                 }) {
                     Text("로그인")
-                        .bold()
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.green)
-                        .cornerRadius(20)
                 }
-                .padding(.vertical, 15)
+                .plantPrimaryButton()
                 
                 // 회원가입 버튼
                 Button(action: {
@@ -45,7 +39,7 @@ struct LoginView: View {
                         .foregroundColor(.black)
                 }
             }
-            .padding(.horizontal, 25)
+            .padding(.horizontal, 24)
             
         }
     }
