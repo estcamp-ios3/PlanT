@@ -9,23 +9,26 @@ import SwiftUI
 
 struct SeedStatusView: View {
     let state: SeedStatus
-
+    
     var body: some View {
+        
         VStack(spacing: 24) {
             // 상태에 따라 텍스트 변경
+            Spacer(minLength: 100) // 위쪽 빈칸
+
             Text(statusMessage)
-                .font(.system(size: 18, weight: .semibold))
+                .font(.system(size: 30, weight: .semibold))
                 .multilineTextAlignment(.center)
                 .foregroundColor(.black)
                 .padding(.horizontal, 16)
-
+            Spacer()
             // 가운데 흙/씨앗 이미지
             Image(imageName)
                 .resizable()
                 .scaledToFit()
-                .frame(width: 150, height: 150) // 원하는 크기로 조정
+                .frame(width: 300, height: 300) // 원하는 크기로 조정
                 .padding(.bottom, 12)
-
+            
             // 아래 버튼
             Button(action: {
                 print("씨앗 선택하기 버튼 눌림")
@@ -39,11 +42,13 @@ struct SeedStatusView: View {
                     .cornerRadius(12)
                     .padding(.horizontal)
             }
+            Spacer(minLength: 50) // 아래쪽 빈칸
+
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.white)
     }
-
+    
     private var statusMessage: String {
         switch state {
         case .planted(let routine):
@@ -52,13 +57,13 @@ struct SeedStatusView: View {
             return "아직 심겨진 씨앗이 없어요!\n새로운 씨앗을 심어볼까요?"
         }
     }
-
+    
     private var imageName: String {
         switch state {
         case .planted:
-            return "planted_seed" // ex: 심긴 이미지 이름
+            return "SoilSprout" // ex: 심긴 이미지 이름
         case .notPlanted:
-            return "empty_soil" // ex: 안 심긴 상태 이미지
+            return "Soil" // ex: 안 심긴 상태 이미지
         }
     }
 }
