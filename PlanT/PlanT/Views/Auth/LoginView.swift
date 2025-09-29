@@ -11,28 +11,19 @@ struct LoginView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-                Image("PlanTLogo")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 500, height: 500)
-            .padding(.top, 10)
+            Image("PlanTLogo")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 500, height: 500)
+                .padding(.top, 10)
             
             // 입력 필드 / 레이아웃 스타일은 임시
             VStack(spacing: 15) {
-                TextField("ID", text: $userAuthModel.username)
-                    .padding()
-                    .background(Color(.systemGray6))
-                    .cornerRadius(30)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled(true)
+                TextField("ID", text: $userAuthModel.userName)
+                    .authTextFieldStyle()
 
-                
                 SecureField("PW", text: $userAuthModel.password)
-                    .padding()
-                    .background(Color(.systemGray6))
-                    .cornerRadius(30)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled(true)
+                    .authTextFieldStyle()
                 
                 // 로그인 버튼
                 Button(action: {
