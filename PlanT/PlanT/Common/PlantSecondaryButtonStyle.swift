@@ -12,19 +12,22 @@ import SwiftUI
 /// - 일관된 폰트, 색상, 내부 여백, 코너 반경, 눌림 애니메이션을 제공합니다.
 struct PlantSecondaryButtonStyle: ButtonStyle {
     /// 버튼 배경 모서리 반경
-    var cornerRadius: CGFloat = 16
+    var cornerRadius: CGFloat = 30
+
     /// 버튼 내부 세로 여백
     var vertical: CGFloat = 12
+
     /// 버튼 내부 가로 여백
     var horizontal: CGFloat = 20
+
     /// true일 경우 버튼이 가능한 가로 최대 너비로 확장됩니다.
     var expandToMaxWidth: Bool = true
-    
+
     /// 활성일 때 라벨 색을 그대로 두고 싶으면 true
     /// 현재 구현에서는 항상 활성 시 흰색 전경색을 사용합니다.
     /// 필요 시 이 값을 활용해 조건부로 전경색 적용을 변경하세요.
     var respectLabelColorWhenEnabled: Bool = true
-    
+
     /// 버튼의 활성/비활성 상태 (SwiftUI 환경 값)
     @Environment(\.isEnabled) private var isEnabled
     /// 접근성 설정: 동작 줄이기 (애니메이션/스케일 효과 최소화)
@@ -43,7 +46,8 @@ struct PlantSecondaryButtonStyle: ButtonStyle {
         
         return configuration.label
             // 기본 타이포그래피: 굵은 라운디드 헤드라인
-            .font(.system(.headline, design: .rounded))
+            .font(.system(.title3, design: .rounded))
+            .bold(true)
             // 전경색: 활성 시 흰색, 비활성 시 회색
             // NOTE: 라벨 고유 색을 유지하려면 `respectLabelColorWhenEnabled`를 활용해 조건부 적용하세요.
             .foregroundStyle(fg)
@@ -84,8 +88,8 @@ extension View {
     ///     .plantPrimaryButton()
     /// ```
     func plantSecondaryButton(
-        cornerRadius: CGFloat = 16,
-        vertical: CGFloat = 12,
+        cornerRadius: CGFloat = cornerRadius4,
+        vertical: CGFloat = vertical4,
         horizontal: CGFloat = 20
     ) -> some View {
         self.buttonStyle(
