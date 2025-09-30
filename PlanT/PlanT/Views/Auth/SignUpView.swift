@@ -9,47 +9,70 @@ import SwiftUI
 
 struct SignUpView: View {
     @State private var userAuthModel = UserAuthModel()
+    @State private var signUpViewModel = SignUpViewModel()
     
     var body: some View {
         VStack {
             Text("무엇부터 시작해야 할지 모르겠다면,\n'PlanT'와 함께.🌱")
-                .font(.system(size: 26, weight: .bold))
+                .font(.system(size: 22, weight: .bold))
                 .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(.top, 16)
+        .padding(.leading, 16)
+        
+        VStack {
+            Text("User Name")
+                .signUpLabelStyle()
+                .padding(.top, 4)
+            TextField("이름을 입력하세요", text: $userAuthModel.userName)
+                .authTextFieldStyle(.signUp)
             
-            VStack {
-                Text("User Name")
-                    .font(.system(size: 24, weight: .bold))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(6)
-                TextField("이름을 입력하세요", text: $userAuthModel.userName)
-                    .authTextFieldStyle()
-                
-                Text("Nick Name")
-                    .font(.system(size: 24, weight: .bold))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(6)
-                TextField("닉네임을 입력하세요", text: $userAuthModel.nickName)
-                    .authTextFieldStyle()
-                
-                Text("E-mail")
-                    .font(.system(size: 24, weight: .bold))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(6)
-                TextField("로그인에 사용할 Email을 입력하세요", text: $userAuthModel.email)
-                    .authTextFieldStyle()
-                
-                Text("Password")
-                    .font(.system(size: 24, weight: .bold))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(6)
-                TextField("비밀번호를 입력하세요", text: $userAuthModel.password)
-                    .authTextFieldStyle()
+            Text("Nick Name")
+                .signUpLabelStyle()
+            TextField("닉네임을 입력하세요", text: $userAuthModel.nickName)
+                .authTextFieldStyle(.signUp)
+            
+            Text("E-mail")
+                .signUpLabelStyle()
+            TextField("로그인에 사용할 Email을 입력하세요", text: $userAuthModel.email)
+                .authTextFieldStyle(.signUp)
+            
+            Text("Password")
+                .signUpLabelStyle()
+            SecureField("비밀번호를 입력하세요", text: $userAuthModel.password)
+                .authTextFieldStyle(.signUp)
+            
+            Text("Password Confirm")
+                .signUpLabelStyle()
+            SecureField("입력한 비밀번호를 확인합니다", text: $userAuthModel.passwordConfirm)
+                .authTextFieldStyle(.signUp)
+        }
+        .padding(.horizontal)
+        VStack {
+            Text("Selected Mate")
+                .signUpLabelStyle()
+        }
+        .padding(.horizontal)
+        
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 16) {
+                ForEach(Mate.allCases) { mate in
+                    Image(mate.rawValue)
+                        .mateStyle()
+                        .onTapGesture { signUpViewModel.selectedMate = mate }
+                }
             }
         }
-        .padding()
+        .padding(.bottom, 16)
+        
+        Button(action: {
+        }) {
+            Text("회원가입")
+        }
+        .plantPrimaryButton()
+        .padding(.horizontal, 16)
     }
 }
-
 #Preview {
     NavigationStack {
         SignUpView()
