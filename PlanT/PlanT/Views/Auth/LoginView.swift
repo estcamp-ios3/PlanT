@@ -8,6 +8,7 @@ import SwiftUI
 
 struct LoginView: View {
     @State private var userAuthModel = UserAuthModel()
+    @State private var isPresentingSignUp = false
     
     var body: some View {
         VStack(spacing: 0) {
@@ -17,13 +18,13 @@ struct LoginView: View {
                 .frame(width: 500, height: 500)
                 .padding(.top, 10)
             
-            // 입력 필드 / 레이아웃 스타일은 임시
+            // 입력 필드
             VStack(spacing: 16) {
                 TextField("ID", text: $userAuthModel.email)
-                    .authTextFieldStyle()
-
+                    .authTextFieldStyle(.signIn)
+                
                 SecureField("PW", text: $userAuthModel.password)
-                    .authTextFieldStyle()
+                    .authTextFieldStyle(.signIn)
                 
                 // 로그인 버튼
                 Button(action: {
@@ -34,9 +35,14 @@ struct LoginView: View {
                 
                 // 회원가입 버튼
                 Button(action: {
+                    isPresentingSignUp = true
                 }) {
                     Text("Sign Up")
                         .foregroundColor(.black)
+                }
+                .sheet(isPresented: $isPresentingSignUp) {
+                    SignUpView()
+                        .presentationDragIndicator(.visible)         // 회색바 표시
                 }
             }
             .padding(.horizontal, 24)
