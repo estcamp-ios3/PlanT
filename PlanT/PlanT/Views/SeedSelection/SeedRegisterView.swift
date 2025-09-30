@@ -9,13 +9,16 @@
 import SwiftUI
 
 struct SeedRegisterView: View {
+    
+    @Environment(\.dismiss) private var dismiss
+    
     let selectedSeed: Seed
     
     var body: some View {
         NavigationStack {
             VStack(spacing: 24) {
                 // 상단 안내 문구
-                Spacer(minLength: 50) // 위쪽 빈칸
+                Spacer(minLength: 30) // 위쪽 빈칸
                 
                 VStack(spacing: 8) {
                     
@@ -47,28 +50,19 @@ struct SeedRegisterView: View {
                 // 버튼 영역
                 VStack(spacing: 12) {
                     Button(action: {
+                        dismiss()
                         print("씨앗 다시 선택하기")
                     }) {
                         Text("씨앗 다시 선택하기")
-                            .font(.headline)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.gray.opacity(0.2))
-                            .foregroundColor(.black)
-                            .cornerRadius(12)
+                            
                     }
-                    
-                    Button(action: {
-                        print("루틴 등록하기")
-                    }) {
+                    .plantSecondaryButton()
+
+                    // 뒤에 뷰 연결만들어 지면 수정하기
+                    NavigationLink(destination: RoutineListView()) {
                         Text("등록하기")
-                            .font(.headline)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.green)
-                            .foregroundColor(.white)
-                            .cornerRadius(12)
                     }
+                    .plantPrimaryButton()
                 }
                 .padding(.horizontal, 20)
                 .padding(.bottom, 40)
