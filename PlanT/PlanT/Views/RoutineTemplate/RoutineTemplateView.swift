@@ -75,22 +75,42 @@ let sampleCategories: [RoutineCategory] = [
 
 
 struct RoutineTemplateView: View {
+    
+    let categories: [RoutineCategory]
+    @State private var selectedRoutineID: UUID? = nil
+    
+    init(categories: [RoutineCategory]? = nil) {
+        #if DEBUG
+        self.categories = categories ?? sampleCategories
+        #else
+        self.categories = categories ?? []
+        #endif
+    }
+    
     var body: some View {
         NavigationView {
             ScrollView {
                 
                 VStack(spacing: 5) {
                     ForEach(sampleCategories) { category in
-                        RoutineCategorySectionView(category: category)
+                        RoutineCategorySectionView(
+                            category: category,
+                            selectedRoutineID: $selectedRoutineID
+                        )
                     }
-
-                   
-                    NavigationLink(destination: SeedStatusView(state: .notPlanted)) {
-                        Text("다음")
-                    }
-                    .plantPrimaryButton()
                     
-                    .padding(.top, 20)
+                    if let selectedID = selectedRoutineID,
+                       sampleCategories
+                        .flatMap({ $0.routines })
+                        .first(where: { $0.id == selectedID }) != nil {
+                        
+                        
+                        NavigationLink(destination: SeedStatusView(state: .notPlanted)) {
+                            Text("다음")
+                        }
+                        .plantPrimaryButton()
+                        .padding(.top, 20)
+                    }
                 }
                 .padding()
             }
