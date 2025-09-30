@@ -54,16 +54,8 @@ struct SignUpView: View {
         }
         .padding(.horizontal)
         
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 16) {
-                ForEach(Mate.allCases) { mate in
-                    Image(mate.rawValue)
-                        .mateStyle()
-                        .onTapGesture { signUpViewModel.selectedMate = mate }
-                }
-            }
-        }
-        .padding(.bottom, 16)
+        MateView(selectedMate: $signUpViewModel.selectedMate)
+            .padding(.bottom, 16)
         
         Button(action: {
         }) {
