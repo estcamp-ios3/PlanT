@@ -12,11 +12,6 @@ struct LoginView: View {
     @State private var isPresentingSignUp = false
     @State private var isLoggedIn = false
 
-    // ✅ 유효성 검사
-    private var isLoginValid: Bool {
-        userAuthModel.email.count >= 4 && userAuthModel.password.count >= 4
-    }
-
     var body: some View {
         VStack(spacing: 0) {
             Image("PlanTLogo")
@@ -40,7 +35,6 @@ struct LoginView: View {
                     Text("로그인")
                 }
                 .plantPrimaryButton()
-                .disabled(!isLoginValid)
 
                 // 회원가입 버튼
                 Button {
