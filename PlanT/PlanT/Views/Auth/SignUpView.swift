@@ -21,47 +21,35 @@ struct SignUpView: View {
         
         VStack {
             Text("User Name")
-                .font(.system(size: 22, weight: .bold))
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .signUpLabelStyle()
                 .padding(.top, 4)
-                .padding(.leading, 8)
             TextField("이름을 입력하세요", text: $userAuthModel.userName)
                 .authTextFieldStyle(.signUp)
             
             Text("Nick Name")
-                .font(.system(size: 22, weight: .bold))
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.leading, 8)
+                .signUpLabelStyle()
             TextField("닉네임을 입력하세요", text: $userAuthModel.nickName)
                 .authTextFieldStyle(.signUp)
             
             Text("E-mail")
-                .font(.system(size: 22, weight: .bold))
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.leading, 8)
+                .signUpLabelStyle()
             TextField("로그인에 사용할 Email을 입력하세요", text: $userAuthModel.email)
                 .authTextFieldStyle(.signUp)
             
             Text("Password")
-                .font(.system(size: 22, weight: .bold))
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.leading, 8)
+                .signUpLabelStyle()
             SecureField("비밀번호를 입력하세요", text: $userAuthModel.password)
                 .authTextFieldStyle(.signUp)
             
             Text("Password Confirm")
-                .font(.system(size: 22, weight: .bold))
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.leading, 8)
+                .signUpLabelStyle()
             SecureField("입력한 비밀번호를 확인합니다", text: $userAuthModel.password)
                 .authTextFieldStyle(.signUp)
         }
         .padding(.horizontal)
         VStack {
             Text("Selected Mate")
-                .font(.system(size: 22, weight: .bold))
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.leading, 8)
+                .signUpLabelStyle()
         }
         .padding(.horizontal)
         

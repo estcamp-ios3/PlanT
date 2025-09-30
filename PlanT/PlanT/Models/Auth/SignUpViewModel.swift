@@ -9,6 +9,22 @@ import Foundation
 import Combine
 import SwiftUI
 
+// 텍스트 모디파이어
+struct SignUpLabelModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .font(.system(size: 22, weight: .bold))
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.leading, 8)
+    }
+}
+
+extension View {
+    func signUpLabelStyle() -> some View {
+        self.modifier(SignUpLabelModifier())
+    }
+}
+
 // Mate 모디파이어
 struct MateImageModifier: ViewModifier {
     var size: CGFloat = 100
