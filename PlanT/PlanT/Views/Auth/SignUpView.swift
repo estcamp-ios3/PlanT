@@ -27,61 +27,68 @@ struct SignUpView: View {
     }
     
     var body: some View {
-        VStack {
-            Text("무엇부터 시작해야 할지 모르겠다면,\n'PlanT'와 함께.🌱")
-                .font(.title2)
-                .bold()
-                .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        .padding(.top, 16)
-        .padding(.leading, 16)
-        
-        VStack {
-            Text("User Name")
-                .signUpLabelStyle()
-                .padding(.top, 4)
-            TextField("이름을 입력하세요", text: $userAuthModel.userName)
-                .authTextFieldStyle(.signUp)
+        ScrollView {
+            VStack {
+                Text("무엇부터 시작해야 할지 모르겠다면,\n'PlanT'와 함께.🌱")
+                    .font(.title2)
+                    .bold()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .padding(.top, 16)
+            .padding(.leading, 16)
             
-            Text("Nick Name")
-                .signUpLabelStyle()
-            TextField("닉네임을 입력하세요", text: $userAuthModel.nickName)
-                .authTextFieldStyle(.signUp)
+            VStack {
+                Text("User Name")
+                    .signUpLabelStyle()
+                    .padding(.top, 4)
+                TextField("이름을 입력하세요", text: $userAuthModel.userName)
+                    .authTextFieldStyle(.signUp)
+                
+                Text("Nick Name")
+                    .signUpLabelStyle()
+                    .padding(.top, 12)
+                TextField("닉네임을 입력하세요", text: $userAuthModel.nickName)
+                    .authTextFieldStyle(.signUp)
+                
+                Text("E-mail")
+                    .signUpLabelStyle()
+                    .padding(.top, 12)
+                TextField("로그인에 사용할 Email을 입력하세요", text: $userAuthModel.email)
+                    .authTextFieldStyle(.signUp)
+                
+                Text("Password")
+                    .signUpLabelStyle()
+                    .padding(.top, 12)
+                SecureField("비밀번호를 입력하세요", text: $userAuthModel.password)
+                    .authTextFieldStyle(.signUp)
+                
+                Text("Password Confirm")
+                    .signUpLabelStyle()
+                    .padding(.top, 12)
+                SecureField("입력한 비밀번호를 확인합니다", text: $userAuthModel.passwordConfirm)
+                    .authTextFieldStyle(.signUp)
+            }
+            .padding(.horizontal)
+            VStack {
+                Text("Selected Mate")
+                    .padding(.top, 12)
+                    .signUpLabelStyle()
+            }
+            .padding(.horizontal)
             
-            Text("E-mail")
-                .signUpLabelStyle()
-            TextField("로그인에 사용할 Email을 입력하세요", text: $userAuthModel.email)
-                .authTextFieldStyle(.signUp)
+            MateView(selectedMate: $signUpViewModel.selectedMate)
+                .padding(.bottom, 16)
             
-            Text("Password")
-                .signUpLabelStyle()
-            SecureField("비밀번호를 입력하세요", text: $userAuthModel.password)
-                .authTextFieldStyle(.signUp)
-            
-            Text("Password Confirm")
-                .signUpLabelStyle()
-            SecureField("입력한 비밀번호를 확인합니다", text: $userAuthModel.passwordConfirm)
-                .authTextFieldStyle(.signUp)
+            Button {
+                // TODO: 실제 회원가입 처리 로직 넣기
+                dismiss()   // 모달 닫기
+            } label: {
+                Text("회원가입")
+            }
+            .plantPrimaryButton()
+            .padding(.horizontal, 16)
+            .disabled(!isSignUpValid)
         }
-        .padding(.horizontal)
-        VStack {
-            Text("Selected Mate")
-                .signUpLabelStyle()
-        }
-        .padding(.horizontal)
-        
-        MateView(selectedMate: $signUpViewModel.selectedMate)
-            .padding(.bottom, 16)
-        
-        Button {
-            // TODO: 실제 회원가입 처리 로직 넣기
-            dismiss()   // 모달 닫기
-        } label: {
-            Text("회원가입")
-        }
-        .plantPrimaryButton()
-        .padding(.horizontal, 16)
-        .disabled(!isSignUpValid)
     }
 }
 #Preview {
