@@ -84,9 +84,9 @@ private struct StatItem: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(label)
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.system(size: 12, weight: .semibold))
                     .lineLimit(1)
-                    .minimumScaleFactor(0.9)
+                    .minimumScaleFactor(0.8)
 
                 Text(value.formatted(.number.grouping(.automatic)))
                     .font(.system(size: 20, weight: .bold))
