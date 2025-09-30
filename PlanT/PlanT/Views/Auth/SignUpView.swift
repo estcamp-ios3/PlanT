@@ -8,13 +8,29 @@
 import SwiftUI
 
 struct SignUpView: View {
-    @State private var userAuthModel = UserAuthModel()
-    @State private var signUpViewModel = SignUpViewModel()
+    @StateObject private var userAuthModel = UserAuthModel()
+    @StateObject private var signUpViewModel = SignUpViewModel()
+    @Environment(\.dismiss) private var dismiss   // ✅ 모달 닫기용
+    
+    // ✅ 유효성 검사
+    private var isSignUpValid: Bool {
+        print("UserName:", userAuthModel.userName.count)
+        print("NickName:", userAuthModel.nickName.count)
+        print("Email:", userAuthModel.email.count)
+        print("Password:", userAuthModel.password)
+        print("Confirm:", userAuthModel.passwordConfirm)
+        return userAuthModel.userName.count >= 2 &&
+               userAuthModel.nickName.count >= 1 &&
+               userAuthModel.email.count >= 4 &&
+               userAuthModel.password.count >= 4 &&
+               userAuthModel.passwordConfirm == userAuthModel.password
+    }
     
     var body: some View {
         VStack {
             Text("무엇부터 시작해야 할지 모르겠다면,\n'PlanT'와 함께.🌱")
-                .font(.system(size: 22, weight: .bold))
+                .font(.title2)
+                .bold()
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(.top, 16)
@@ -54,23 +70,18 @@ struct SignUpView: View {
         }
         .padding(.horizontal)
         
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 16) {
-                ForEach(Mate.allCases) { mate in
-                    Image(mate.rawValue)
-                        .mateStyle()
-                        .onTapGesture { signUpViewModel.selectedMate = mate }
-                }
-            }
-        }
-        .padding(.bottom, 16)
+        MateView(selectedMate: $signUpViewModel.selectedMate)
+            .padding(.bottom, 16)
         
-        Button(action: {
-        }) {
+        Button {
+            // TODO: 실제 회원가입 처리 로직 넣기
+            dismiss()   // 모달 닫기
+        } label: {
             Text("회원가입")
         }
         .plantPrimaryButton()
         .padding(.horizontal, 16)
+        .disabled(!isSignUpValid)
     }
 }
 #Preview {

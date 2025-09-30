@@ -11,7 +11,8 @@ import SwiftUI
 struct SignUpLabelModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
-            .font(.system(size: 22, weight: .bold))
+            .font(.headline)
+            .bold()
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.leading, 8)
     }
