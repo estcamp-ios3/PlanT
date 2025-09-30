@@ -55,19 +55,19 @@ struct MypagePlantsCardView: View {
                 // 커스텀 프로그레스바
                 PlantProgressBar(progress: progress)
 
-                // 메이트 코멘트
-                HStack(alignment: .top, spacing: 10) {
+                // 메이트/코멘트
+                HStack(alignment: .top, spacing: 8) {
                     Image(mateImageName)
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 26, height: 26)
-                        .padding(.leading, 2)
+                        .frame(width: 40, height: 40)
 
                     Text(mateComent)
-                        .font(.system(size: 15, weight: .semibold))
+                        .font(.system(size: 16, weight: .semibold))
+                        .padding(.top, 8) // 케릭터와 높이 맞추기용
                         .foregroundColor(.gray)
                         .lineLimit(2)
-                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxHeight: .infinity, alignment: .center) // 2줄 되니까 위치가 틀어짐..
                 }
                 .padding(.top, 4)
             }
