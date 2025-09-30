@@ -64,10 +64,9 @@ struct MypagePlantsCardView: View {
 
                     Text(mateComent)
                         .font(.system(size: 16, weight: .semibold))
-                        .padding(.top, 8) // 케릭터와 높이 맞추기용
                         .foregroundColor(.gray)
                         .lineLimit(2)
-                        .frame(maxHeight: .infinity, alignment: .center) // 2줄 되니까 위치가 틀어짐..
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 .padding(.top, 4)
             }
