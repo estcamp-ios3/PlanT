@@ -9,6 +9,7 @@ import SwiftUI
 
 struct SignUpView: View {
     @State private var userAuthModel = UserAuthModel()
+    @State private var signUpViewModel = SignUpViewModel()
     
     var body: some View {
         VStack {
@@ -43,7 +44,7 @@ struct SignUpView: View {
             
             Text("Password Confirm")
                 .signUpLabelStyle()
-            SecureField("입력한 비밀번호를 확인합니다", text: $userAuthModel.password)
+            SecureField("입력한 비밀번호를 확인합니다", text: $userAuthModel.passwordConfirm)
                 .authTextFieldStyle(.signUp)
         }
         .padding(.horizontal)
@@ -55,23 +56,11 @@ struct SignUpView: View {
         
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 16) {
-                Image("MrGrrr")
-                    .mateStyle()
-                
-                Image("MrNibble")
-                    .mateStyle()
-                
-                Image("MrPurr")
-                    .mateStyle()
-                
-                Image("MrBarky")
-                    .mateStyle()
-                
-                Image("MrZippy")
-                    .mateStyle()
-                
-                Image("MrWooly")
-                    .mateStyle()
+                ForEach(Mate.allCases) { mate in
+                    Image(mate.rawValue)
+                        .mateStyle()
+                        .onTapGesture { signUpViewModel.selectedMate = mate }
+                }
             }
         }
         .padding(.bottom, 16)
