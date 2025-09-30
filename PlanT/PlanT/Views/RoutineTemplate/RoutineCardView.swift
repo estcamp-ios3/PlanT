@@ -11,9 +11,9 @@ struct RoutineCardView: View {
     let routine: Routine
     let category: RoutineCategory
     @Binding var isSelected: Bool
+    let onSelect: () -> Void
 
     var body: some View {
-        
         VStack(alignment: .leading, spacing: 4) {
             Text(routine.title)
                 .font(.headline)
@@ -45,15 +45,12 @@ struct RoutineCardView: View {
                 .stroke(isSelected ? Color.orange : Color.gray, lineWidth:1)
         )
         .shadow(radius: 1)
+        .onTapGesture {
+            onSelect()
+        }
     }
 }
 
 
-#Preview {
-    RoutineCardView(
-        routine: sampleCategories[0].routines[0],
-        category: sampleCategories[0],
-        isSelected: .constant(false)
-    )
-}
+
 
