@@ -9,6 +9,7 @@ import SwiftUI
 
 struct SeedStatusView: View {
     let state: SeedStatus
+    @State private var showSeedSelection = false
     
     var body: some View {
         NavigationStack {
@@ -30,7 +31,9 @@ struct SeedStatusView: View {
                     .padding(.bottom, 12)
                 
                 // 아래 버튼
-                NavigationLink(destination: SeedSelectionView()) {
+                Button {
+                    showSeedSelection = true
+                } label: {
                     Text("씨앗선택하기")
                 }
                 .plantPrimaryButton()
@@ -40,6 +43,9 @@ struct SeedStatusView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color.white)
+            .sheet(isPresented: $showSeedSelection) {
+                SeedSelectionView()
+            }
         }
     }
     

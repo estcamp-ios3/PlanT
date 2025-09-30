@@ -23,12 +23,10 @@ struct RoutineDetailView: View {
     
     var body: some View {
         VStack(spacing: 16) {
-            
             Text("루틴 상세히보기")
                 .font(.title3)
                 .bold()
                 .padding(.top, 12)
-            
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
                     
@@ -49,7 +47,7 @@ struct RoutineDetailView: View {
                                 .font(.subheadline).bold()
                             Spacer()
                             Toggle("", isOn: $useDate)
-                                .labelsHidden()
+                                .labelsHidden() 
                         }
                         
                         if useDate {
@@ -142,21 +140,16 @@ struct RoutineDetailView: View {
                     HStack(spacing: 16) {
                         Button(action: { print("삭제") }) {
                             Text("삭제")
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.gray.opacity(0.3))
-                                .foregroundColor(.red)
-                                .cornerRadius(12)
+                                
                         }
+                        .plantSecondaryButton()
+
                         
                         Button(action: { print("수정") }) {
                             Text("수정")
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.green)
-                                .foregroundColor(.white)
-                                .cornerRadius(12)
                         }
+                        .plantPrimaryButton()
+                        
                     }
                 }
                 .padding(.horizontal)

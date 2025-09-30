@@ -26,9 +26,10 @@ struct SeedSelectionView: View {
     
     
     var body: some View {
-        ZStack(alignment: .topTrailing) {
+        NavigationStack {
             
-            NavigationStack {
+            ZStack(alignment: .topTrailing) {
+                
                 
                 ScrollView {
                     
@@ -103,14 +104,15 @@ struct SeedSelectionView: View {
                         }
                     }
                 }
-            }
-            Button{
-                dismiss()
-            } label: {
-                Text("닫기")
-                    .font(.title)
-                    .foregroundColor(.gray)
-                    .padding()
+                
+                Button{
+                    dismiss()
+                } label: {
+                    Text("닫기")
+                        .font(.title)
+                        .foregroundColor(.gray)
+                        .padding()
+                }
             }
         }
     }
