@@ -14,7 +14,7 @@ struct Seed: Equatable {
 
 struct SeedSelectionView: View {
     @Environment(\.dismiss) private var dismiss
-    @State private var selectedSeed: Seed?
+    @Binding var selectedSeed: Seed?
     
     let allSeeds: [Seed?] = [
         Seed(name: "사과", imageName: "seed_Apple01"),
@@ -23,7 +23,6 @@ struct SeedSelectionView: View {
         nil, nil, nil,
         nil, nil, nil,
     ]
-    
     
     var body: some View {
         ZStack(alignment: .topTrailing) {
@@ -80,15 +79,20 @@ struct SeedSelectionView: View {
                     
                     Spacer()
                     if let seed = selectedSeed {
-                        NavigationLink(destination: SeedRegisterView(selectedSeed: seed)) {
+                        
+                        Button {
+                            dismiss()
+                            
+                        } label: {
                             Text("'\(seed.name)' 선택완료")
+                            
                         }
                         .plantPrimaryButton()
                         .padding(.horizontal, 20)
                         .padding(.bottom, 16)
+                        
                     } else {
                         Button {
-                            
                         } label: {
                             Text("'선택씨앗' 선택완료")
                         }
@@ -108,11 +112,9 @@ struct SeedSelectionView: View {
                     .foregroundColor(.gray)
                     .padding()
             }
+            .zIndex(1)
         }
     }
 }
-#Preview {
-    SeedSelectionView()
-    
-}
+
 
