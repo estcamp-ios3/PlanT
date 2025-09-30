@@ -125,12 +125,7 @@ struct TodoListView: View {
 
             // "생성" 버튼
             Button("생성") {
-                if !newGroupTitle.isEmpty {
-                    let newGroup = ChecklistGroup(title: newGroupTitle, items: [])
-                    // 새 그룹을 배열의 맨 앞에 추가하여 바로 보이게 함
-                    checklistGroups.insert(newGroup, at: 0)
-                    newGroupTitle = ""
-                }
+                // onChange 대체
             }
             .disabled(newGroupTitle.isEmpty)
 
@@ -141,6 +136,18 @@ struct TodoListView: View {
         } message: {
             // Alert의 부가 설명 메시지
             Text("새로운 할 일 그룹의 이름을 입력해주세요.")
+        }
+        .onChange(of: isShowingAddGroupAlert) { newValue in
+            // alert가 닫힐 때 (isShowingAddGroupAlert가 false가 될 때)
+            if !newValue {
+                // 그리고 newGroupTitle에 텍스트가 있을 때 (생성 버튼을 눌렀을 때)
+                if !newGroupTitle.isEmpty {
+                    let newGroup = ChecklistGroup(title: newGroupTitle, items: [])
+                    checklistGroups.insert(newGroup, at: 0)
+                }
+                // 작업이 끝났으니 텍스트 필드를 초기화합니다.
+                newGroupTitle = ""
+            }
         }
     }
 }
