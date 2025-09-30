@@ -75,52 +75,53 @@ let sampleCategories: [RoutineCategory] = [
 
 
 struct RoutineTemplateView: View {
-    
     let categories: [RoutineCategory]
     @State private var selectedRoutineID: UUID? = nil
     
     init(categories: [RoutineCategory]? = nil) {
-        #if DEBUG
+#if DEBUG
         self.categories = categories ?? sampleCategories
-        #else
+#else
         self.categories = categories ?? []
-        #endif
+#endif
     }
     
     var body: some View {
-        NavigationView {
-            ScrollView {
+        ScrollView {
+            VStack(spacing: 5) {
                 
-                VStack(spacing: 5) {
-                    ForEach(sampleCategories) { category in
-                        RoutineCategorySectionView(
-                            category: category,
-                            selectedRoutineID: $selectedRoutineID
-                        )
-                    }
-                    
-                    if let selectedID = selectedRoutineID,
-                       sampleCategories
-                        .flatMap({ $0.routines })
-                        .first(where: { $0.id == selectedID }) != nil {
-                        
-                        
-                        NavigationLink(destination: SeedStatusView(state: .notPlanted)) {
-                            Text("다음")
-                        }
-                        .plantPrimaryButton()
-                        .padding(.top, 20)
-                    }
+                ForEach(sampleCategories) { category in
+                    RoutineCategorySectionView(
+                        category: category,
+                        selectedRoutineID: $selectedRoutineID
+                    )
                 }
-                .padding()
+                
+                if let id = selectedRoutineID {
+                    NavigationLink(value: id) {
+                        Text("다음")
+                    }
+                    .plantPrimaryButton()
+                    .padding(.top, 20)
+                } else {
+                    Button { /* action */
+                    } label: {
+                        Text("다음")
+                    }
+                    .plantPrimaryButton()
+                    .padding(.top, 20)
+                    .disabled(true)
+                }
             }
-            .navigationTitle("루틴 템플릿 선택")
+            .padding()
+        }
+        .navigationTitle("루틴 템플릿 선택")
+        .navigationDestination(for: UUID.self) { id in
+            SeedStatusView(state: .notPlanted)
         }
     }
 }
 
 
-#Preview {
-    RoutineTemplateView()
-}
+
 
