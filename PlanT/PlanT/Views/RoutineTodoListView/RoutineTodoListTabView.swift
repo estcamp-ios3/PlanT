@@ -39,10 +39,12 @@ struct RoutineTodoListTabView: View {
             if selected == .routine {
                 RoutineListView()
             } else {
-                List(todos, id: \.self) { item in
-                    Text("item")
-                }
-                .listStyle(.insetGrouped)
+                TodoListView()
+                    .listStyle(.insetGrouped)
+//                List(todos, id: \.self) { item in
+//                    Text("item")
+//                }
+//                .listStyle(.insetGrouped)
             }
         }
     }
