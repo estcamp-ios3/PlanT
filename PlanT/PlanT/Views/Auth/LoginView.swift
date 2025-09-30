@@ -10,6 +10,12 @@ import SwiftUI
 struct LoginView: View {
     @StateObject private var userAuthModel = UserAuthModel()
     @State private var isPresentingSignUp = false
+    @State private var isLoggedIn = false
+
+    // ✅ 유효성 검사
+    private var isLoginValid: Bool {
+        userAuthModel.email.count >= 4 && userAuthModel.password.count >= 4
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -27,13 +33,16 @@ struct LoginView: View {
                 SecureField("PW", text: $userAuthModel.password)
                     .authTextFieldStyle(.signIn)
 
+                // 로그인 버튼
                 Button {
-                    // 로그인 액션
+                    isLoggedIn = true // 로그인 성공시(파이어베이스 나중에 연결)
                 } label: {
                     Text("로그인")
                 }
                 .plantPrimaryButton()
+                .disabled(!isLoginValid)
 
+                // 회원가입 버튼
                 Button {
                     isPresentingSignUp = true
                 } label: {
@@ -47,6 +56,9 @@ struct LoginView: View {
                 }
             }
             .padding(.horizontal, 24)
+        }
+        .fullScreenCover(isPresented: $isLoggedIn) {
+            ContentView()
         }
     }
 }
