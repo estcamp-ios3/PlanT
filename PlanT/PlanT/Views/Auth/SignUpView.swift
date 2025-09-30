@@ -34,7 +34,6 @@ struct SignUpView: View {
                     .bold()
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .padding(.top, 16)
             .padding(.leading, 16)
             
             VStack {
@@ -89,6 +88,7 @@ struct SignUpView: View {
             .padding(.horizontal, 16)
             .disabled(!isSignUpValid)
         }
+        .padding(.top, 40)
     }
 }
 #Preview {
