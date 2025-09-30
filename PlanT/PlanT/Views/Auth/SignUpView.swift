@@ -29,7 +29,8 @@ struct SignUpView: View {
     var body: some View {
         VStack {
             Text("무엇부터 시작해야 할지 모르겠다면,\n'PlanT'와 함께.🌱")
-                .font(.system(size: 22, weight: .bold))
+                .font(.title2)
+                .bold()
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(.top, 16)
