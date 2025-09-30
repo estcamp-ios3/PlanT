@@ -13,6 +13,7 @@ private let gray100 = Color("Gray100")
 struct RoutineListView: View {
     @State private var showFabMenu = false
     @State private var path = NavigationPath()
+    @State private var refreshToken = UUID()
 
     private enum Route: Hashable {
         case plantAssistant
@@ -29,6 +30,7 @@ struct RoutineListView: View {
                         .fontWeight(.bold)
                     Text("여기에 루틴이 추가됩니다.")
                 }
+                .id(refreshToken)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .init(horizontal: .leading, vertical: .top))
 
             }
@@ -86,10 +88,14 @@ struct RoutineListView: View {
                     .ignoresSafeArea(.keyboard)
                 }
             }
+            .onReceive(NotificationCenter.default.publisher(for: .routineCreated)) { _ in
+                // TODO: 여기에 실제 네트워크/DB 갱신 호출(ex: store.reload()) 넣어도 됨
+                refreshToken = UUID()
+            }
             .navigationDestination(for: Route.self) { route in
                 switch route {
                 case .plantAssistant:
-                    RoutineResearchView()
+                    RoutineSurveyView()
                 case .recommendedTemplates:
                     RoutineTemplateView()
                 case .manualCreate:
