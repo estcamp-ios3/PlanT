@@ -13,7 +13,7 @@ struct LoginView: View {
     @State private var isLoggedIn = false
     @State private var keyboardHeight: CGFloat = 0
     @State private var isKeyboardVisible: Bool = false
-    @State private var lockedKeyboardHeight: CGFloat = 0 // ✅ 최초 키보드 높이 고정용
+    @State private var lockedKeyboardHeight: CGFloat = 0
     
     var body: some View {
         VStack(spacing: 0) {
@@ -33,7 +33,7 @@ struct LoginView: View {
                 
                 // 로그인 버튼
                 Button {
-                    isLoggedIn = true // 로그인 성공시(파이어베이스 나중에 연결)
+                    isLoggedIn = true // 로그인 성공시(supabase 나중에 연결)
                 } label: {
                     Text("로그인")
                 }
@@ -80,7 +80,7 @@ struct LoginView: View {
             let bottomInset = Self.keyWindow()?.safeAreaInsets.bottom ?? 0
             let height = max(0, frame.height - bottomInset)
 
-            // ⬇️ 이미 키보드가 올라와 있으면 무시 (떨림 방지) 가 일단 안됨
+            // ⬇️ 이미 키보드가 올라와 있으면 무시 (떨림 방지) 가 일단 안됨 *차후 수정 예정
             if isKeyboardVisible { return }
 
             lockedKeyboardHeight = height
