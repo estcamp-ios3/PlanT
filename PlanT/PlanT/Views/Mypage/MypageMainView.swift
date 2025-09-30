@@ -22,6 +22,9 @@ struct MypageMainView: View {
                     onTapSettings: { print("설정 탭") }
                 )
             )
+            
+            MypagePlantsCardView()
+            
         }
         .padding()
         .background(Color.white)
