@@ -1,56 +1,66 @@
 //
-//  RoutinCardView.swift
+//  RoutineCardView.swift
 //  PlanT
 //
 //  Created by 박성관 on 9/29/25.
 //
 
-import SwiftUI
+import SwiftUI   // SwiftUI 라이브러리를 불러와서 화면(UI)을 만들 수 있게 함
 
+// MARK: - 루틴 카드 뷰 (하나의 루틴을 카드 형태로 보여주는 화면 조각)
 struct RoutineCardView: View {
-    let routine: Routine
-    let category: RoutineCategory
-    @Binding var isSelected: Bool
-    let onSelect: () -> Void
-
+    let routine: Routine                // 루틴 데이터 (제목, 기간, 알림 같은 정보)
+    let category: RoutineCategory       // 루틴이 속한 카테고리 정보
+    @Binding var isSelected: Bool       // 카드가 선택되었는지 여부 (부모 뷰에서 값 연결)
+    let onSelect: () -> Void            // 카드가 눌렸을 때 실행할 동작(콜백 함수)
+    
     var body: some View {
+        // 전체 카드 UI
         VStack(alignment: .leading, spacing: 4) {
+            
+            // 루틴 제목 표시 (가장 위에 큰 글씨)
             Text(routine.title)
                 .font(.headline)
             
+            // 제목 밑에 나오는 상세 정보 (카테고리, 목표, 기간, 알림설정)
             HStack {
-                VStack(alignment: .leading) {
-                    
+                
+                // 왼쪽 영역: 카테고리 + 목표
+                VStack(alignment: .leading, spacing: 4) {
                     Text("카테고리: \(category.title)")
                     
+                    // 목표가 비어있지 않으면 보여줌
                     if !routine.detail.goal.isEmpty {
                         Text("목표: \(routine.detail.goal)")
-                            .font(.subheadline)
                     }
                 }
-                Spacer()
-                    VStack(alignment: .leading) {
-                        Text("기간: \(routine.detail.duration)")
-                        
-                        Text("알림설정: \(routine.detail.alarm.rawValue)")
-                    }
-                Spacer()
+                
+                Spacer() 
+                
+                // 오른쪽 영역: 기간 + 알림설정
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("기간: \(routine.detail.duration)") // 루틴 기간
+                    
+                    Text("알림설정: \(routine.detail.alarm.rawValue)") // 알림 설정 값
+                }
+                
+                Spacer() // 오른쪽 영역 끝에도 공간 추가 (양쪽 균형 맞춤)
             }
         }
         .padding()
         .background(Color.white)
         .cornerRadius(10)
         .overlay(
+            // 카드 테두리
             RoundedRectangle(cornerRadius: 10)
                 .stroke(isSelected ? Color.orange : Color.gray, lineWidth:1)
+            // 선택되면 주황색 테두리, 아니면 회색 테두리
         )
         .shadow(radius: 1)
         .onTapGesture {
+            // 사용자가 카드를 눌렀을 때 실행
             onSelect()
         }
     }
 }
-
-
-
 

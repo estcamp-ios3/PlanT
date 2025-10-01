@@ -2,35 +2,44 @@
 //  RoutineTemplateView.swift
 //  PlanT
 //
-//  Created by Gwanoove on 9/29/25.
+//  Created by 박성관 on 9/29/25.
 //
 import Foundation
 import SwiftUI
 
+// MARK: - 알람 주기 정의
+// 루틴 알림의 주기 단위 (문자열로 표현)
 enum AlarmCycle: String {
     case every24Hours = "24시간 마다"
     case every48Hours = "48시간 마다"
 }
 
+// MARK: - 루틴 세부 정보 모델
+// 루틴의 구체적인 속성(기간, 목표, 알림 설정)
 struct RoutineDetail {
-    let duration: String
-    let goal: String
-    let alarm: AlarmCycle
+    let duration: String   // 루틴 기간
+    let goal: String       // 루틴 목표
+    let alarm: AlarmCycle  // 알림 주기
 }
 
+// MARK: - 루틴 모델
+// 개별 루틴 하나를 표현하는 데이터
 struct Routine: Identifiable {
-    let id = UUID()
-    let title: String
-    let detail: RoutineDetail
+    let id = UUID()             // 루틴 고유 식별자
+    let title: String           // 루틴 제목
+    let detail: RoutineDetail   // 루틴 상세 정보
 }
 
+// MARK: - 루틴 카테고리 모델
+// 루틴들을 카테고리별로 그룹화
 struct RoutineCategory: Identifiable {
-    let id = UUID()
-    let emoji: String
-    let title: String
-    let routines: [Routine]
+    let id = UUID()               // 카테고리 고유 식별자
+    let emoji: String             // 카테고리 이모지 아이콘
+    let title: String             // 카테고리 이름
+    let routines: [Routine]       // 카테고리에 포함된 루틴 리스트
 }
 
+// MARK: - 샘플 데이터 (DEBUG 전용)
 let sampleCategories: [RoutineCategory] = [
     RoutineCategory(
         emoji: "🌱",
@@ -72,12 +81,16 @@ let sampleCategories: [RoutineCategory] = [
     )
 ]
 
-
-
+// MARK: - 루틴 템플릿 선택 화면
+// 여러 루틴 카테고리를 카드 리스트 형태로 표시하고,
+// 루틴을 선택할 수 있는 화면
 struct RoutineTemplateView: View {
-    let categories: [RoutineCategory]
-    @State private var selectedRoutineID: UUID? = nil
+    let categories: [RoutineCategory]     // 표시할 루틴 카테고리 목록
+    @State private var selectedRoutineID: UUID? = nil // 현재 선택된 루틴 ID (없으면 nil)
     
+    // 초기화 시점에 전달받은 categories가 없으면
+    // DEBUG 빌드일 때는 sampleCategories를 기본값으로 사용
+    // RELEASE 빌드일 때는 빈 배열 사용
     init(categories: [RoutineCategory]? = nil) {
 #if DEBUG
         self.categories = categories ?? sampleCategories
@@ -90,6 +103,7 @@ struct RoutineTemplateView: View {
         ScrollView {
             VStack(spacing: 5) {
                 
+                // 카테고리 단위 섹션을 반복 렌더링
                 ForEach(sampleCategories) { category in
                     RoutineCategorySectionView(
                         category: category,
@@ -97,15 +111,18 @@ struct RoutineTemplateView: View {
                     )
                 }
                 
+                // 루틴이 선택된 경우
                 if let id = selectedRoutineID {
+                    // NavigationLink를 통해 다음 화면으로 이동 가능
                     NavigationLink(value: id) {
                         Text("다음")
                     }
                     .plantPrimaryButton()
                     .padding(.top, 20)
+                    
+                // 루틴이 선택되지 않은 경우
                 } else {
-                    Button { /* action */
-                    } label: {
+                    Button { /* action 없음 */ } label: {
                         Text("다음")
                     }
                     .plantPrimaryButton()
@@ -113,15 +130,16 @@ struct RoutineTemplateView: View {
                     .disabled(true)
                 }
             }
-            .padding()
+            .padding() 
         }
+        // 내비게이션 타이틀
         .navigationTitle("루틴 템플릿 선택")
+        
+        // NavigationLink와 함께 사용되는 navigationDestination
+        // selectedRoutineID(UUID)가 전달되면 해당 ID를 바인딩으로 SeedStatusView 화면으로 이동
         .navigationDestination(for: UUID.self) { id in
             SeedStatusView(state: .notPlanted)
         }
     }
 }
-
-
-
 

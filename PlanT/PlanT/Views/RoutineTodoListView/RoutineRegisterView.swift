@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct RoutineDetailView: View {
+struct RoutineRegisterView: View {
     enum DateMode {
         case endDate, allDay
     }
@@ -191,6 +191,6 @@ struct RadioButton: View {
 }
 
 #Preview {
-    RoutineDetailView()
+    RoutineRegisterView()
 }
 
