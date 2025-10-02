@@ -11,9 +11,14 @@ struct LoginView: View {
     @StateObject private var userAuthModel = UserAuthModel()
     @State private var isPresentingSignUp = false
     @State private var isLoggedIn = false
+    
     @State private var keyboardHeight: CGFloat = 0
     @State private var isKeyboardVisible: Bool = false
     @State private var lockedKeyboardHeight: CGFloat = 0
+    
+    // ✅ FocusState: 로그인 필드 체인
+        private enum Field: Hashable { case id, pw }
+        @FocusState private var focus: Field?
     
     var body: some View {
         Group {
@@ -33,9 +38,11 @@ struct LoginView: View {
                     VStack(spacing: 16) {
                         TextField("ID", text: $userAuthModel.email)
                             .authTextFieldStyle(.signIn)
+                            .focusRoute($focus, equals: .id, submit: .next, next: .pw)
                         
                         SecureField("PW", text: $userAuthModel.password)
                             .authTextFieldStyle(.signIn)
+                            .focusRoute($focus, equals: .pw, submit: .go, next: nil)
                         
                         // 로그인 버튼
                         Button {
@@ -63,12 +70,11 @@ struct LoginView: View {
                     .padding(.horizontal, 24)
                     .padding(.bottom, keyboardHeight)
                 }
-                .ignoresSafeArea(.keyboard, edges: .bottom)
-                .onAppear { observeKeyboard() }
-                .onDisappear { removeKeyboardObserver() }
-            }
-        }
-    }
+                                .ignoresSafeArea(.keyboard, edges: .bottom)
+                                .onDisappear { removeKeyboardObserver() }
+                            }
+                        }
+                    }
     
     
     // MARK: - Keyboard 옵저버
