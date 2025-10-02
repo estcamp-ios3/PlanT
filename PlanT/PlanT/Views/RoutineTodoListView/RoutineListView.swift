@@ -14,34 +14,83 @@ struct RoutineListView: View {
     @State private var showFabMenu = false
     @State private var path = NavigationPath()
     @State private var refreshToken = UUID()
-
+    @State private var selectedRoutineIDs: Set<UUID> = []
+    @EnvironmentObject var store: RoutineStore
+    
+    
     private enum Route: Hashable {
         case plantAssistant
         case recommendedTemplates
         case manualCreate
     }
 
-    var body: some View {
-        NavigationStack(path: $path) {
-            ScrollView {
-                VStack(spacing: vertical5) {
-                    Text("Routine List")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                    Text("여기에 루틴이 추가됩니다.")
-                }
-                .id(refreshToken)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .init(horizontal: .leading, vertical: .top))
-
+    /// Helper to look up the category for a routine, or return a default category
+    private func category(for routine: Routine) -> RoutineCategory {
+        // This uses sampleCategories, but ideally you should get categories from your store
+        for category in sampleCategories {
+            if category.routines.contains(where: { $0.id == routine.id }) {
+                return category
             }
-            .padding(20)
+        }
+        // Fallback: just return the first
+        return sampleCategories.first!
+    }
+
+    var body: some View {
+        
+        NavigationStack(path: $path) {
+            
+            ScrollView {
+                VStack(spacing: 12) {
+                    if store.routines.isEmpty {
+                        Text("여기에 루틴이 추가됩니다.")
+                            .foregroundColor(.gray)
+                            .padding()
+                    } else {
+                        ForEach(store.routines) { routine in
+                            RoutineCardView(
+                                routine: routine,
+                                category: category(for: routine),
+                                isSelected: Binding(
+                                    get: { selectedRoutineIDs.contains(routine.id) },
+                                    set: { newValue in
+                                        if newValue {
+                                            selectedRoutineIDs.insert(routine.id)
+                                        } else {
+                                            selectedRoutineIDs.remove(routine.id)
+                                        }
+                                    }
+                                ),
+                                onSelect: {
+                                    if selectedRoutineIDs.contains(routine.id) {
+                                        selectedRoutineIDs.remove(routine.id)
+                                    } else {
+                                        selectedRoutineIDs.insert(routine.id)
+                                    }
+                                }
+                            )
+                            .contextMenu {
+                                Button(role: .destructive) {
+                                    store.deleteRoutine(routine)
+                                } label: {
+                                    Label("삭제하기", systemImage: "trash")
+                                }
+                            }
+                        }
+                    }
+                }
+                .padding()
+            }
             .overlay(alignment: .bottomTrailing) {
                 ZStack(alignment: .bottomTrailing) {
                     // 1) Tap-catcher to dismiss
-                    if showFabMenu {
+                    if showFabMenu {  
                         Color.black.opacity(0.001)
                             .ignoresSafeArea()
-                            .onTapGesture { withAnimation(.spring(response: 0.25, dampingFraction: 0.9)) { showFabMenu = false } }
+                            .onTapGesture {
+                                withAnimation(.spring(response: 0.25, dampingFraction: 0.9)) { showFabMenu = false
+                                }
+                            }
                     }
 
                     // 2) Popup menu
@@ -88,6 +137,7 @@ struct RoutineListView: View {
                     .ignoresSafeArea(.keyboard)
                 }
             }
+            
             .onReceive(NotificationCenter.default.publisher(for: .routineCreated)) { _ in
                 // TODO: 여기에 실제 네트워크/DB 갱신 호출(ex: store.reload()) 넣어도 됨
                 refreshToken = UUID()
@@ -108,5 +158,6 @@ struct RoutineListView: View {
 
 
 #Preview {
-    RoutineListView()
+    RoutineListView().environmentObject(RoutineStore())
 }
+

@@ -22,7 +22,7 @@ struct SeedSelectionView: View {
     // 전체 씨앗 리스트 (Seed? 배열로 구성하여 빈 칸 표현 가능)
     let allSeeds: [Seed?] = [
         Seed(name: "사과", imageName: "seed_Apple01"),
-        Seed(name: "목송아", imageName: "seed_Peach01"),
+        Seed(name: "복숭아", imageName: "seed_Peach01"),
         Seed(name: "해바라기", imageName: "seed_Sunflower01"),
         nil, nil, nil,
         nil, nil, nil,
@@ -36,7 +36,7 @@ struct SeedSelectionView: View {
                     Capsule()
                         .frame(width: 40, height: 3)
                         .foregroundColor(.gray.opacity(0.3))
-                        .padding(.top, 12)
+                        .padding(.top, 10)
                     
                     // 제목
                     Text("씨앗을 선택해 주세요")
@@ -59,13 +59,12 @@ struct SeedSelectionView: View {
                                 if let seed = seed {
                                     VStack(spacing: 4) {
                                         Spacer().frame(height: 4)
-                                        
                                         ZStack {
                                             // 씨앗 이미지
                                             Image(seed.imageName)
                                                 .resizable()
                                                 .scaledToFit()
-                                                .frame(width: 120, height: 120)
+                                                .frame(width: 110, height: 110)
                                             
                                             // 현재 선택된 씨앗이면 체크마크 표시
                                             if selectedSeed == seed {
@@ -78,7 +77,7 @@ struct SeedSelectionView: View {
                                         }
                                         // 씨앗 이름
                                         Text(seed.name)
-                                            .font(.caption)
+                                            .font(.title2)
                                     }
                                     // 카드 탭 시 해당 씨앗을 선택
                                     .onTapGesture {

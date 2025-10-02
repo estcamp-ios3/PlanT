@@ -16,19 +16,13 @@ enum AlarmCycle: String {
 
 // MARK: - 루틴 세부 정보 모델
 // 루틴의 구체적인 속성(기간, 목표, 알림 설정)
-struct RoutineDetail {
+struct RoutineDetail: Equatable {
     let duration: String   // 루틴 기간
     let goal: String       // 루틴 목표
     let alarm: AlarmCycle  // 알림 주기
 }
 
-// MARK: - 루틴 모델
-// 개별 루틴 하나를 표현하는 데이터
-struct Routine: Identifiable {
-    let id = UUID()             // 루틴 고유 식별자
-    let title: String           // 루틴 제목
-    let detail: RoutineDetail   // 루틴 상세 정보
-}
+
 
 // MARK: - 루틴 카테고리 모델
 // 루틴들을 카테고리별로 그룹화
@@ -120,7 +114,7 @@ struct RoutineTemplateView: View {
                     .plantPrimaryButton()
                     .padding(.top, 20)
                     
-                // 루틴이 선택되지 않은 경우
+                    // 루틴이 선택되지 않은 경우
                 } else {
                     Button { /* action 없음 */ } label: {
                         Text("다음")
@@ -130,7 +124,7 @@ struct RoutineTemplateView: View {
                     .disabled(true)
                 }
             }
-            .padding() 
+            .padding()
         }
         // 내비게이션 타이틀
         .navigationTitle("루틴 템플릿 선택")
@@ -138,7 +132,13 @@ struct RoutineTemplateView: View {
         // NavigationLink와 함께 사용되는 navigationDestination
         // selectedRoutineID(UUID)가 전달되면 해당 ID를 바인딩으로 SeedStatusView 화면으로 이동
         .navigationDestination(for: UUID.self) { id in
-            SeedStatusView(state: .notPlanted)
+            if let routine = sampleCategories
+                .flatMap({ $0.routines })
+                .first(where: { $0.id == id }) {
+                SeedStatusView(state: .planted(routine))
+            } else {
+                SeedStatusView(state: .notPlanted)
+            }
         }
     }
 }

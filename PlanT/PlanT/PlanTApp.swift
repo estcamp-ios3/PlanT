@@ -9,9 +9,12 @@ import SwiftUI
 
 @main
 struct PlanTApp: App {
+    @StateObject private var store = RoutineStore()
+    
     var body: some Scene {
         WindowGroup {
             LoginView()
+                .environmentObject(store)
         }
     }
 }
