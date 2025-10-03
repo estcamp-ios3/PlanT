@@ -11,35 +11,30 @@ private let brandIvory = Color("BrandSecondary")
 private let gray100 = Color("Gray100")
 
 struct RoutineListView: View {
+    @Binding var path: NavigationPath
     @State private var showFabMenu = false
-    @State private var path = NavigationPath()
     @State private var refreshToken = UUID()
     @State private var selectedRoutineIDs: Set<UUID> = []
     @EnvironmentObject var store: RoutineStore
     
     
-    private enum Route: Hashable {
+enum Route: Hashable {
         case plantAssistant
         case recommendedTemplates
         case manualCreate
+        case goToList
     }
 
-    /// Helper to look up the category for a routine, or return a default category
     private func category(for routine: Routine) -> RoutineCategory {
-        // This uses sampleCategories, but ideally you should get categories from your store
         for category in sampleCategories {
             if category.routines.contains(where: { $0.id == routine.id }) {
                 return category
             }
         }
-        // Fallback: just return the first
         return sampleCategories.first!
     }
 
     var body: some View {
-        
-        NavigationStack(path: $path) {
-            
             ScrollView {
                 VStack(spacing: 12) {
                     if store.routines.isEmpty {
@@ -121,8 +116,8 @@ struct RoutineListView: View {
                                 .stroke(Color("Gray400"), lineWidth: 1)
                         )
                         .fixedSize()
-                        .padding(.trailing, 48)
-                        .padding(.bottom, 60) // FAB(56) + 간격(16) + 여유
+                        .padding(.trailing, 16)
+                        .padding(.bottom, 76) // FAB(56) + 간격(16) + 여유
                         .ignoresSafeArea()
                         .zIndex(1000)
                         .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -133,7 +128,7 @@ struct RoutineListView: View {
                         Image(systemName: "plus")
                     }
                     .plantFABStyle(diameter: 56, iconSize: 30, useAccent: true)
-                    .padding(20)
+                    .padding(.bottom, 20)
                     .ignoresSafeArea(.keyboard)
                 }
             }
@@ -147,17 +142,17 @@ struct RoutineListView: View {
                 case .plantAssistant:
                     RoutineSurveyView()
                 case .recommendedTemplates:
-                    RoutineTemplateView()
+                    RoutineTemplateView(path: $path)
                 case .manualCreate:
                     RoutineManualCreateView()
+                case .goToList:
+                    RoutineListView(path: $path)
                 }
             }
-        }
+        
     }
 }
 
 
-#Preview {
-    RoutineListView().environmentObject(RoutineStore())
-}
+
 

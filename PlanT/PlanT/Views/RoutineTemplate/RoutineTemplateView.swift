@@ -79,18 +79,16 @@ let sampleCategories: [RoutineCategory] = [
 // 여러 루틴 카테고리를 카드 리스트 형태로 표시하고,
 // 루틴을 선택할 수 있는 화면
 struct RoutineTemplateView: View {
-    let categories: [RoutineCategory]     // 표시할 루틴 카테고리 목록
+    
+    @Binding var path: NavigationPath
+    let categories: [RoutineCategory] = sampleCategories     // 표시할 루틴 카테고리 목록
     @State private var selectedRoutineID: UUID? = nil // 현재 선택된 루틴 ID (없으면 nil)
     
     // 초기화 시점에 전달받은 categories가 없으면
     // DEBUG 빌드일 때는 sampleCategories를 기본값으로 사용
     // RELEASE 빌드일 때는 빈 배열 사용
-    init(categories: [RoutineCategory]? = nil) {
-#if DEBUG
-        self.categories = categories ?? sampleCategories
-#else
-        self.categories = categories ?? []
-#endif
+    init(path: Binding<NavigationPath>) {
+        self._path = path
     }
     
     var body: some View {
@@ -135,9 +133,9 @@ struct RoutineTemplateView: View {
             if let routine = sampleCategories
                 .flatMap({ $0.routines })
                 .first(where: { $0.id == id }) {
-                SeedStatusView(state: .planted(routine))
+                SeedStatusView(state: .planted(routine), path: $path)
             } else {
-                SeedStatusView(state: .notPlanted)
+                SeedStatusView(state: .notPlanted, path: $path)
             }
         }
     }
