@@ -16,19 +16,13 @@ enum AlarmCycle: String {
 
 // MARK: - 루틴 세부 정보 모델
 // 루틴의 구체적인 속성(기간, 목표, 알림 설정)
-struct RoutineDetail {
+struct RoutineDetail: Equatable {
     let duration: String   // 루틴 기간
     let goal: String       // 루틴 목표
     let alarm: AlarmCycle  // 알림 주기
 }
 
-// MARK: - 루틴 모델
-// 개별 루틴 하나를 표현하는 데이터
-struct Routine: Identifiable {
-    let id = UUID()             // 루틴 고유 식별자
-    let title: String           // 루틴 제목
-    let detail: RoutineDetail   // 루틴 상세 정보
-}
+
 
 // MARK: - 루틴 카테고리 모델
 // 루틴들을 카테고리별로 그룹화
@@ -85,18 +79,16 @@ let sampleCategories: [RoutineCategory] = [
 // 여러 루틴 카테고리를 카드 리스트 형태로 표시하고,
 // 루틴을 선택할 수 있는 화면
 struct RoutineTemplateView: View {
-    let categories: [RoutineCategory]     // 표시할 루틴 카테고리 목록
+    
+    @Binding var path: NavigationPath
+    let categories: [RoutineCategory] = sampleCategories     // 표시할 루틴 카테고리 목록
     @State private var selectedRoutineID: UUID? = nil // 현재 선택된 루틴 ID (없으면 nil)
     
     // 초기화 시점에 전달받은 categories가 없으면
     // DEBUG 빌드일 때는 sampleCategories를 기본값으로 사용
     // RELEASE 빌드일 때는 빈 배열 사용
-    init(categories: [RoutineCategory]? = nil) {
-#if DEBUG
-        self.categories = categories ?? sampleCategories
-#else
-        self.categories = categories ?? []
-#endif
+    init(path: Binding<NavigationPath>) {
+        self._path = path
     }
     
     var body: some View {
@@ -120,7 +112,7 @@ struct RoutineTemplateView: View {
                     .plantPrimaryButton()
                     .padding(.top, 20)
                     
-                // 루틴이 선택되지 않은 경우
+                    // 루틴이 선택되지 않은 경우
                 } else {
                     Button { /* action 없음 */ } label: {
                         Text("다음")
@@ -130,7 +122,7 @@ struct RoutineTemplateView: View {
                     .disabled(true)
                 }
             }
-            .padding() 
+            .padding()
         }
         // 내비게이션 타이틀
         .navigationTitle("루틴 템플릿 선택")
@@ -138,7 +130,13 @@ struct RoutineTemplateView: View {
         // NavigationLink와 함께 사용되는 navigationDestination
         // selectedRoutineID(UUID)가 전달되면 해당 ID를 바인딩으로 SeedStatusView 화면으로 이동
         .navigationDestination(for: UUID.self) { id in
-            SeedStatusView(state: .notPlanted)
+            if let routine = sampleCategories
+                .flatMap({ $0.routines })
+                .first(where: { $0.id == id }) {
+                SeedStatusView(state: .planted(routine), path: $path)
+            } else {
+                SeedStatusView(state: .notPlanted, path: $path)
+            }
         }
     }
 }

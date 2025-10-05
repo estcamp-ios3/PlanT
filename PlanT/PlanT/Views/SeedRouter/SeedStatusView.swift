@@ -7,22 +7,26 @@
 
 import SwiftUI
 
+
 struct SeedStatusView: View {
     let state: SeedStatus
+    @Binding var path: NavigationPath
     @State private var showSeedSelection = false // 씨앗 선택 시트 표시 여부
     @State private var selectedSeed: Seed? = nil // 현재 선택된 씨앗 (nil이면 아직 선택되지 않은 상태)
     @State private var goToRoutineList = false   // 루틴 리스트 화면으로 내비게이션 여부
+    @EnvironmentObject var store: RoutineStore
     
     var body: some View {
         VStack(spacing: 24) {
-            Spacer(minLength: 100)
-            
+            Spacer(minLength: 140)
+
             // 분기 처리: 씨앗이 선택된 경우 vs 선택되지 않은 경우
             if let seed = selectedSeed {
                 
-                
                 // 선택된 씨앗 이름 강조 + 안내 텍스트 결합
+                
                 (
+                    
                     Text("\(seed.name)")
                         .foregroundColor(.orange)
                         .font(.title)
@@ -40,10 +44,8 @@ struct SeedStatusView: View {
                 Image(seed.imageName)
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 300, height: 300)
-                    .padding(.bottom, 12)
+                    .frame(width: 250, height: 250)
                 
-                Spacer()
                 
                 // 씨앗 다시 선택하기 버튼 → 선택 시트 재호출
                 Button("씨앗 다시 선택하기") {
@@ -54,12 +56,18 @@ struct SeedStatusView: View {
                 
                 // 등록하기 버튼 → 루틴 리스트 화면으로 이동
                 Button("등록하기") {
-                    goToRoutineList = true
+                    if let seed = selectedSeed {
+                        store.addRoutine(from: seed)
+                    }
+                    
+                    // 방법이 두가지 인거 같은데 보통 뭐가 정답인지 네드쌤한테 물어봐야지 꼭!!
+//                    path.removeLast(2)
+                    path = NavigationPath()
                 }
                 .plantPrimaryButton()
                 .padding(.horizontal, 20)
                 
-                Spacer(minLength: 40)
+                Spacer(minLength: 20)
                 
             } else {
                 // 씨앗 미선택 상태 ----------------------
@@ -94,7 +102,7 @@ struct SeedStatusView: View {
         }
         // 내비게이션: goToRoutineList가 true가 되면 RoutineListView로 전환
         .navigationDestination(isPresented: $goToRoutineList) {
-            RoutineListView()
+            RoutineListView(path: $path)
         }
         // 씨앗 선택 시트: showSeedSelection이 true일 때 SeedSelectionView 표시
         .sheet(isPresented: $showSeedSelection) {
@@ -103,13 +111,3 @@ struct SeedStatusView: View {
     }
 }
 
-// MARK: - 프리뷰
-#Preview("미심기 상태") {
-    SeedStatusView(state: .notPlanted) // selectedSeed가 nil → 미선택 UI
-}
-
-#Preview("심긴 상태") {
-    // sampleCategories[0].routines[0] is a valid Routine
-    SeedStatusView(state: .planted(sampleCategories[0].routines[0]))
-    // 주의: 현재 구현에서는 state를 직접 반영하지 않으므로 selectedSeed 초기값은 nil.
-}

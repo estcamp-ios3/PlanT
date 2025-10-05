@@ -54,6 +54,6 @@ struct RoutineCategorySectionView: View {
                 )
             }
         }
-        .padding(.vertical, 4) // 섹션 상하 여백
+        .padding(.vertical, 4)
     }
 }

@@ -11,37 +11,81 @@ private let brandIvory = Color("BrandSecondary")
 private let gray100 = Color("Gray100")
 
 struct RoutineListView: View {
+    @Binding var path: NavigationPath
     @State private var showFabMenu = false
-    @State private var path = NavigationPath()
     @State private var refreshToken = UUID()
-
-    private enum Route: Hashable {
+    @State private var selectedRoutineIDs: Set<UUID> = []
+    @EnvironmentObject var store: RoutineStore
+    
+    
+enum Route: Hashable {
         case plantAssistant
         case recommendedTemplates
         case manualCreate
+        case goToList
+    }
+
+    private func category(for routine: Routine) -> RoutineCategory {
+        for category in sampleCategories {
+            if category.routines.contains(where: { $0.id == routine.id }) {
+                return category
+            }
+        }
+        return sampleCategories.first!
     }
 
     var body: some View {
-        NavigationStack(path: $path) {
             ScrollView {
-                VStack(spacing: vertical5) {
-                    Text("Routine List")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                    Text("여기에 루틴이 추가됩니다.")
+                VStack(spacing: 12) {
+                    if store.routines.isEmpty {
+                        Text("여기에 루틴이 추가됩니다.")
+                            .foregroundColor(.gray)
+                            .padding()
+                    } else {
+                        ForEach(store.routines) { routine in
+                            RoutineCardView(
+                                routine: routine,
+                                category: category(for: routine),
+                                isSelected: Binding(
+                                    get: { selectedRoutineIDs.contains(routine.id) },
+                                    set: { newValue in
+                                        if newValue {
+                                            selectedRoutineIDs.insert(routine.id)
+                                        } else {
+                                            selectedRoutineIDs.remove(routine.id)
+                                        }
+                                    }
+                                ),
+                                onSelect: {
+                                    if selectedRoutineIDs.contains(routine.id) {
+                                        selectedRoutineIDs.remove(routine.id)
+                                    } else {
+                                        selectedRoutineIDs.insert(routine.id)
+                                    }
+                                }
+                            )
+                            .contextMenu {
+                                Button(role: .destructive) {
+                                    store.deleteRoutine(routine)
+                                } label: {
+                                    Label("삭제하기", systemImage: "trash")
+                                }
+                            }
+                        }
+                    }
                 }
-                .id(refreshToken)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .init(horizontal: .leading, vertical: .top))
-
+                .padding()
             }
-            .padding(20)
             .overlay(alignment: .bottomTrailing) {
                 ZStack(alignment: .bottomTrailing) {
                     // 1) Tap-catcher to dismiss
-                    if showFabMenu {
+                    if showFabMenu {  
                         Color.black.opacity(0.001)
                             .ignoresSafeArea()
-                            .onTapGesture { withAnimation(.spring(response: 0.25, dampingFraction: 0.9)) { showFabMenu = false } }
+                            .onTapGesture {
+                                withAnimation(.spring(response: 0.25, dampingFraction: 0.9)) { showFabMenu = false
+                                }
+                            }
                     }
 
                     // 2) Popup menu
@@ -72,8 +116,8 @@ struct RoutineListView: View {
                                 .stroke(Color("Gray400"), lineWidth: 1)
                         )
                         .fixedSize()
-                        .padding(.trailing, 48)
-                        .padding(.bottom, 60) // FAB(56) + 간격(16) + 여유
+                        .padding(.trailing, 16)
+                        .padding(.bottom, 76) // FAB(56) + 간격(16) + 여유
                         .ignoresSafeArea()
                         .zIndex(1000)
                         .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -84,10 +128,11 @@ struct RoutineListView: View {
                         Image(systemName: "plus")
                     }
                     .plantFABStyle(diameter: 56, iconSize: 30, useAccent: true)
-                    .padding(20)
+                    .padding(.bottom, 20)
                     .ignoresSafeArea(.keyboard)
                 }
             }
+            
             .onReceive(NotificationCenter.default.publisher(for: .routineCreated)) { _ in
                 // TODO: 여기에 실제 네트워크/DB 갱신 호출(ex: store.reload()) 넣어도 됨
                 refreshToken = UUID()
@@ -97,16 +142,17 @@ struct RoutineListView: View {
                 case .plantAssistant:
                     RoutineSurveyView()
                 case .recommendedTemplates:
-                    RoutineTemplateView()
+                    RoutineTemplateView(path: $path)
                 case .manualCreate:
                     RoutineManualCreateView()
+                case .goToList:
+                    RoutineListView(path: $path)
                 }
             }
-        }
+        
     }
 }
 
 
-#Preview {
-    RoutineListView()
-}
+
+

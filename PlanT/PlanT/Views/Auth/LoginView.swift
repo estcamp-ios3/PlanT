@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct LoginView: View {
+    @EnvironmentObject var store: RoutineStore
     @StateObject private var userAuthModel = UserAuthModel()
     @State private var isPresentingSignUp = false
     @State private var isLoggedIn = false

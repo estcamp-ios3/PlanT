@@ -8,11 +8,12 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State private var path = NavigationPath()
     var body: some View {
         TabView {
             // 리스트 탭
-            NavigationStack {
-                RoutineTodoListTabView()
+            NavigationStack(path: $path) {
+                RoutineTodoListTabView(path: $path)
                     .navigationTitle("루틴/할일 목록")
                     .navigationBarTitleDisplayMode(.inline)
             }
