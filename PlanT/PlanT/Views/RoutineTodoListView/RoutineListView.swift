@@ -144,7 +144,7 @@ enum Route: Hashable {
                 case .recommendedTemplates:
                     RoutineTemplateView(path: $path)
                 case .manualCreate:
-                    RoutineManualCreateView()
+                    RoutineRegisterView(mode: .create)
                 case .goToList:
                     RoutineListView(path: $path)
                 }

@@ -10,6 +10,14 @@ import Combine
 
 @MainActor
 final class RoutineSurveyViewModel: ObservableObject {
+    
+    var categoryTitles: [String] {
+        guard let categoryStep = steps.first(where: { $0.id == "category" }) else {
+            return []
+        }
+        return categoryStep.options.map { $0.title }
+    }
+    
     // 1) 단계 정의 (디자인 문서 기반)
     @Published private(set) var steps: [SurveyStep] = [
         .init(id: "category", kind: .categoryGrid,

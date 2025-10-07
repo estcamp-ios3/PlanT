@@ -19,5 +19,3 @@ struct Routine: Identifiable, Equatable {
 }
 
 
-
-
