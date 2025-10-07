@@ -10,6 +10,7 @@ import SwiftUI
 
 struct SeedStatusView: View {
     let state: SeedStatus
+    let draft: RoutineDraft
     @Binding var path: NavigationPath
     @State private var showSeedSelection = false // 씨앗 선택 시트 표시 여부
     @State private var selectedSeed: Seed? = nil // 현재 선택된 씨앗 (nil이면 아직 선택되지 않은 상태)
@@ -56,12 +57,17 @@ struct SeedStatusView: View {
                 
                 // 등록하기 버튼 → 루틴 리스트 화면으로 이동
                 Button("등록하기") {
-                    if let seed = selectedSeed {
-                        store.addRoutine(from: seed)
-                    }
-                    
-                    // 방법이 두가지 인거 같은데 보통 뭐가 정답인지 네드쌤한테 물어봐야지 꼭!!
-//                    path.removeLast(2)
+                    // Build Routine from draft and optional selected seed
+                    let routine = Routine(
+                        title: draft.routineTypeTitle.isEmpty ? "새 루틴" : draft.routineTypeTitle,
+                        detail: RoutineDetail(
+                            duration: draft.durationTitle,
+                            goal: "",
+                            alarm: draft.reminderOn ? .every24Hours : .every48Hours
+                        ),
+                        seed: selectedSeed
+                    )
+                    store.routines.insert(routine, at: 0)
                     path = NavigationPath()
                 }
                 .plantPrimaryButton()
@@ -73,7 +79,7 @@ struct SeedStatusView: View {
                 // 씨앗 미선택 상태 ----------------------
                 
                 // 안내 텍스트
-                Text("아직 심겨진 씨앗이 없어요!\n새로운 씨앗을 심어볼까요?")
+                Text("아직 심은 씨앗이 없어요!\n새로운 씨앗을 심어볼까요?")
                     .font(.title)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 16)
