@@ -133,9 +133,42 @@ struct RoutineTemplateView: View {
             if let routine = sampleCategories
                 .flatMap({ $0.routines })
                 .first(where: { $0.id == id }) {
-                SeedStatusView(state: .planted(routine), path: $path)
+
+                // Find the category for this routine
+                let category = sampleCategories.first { cat in
+                    cat.routines.contains(where: { $0.id == id })
+                }
+
+                // Build a draft from the selected template
+                let draft = RoutineDraft(
+                    categoryId: category?.title ?? "category",
+                    categoryTitle: category?.title ?? "-",
+                    routineTypeId: routine.title,
+                    routineTypeTitle: routine.title,
+                    frequencyPerWeekId: "3x",
+                    frequencyPerWeekTitle: "주 3회",
+                    durationId: routine.detail.duration,
+                    durationTitle: routine.detail.duration,
+                    periodIsNoLimit: true,
+                    reminderOn: routine.detail.alarm == .every24Hours
+                )
+
+                SeedStatusView(state: .planted(routine), draft: draft, path: $path)
             } else {
-                SeedStatusView(state: .notPlanted, path: $path)
+                // Fallback draft when routine is not found
+                let fallbackDraft = RoutineDraft(
+                    categoryId: "-",
+                    categoryTitle: "-",
+                    routineTypeId: "-",
+                    routineTypeTitle: "-",
+                    frequencyPerWeekId: "-",
+                    frequencyPerWeekTitle: "-",
+                    durationId: "-",
+                    durationTitle: "-",
+                    periodIsNoLimit: true,
+                    reminderOn: false
+                )
+                SeedStatusView(state: .notPlanted, draft: fallbackDraft, path: $path)
             }
         }
     }

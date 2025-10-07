@@ -74,7 +74,8 @@ enum Route: Hashable {
                         }
                     }
                 }
-                .padding()
+                .padding(16)
+                .frame(maxWidth: .infinity)
             }
             .overlay(alignment: .bottomTrailing) {
                 ZStack(alignment: .bottomTrailing) {
@@ -116,8 +117,8 @@ enum Route: Hashable {
                                 .stroke(Color("Gray400"), lineWidth: 1)
                         )
                         .fixedSize()
-                        .padding(.trailing, 16)
-                        .padding(.bottom, 76) // FAB(56) + 간격(16) + 여유
+                        .padding(.trailing, 32)
+                        .padding(.bottom, 56) // FAB(56)
                         .ignoresSafeArea()
                         .zIndex(1000)
                         .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -128,7 +129,7 @@ enum Route: Hashable {
                         Image(systemName: "plus")
                     }
                     .plantFABStyle(diameter: 56, iconSize: 30, useAccent: true)
-                    .padding(.bottom, 20)
+                    .padding(20)
                     .ignoresSafeArea(.keyboard)
                 }
             }
@@ -140,11 +141,12 @@ enum Route: Hashable {
             .navigationDestination(for: Route.self) { route in
                 switch route {
                 case .plantAssistant:
-                    RoutineSurveyView()
+                    RoutineSurveyView(path: $path)
                 case .recommendedTemplates:
                     RoutineTemplateView(path: $path)
                 case .manualCreate:
                     RoutineManualCreateView()
+//                    RoutineManualCreateView(path: $path)
                 case .goToList:
                     RoutineListView(path: $path)
                 }
