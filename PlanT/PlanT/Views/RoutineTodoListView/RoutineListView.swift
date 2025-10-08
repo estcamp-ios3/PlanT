@@ -47,11 +47,11 @@ struct RoutineListView: View {
                         RoutineCardView(
                             routine: routine,
                             category: category(for: routine),
-                            isSelected: $isSelectedRoutine,
-                            selectable: true,
+                            isSelected: .constant(false),
                             onSelect: {
                                 path.append(Route.manualCreateEdit(routine))
-                            }
+                            },
+                            tapBehavior: .navigate
                         )
                         .contextMenu {
                             Button(role: .destructive) {

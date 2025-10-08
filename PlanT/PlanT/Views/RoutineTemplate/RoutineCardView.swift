@@ -7,6 +7,11 @@
 
 import SwiftUI   // SwiftUI 라이브러리를 불러와서 화면(UI)을 만들 수 있게 함
 
+enum TapBehavior {
+    case selectOnly
+    case navigate
+}
+
 // MARK: - 루틴 카드 뷰 (하나의 루틴을 카드 형태로 보여주는 화면 조각)
 struct RoutineCardView: View {
     let routine: Routine                // 루틴 데이터 (제목, 기간, 알림 같은 정보)
@@ -14,6 +19,7 @@ struct RoutineCardView: View {
     @Binding var isSelected: Bool       // 카드가 선택되었는지 여부 (부모 뷰에서 값 연결)
     var selectable: Bool = true
     var onSelect: (() -> Void)? = nil
+    var tapBehavior: TapBehavior = .selectOnly
 
     var body: some View {
         // 전체 카드 UI
@@ -58,9 +64,13 @@ struct RoutineCardView: View {
             // 선택되면 주황색 테두리, 아니면 회색 테두리
         )
         .shadow(radius: 1)
+        .contentShape(Rectangle())
+        .allowsHitTesting(true)
         .onTapGesture {
-            if selectable {
-                isSelected.toggle()
+            switch tapBehavior {
+            case .selectOnly:
+                onSelect?()
+            case .navigate:
                 onSelect?()
             }
         }
