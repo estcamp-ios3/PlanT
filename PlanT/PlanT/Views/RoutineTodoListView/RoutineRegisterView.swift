@@ -6,14 +6,19 @@
 //
 
 import SwiftUI
+import SwiftData
 
-enum RoutineRegisterMode {
+enum RoutineRegisterMode: Equatable {
     case create // 신규등록
     case edit(Routine) // 수정모드
+    
 }
 
 struct RoutineRegisterView: View {
-    
+    @EnvironmentObject var store: RoutineStore
+    @Environment(\.modelContext) private var context
+    @Environment(\.dismiss) private var dismiss
+    @State private var routineTitle: String = ""
     @StateObject private var viewModel = RoutineSurveyViewModel()
     @State private var selectedCategory = "선택하세요"
     @State private var useDate = true
@@ -21,6 +26,7 @@ struct RoutineRegisterView: View {
     @State private var startDate = Date()
     @State private var endDate = Date()
     @State private var selectedAlarms: Set<Int> = [15]
+    
     
     let mode: RoutineRegisterMode
     
@@ -72,14 +78,15 @@ extension RoutineRegisterView {
             selectedCategory = "선택하세요"
             useDate = true
             selectedAlarms = [15]
-//        case .edit(let routine):
-            // 기존 루틴 데이터를 State로 불러오기
-//            selectedCategory = routine.categoryTitle
-//            startDate = routine.detail.startDate
-//            endDate = routine.detail.endDate
-//            selectedAlarms = routine.detail.alarms
-        case .edit(_):
-            ""
+        case .edit(let routine):
+            routineTitle = routine.title
+
+             // 기존 루틴 데이터를 State로 불러오기
+            selectedCategory = "수정된 루틴"
+            startDate = Date()
+            endDate = Date()
+            selectedAlarms = [15]
+        
         }
     }
 }
@@ -273,18 +280,47 @@ extension RoutineRegisterView {
     private func addButton() -> some View {
         // 삭제/수정 버튼
         HStack(spacing: 16) {
-            Button(action: { print("삭제") }) {
+            Button(action: deleteRoutine) {
                 Text("삭제")
             }
             .plantSecondaryButton()
             
-            Button(action: { print("수정") }) {
-                Text("수정")
+            Button(action: saveRoutine) {
+                Text(mode == .create ? "등록" : "수정 완료")
             }
             .plantPrimaryButton()
         }
     }
+    private func saveRoutine() {
+        switch mode {
+        case .create:
+            print("새 루틴 등록 로직 실행")
+            
+        case .edit(let routine):
+            routine.title = routineTitle
+            
+            do {
+                try context.save()
+                print("루틴 수정 완료: \(routine.title)")
+            } catch {
+                print("X 루틴 수정 실패:", error)
+            }
+            
+        }
+    }
+    
+    private func deleteRoutine() {
+        switch mode {
+        case .create:
+            print("아직 생성되지 않은 루틴은 삭제할 수 없습니다.")
+        case .edit(let routine):
+            store.deleteRoutine(routine)
+            print("루틴 삭제 완료: \(routine.title)")
+            dismiss()
+        }
+    }
 }
+
 
 struct RadioButton: View {
     let label: String

@@ -57,17 +57,8 @@ struct SeedStatusView: View {
                 
                 // 등록하기 버튼 → 루틴 리스트 화면으로 이동
                 Button("등록하기") {
-                    // Build Routine from draft and optional selected seed
-                    let routine = Routine(
-                        title: draft.routineTypeTitle.isEmpty ? "새 루틴" : draft.routineTypeTitle,
-                        detail: RoutineDetail(
-                            duration: draft.durationTitle,
-                            goal: "",
-                            alarm: draft.reminderOn ? .every24Hours : .every48Hours
-                        ),
-                        seed: selectedSeed
-                    )
-                    store.routines.insert(routine, at: 0)
+                    // Routine instance constructed here was unused, so it's removed.
+                    store.addRoutine(from: seed)
                     path = NavigationPath()
                 }
                 .plantPrimaryButton()

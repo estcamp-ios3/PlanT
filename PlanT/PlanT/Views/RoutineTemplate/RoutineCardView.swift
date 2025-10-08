@@ -12,8 +12,9 @@ struct RoutineCardView: View {
     let routine: Routine                // 루틴 데이터 (제목, 기간, 알림 같은 정보)
     let category: RoutineCategory       // 루틴이 속한 카테고리 정보
     @Binding var isSelected: Bool       // 카드가 선택되었는지 여부 (부모 뷰에서 값 연결)
-    let onSelect: () -> Void            // 카드가 눌렸을 때 실행할 동작(콜백 함수)
-    
+    var selectable: Bool = true
+    var onSelect: (() -> Void)? = nil
+
     var body: some View {
         // 전체 카드 UI
         VStack(alignment: .leading, spacing: 4) {
@@ -35,7 +36,7 @@ struct RoutineCardView: View {
                     }
                 }
                 
-                Spacer() 
+                Spacer()
                 
                 // 오른쪽 영역: 기간 + 알림설정
                 VStack(alignment: .leading, spacing: 4) {
@@ -58,8 +59,10 @@ struct RoutineCardView: View {
         )
         .shadow(radius: 1)
         .onTapGesture {
-            // 사용자가 카드를 눌렀을 때 실행
-            onSelect()
+            if selectable {
+                isSelected.toggle()
+                onSelect?()
+            }
         }
     }
 }

@@ -7,20 +7,7 @@
 import Foundation
 import SwiftUI
 
-// MARK: - 알람 주기 정의
-// 루틴 알림의 주기 단위 (문자열로 표현)
-enum AlarmCycle: String {
-    case every24Hours = "24시간 마다"
-    case every48Hours = "48시간 마다"
-}
 
-// MARK: - 루틴 세부 정보 모델
-// 루틴의 구체적인 속성(기간, 목표, 알림 설정)
-struct RoutineDetail: Equatable {
-    let duration: String   // 루틴 기간
-    let goal: String       // 루틴 목표
-    let alarm: AlarmCycle  // 알림 주기
-}
 
 
 
