@@ -20,7 +20,6 @@ struct RoutineCategory: Identifiable {
     let routines: [Routine]       // 카테고리에 포함된 루틴 리스트
 }
 
-// MARK: - 샘플 데이터 (DEBUG 전용)
 let sampleCategories: [RoutineCategory] = [
     RoutineCategory(
         emoji: "🌱",

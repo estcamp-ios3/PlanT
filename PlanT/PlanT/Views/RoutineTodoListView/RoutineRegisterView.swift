@@ -27,6 +27,10 @@ struct RoutineRegisterView: View {
     @State private var endDate = Date()
     @State private var selectedAlarms: Set<Int> = [15]
     
+    private var isFormValid: Bool {
+        selectedCategory != "선택하세요" &&
+        !routineTitle.trimmingCharacters(in: .whitespaces).isEmpty
+    }
     
     let mode: RoutineRegisterMode
     
@@ -126,7 +130,7 @@ extension RoutineRegisterView {
                 }
             }
             
-            TextField("루틴 제목을 입력하세요", text: .constant(""))
+            TextField("루틴 제목을 입력하세요", text: $routineTitle)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
         }
     }
@@ -278,19 +282,40 @@ extension RoutineRegisterView {
 extension RoutineRegisterView {
     @ViewBuilder
     private func addButton() -> some View {
-        // 삭제/수정 버튼
-        HStack(spacing: 16) {
-            Button(action: deleteRoutine) {
-                Text("삭제")
+        VStack {
+            if case .create = mode {
+                Button(action: saveRoutine) {
+                    Text("다음")
+                        .frame(maxWidth: .infinity)
+                }
+                .plantPrimaryButton()
+                .disabled(!isFormValid)
+                .opacity(isFormValid ? 1.0 : 0.5)
+                .padding(.horizontal, 20)
             }
-            .plantSecondaryButton()
-            
-            Button(action: saveRoutine) {
-                Text(mode == .create ? "등록" : "수정 완료")
+            else if case .edit = mode {
+                // 삭제/수정 버튼
+                HStack(spacing: 16) {
+                    Button(action: deleteRoutine) {
+                        Text("삭제")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .plantSecondaryButton()
+                    
+                    Button(action: saveRoutine) {
+                        Text("수정 완료")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .plantPrimaryButton()
+                    .disabled(!isFormValid)
+                    .opacity(isFormValid ? 1.0 : 0.5)
+                }
+                .padding(.horizontal, 20)
             }
-            .plantPrimaryButton()
-        }
+            }
+        .padding(.vertical, 12)
     }
+
     private func saveRoutine() {
         switch mode {
         case .create:
@@ -298,14 +323,15 @@ extension RoutineRegisterView {
             
         case .edit(let routine):
             routine.title = routineTitle
+            routine.modifiedAt = Date()
             
             do {
                 try context.save()
                 print("루틴 수정 완료: \(routine.title)")
+                dismiss()
             } catch {
                 print("X 루틴 수정 실패:", error)
             }
-            
         }
     }
     
@@ -352,3 +378,4 @@ struct RadioButton: View {
         .buttonStyle(.plain)
     }
 }
+

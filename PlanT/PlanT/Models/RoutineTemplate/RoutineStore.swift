@@ -35,7 +35,9 @@ final class RoutineStore: ObservableObject {
         let newRoutine = Routine(
             title: "\(seed.name) 루틴",
             detail: RoutineDetail(duration: "3일", goal: "목표 없음", alarm: .every24Hours),
-            seedName: seed.name
+            seedName: seed.name,
+            createdAt: Date(),
+            modifiedAt: Date()
         )
         context.insert(newRoutine)
         

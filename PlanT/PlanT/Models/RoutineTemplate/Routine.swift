@@ -15,10 +15,12 @@ final class Routine {
     var id = UUID()
     var title: String
     var detail: RoutineDetail
-
     var seedName: String?
     var note: String?
     var isCompleted: Bool = false
+    var createdAt: Date
+    var modifiedAt: Date
+    
     
     init(
         id: UUID = UUID(),
@@ -26,7 +28,9 @@ final class Routine {
         detail: RoutineDetail,
         seedName: String? = nil,
         note: String? = nil,
-        isCompleted: Bool = false
+        isCompleted: Bool = false,
+        createdAt: Date = Date(),
+        modifiedAt: Date = Date()
     ) {
         self.id = id
         self.title = title
@@ -34,5 +38,7 @@ final class Routine {
         self.seedName = seedName
         self.note = note
         self.isCompleted = isCompleted
+        self.createdAt = createdAt
+        self.modifiedAt = modifiedAt
     }
 }
