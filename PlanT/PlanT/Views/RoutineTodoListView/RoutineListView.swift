@@ -135,17 +135,20 @@ struct RoutineListView: View {
             case .recommendedTemplates:
                 RoutineTemplateView(path: $path)
             case .manualCreate:
-                RoutineRegisterView(mode: .create)
+                RoutineRegisterView(mode: .create, path: $path)
                     .environmentObject(store)
-            case . manualCreateDetails(let routine):
+            case .manualCreateDetails(let routine):
                 RoutineRegisterView(
                     mode: .details(routine),
-                    categoryTitle: category(for: routine).title
+                    categoryTitle: category(for: routine).title,
+                    path: $path
                 )
                 .environmentObject(store)
-            case . manualCreateEdit(let routine):
-                RoutineRegisterView(mode: .edit(routine),
-                                    categoryTitle: category(for: routine).title
+            case .manualCreateEdit(let routine):
+                RoutineRegisterView(
+                    mode: .edit(routine),
+                    categoryTitle: category(for: routine).title,
+                    path: $path
                 )
                 .environmentObject(store)
             case .goToList:
@@ -154,7 +157,3 @@ struct RoutineListView: View {
         }
     }
 }
-
-
-
-

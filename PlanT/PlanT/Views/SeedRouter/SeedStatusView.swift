@@ -16,7 +16,6 @@ struct SeedStatusView: View {
     @State private var selectedSeed: Seed? = nil // 현재 선택된 씨앗 (nil이면 아직 선택되지 않은 상태)
     @State private var goToRoutineList = false   // 루틴 리스트 화면으로 내비게이션 여부
     @EnvironmentObject var store: RoutineStore
-    
     var body: some View {
         VStack(spacing: 24) {
             Spacer(minLength: 140)
