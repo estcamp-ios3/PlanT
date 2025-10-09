@@ -22,6 +22,7 @@ struct RoutineListView: View {
         case plantAssistant
         case recommendedTemplates
         case manualCreate
+        case manualCreateDetails(Routine)
         case manualCreateEdit(Routine)
         case goToList
     }
@@ -49,7 +50,7 @@ struct RoutineListView: View {
                             category: category(for: routine),
                             isSelected: .constant(false),
                             onSelect: {
-                                path.append(Route.manualCreateEdit(routine))
+                                path.append(Route.manualCreateDetails(routine))
                             },
                             tapBehavior: .navigate
                         )
@@ -136,9 +137,17 @@ struct RoutineListView: View {
             case .manualCreate:
                 RoutineRegisterView(mode: .create)
                     .environmentObject(store)
+            case . manualCreateDetails(let routine):
+                RoutineRegisterView(
+                    mode: .details(routine),
+                    categoryTitle: category(for: routine).title
+                )
+                .environmentObject(store)
             case . manualCreateEdit(let routine):
-                RoutineRegisterView(mode: .edit(routine))
-                    .environmentObject(store)
+                RoutineRegisterView(mode: .edit(routine),
+                                    categoryTitle: category(for: routine).title
+                )
+                .environmentObject(store)
             case .goToList:
                 RoutineListView(path: $path)
             }
