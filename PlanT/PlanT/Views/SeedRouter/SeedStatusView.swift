@@ -24,9 +24,7 @@ struct SeedStatusView: View {
             if let seed = selectedSeed {
                 
                 // 선택된 씨앗 이름 강조 + 안내 텍스트 결합
-                
                 (
-                    
                     Text("\(seed.name)")
                         .foregroundColor(.orange)
                         .font(.title)
@@ -56,9 +54,28 @@ struct SeedStatusView: View {
                 
                 // 등록하기 버튼 → 루틴 리스트 화면으로 이동
                 Button("등록하기") {
-                    // Routine instance constructed here was unused, so it's removed.
-                    store.addRoutine(from: seed)
-                    path = NavigationPath()
+                    // 기존: store.routines.insert(routine, at: 0) → 삭제
+                    // 루틴 등록은 RoutineStore의 addRoutine 메서드를 사용해야 함
+                    if case .planted(let routine) = state {
+                        store.addRoutine(from: seed, basedOn: routine)
+                        path = NavigationPath()
+                    } else {
+                        // .notPlanted 상태에서는 draft와 seed로 Routine 생성 & 추가
+                        let routine = Routine(
+                            title: draft.routineTypeTitle.isEmpty ? "새 루틴" : draft.routineTypeTitle,
+                            detail: RoutineDetail(
+                                duration: draft.durationTitle,
+                                goal: "",
+                                alarm: draft.reminderOn ? .every24Hours : .every48Hours
+                            ),
+                            seedName: seed.name
+                        )
+                        // 새로운 메서드를 RoutineStore에 추가하는 것이 바람직함
+                        // 임시로 직접 context에 저장 로직을 이곳에 두거나,
+                        // store에 편의 메서드 추가 권장
+                        store.addRoutine(from: seed, basedOn: routine)
+                        path = NavigationPath()
+                    }
                 }
                 .plantPrimaryButton()
                 .padding(.horizontal, 20)
@@ -106,4 +123,3 @@ struct SeedStatusView: View {
         }
     }
 }
-

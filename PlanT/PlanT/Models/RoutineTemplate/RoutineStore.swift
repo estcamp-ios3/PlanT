@@ -31,10 +31,10 @@ final class RoutineStore: ObservableObject {
     
     
     
-    func addRoutine(from seed: Seed) {
+    func addRoutine(from seed: Seed, basedOn routine: Routine) {
         let newRoutine = Routine(
-            title: "\(seed.name) 루틴",
-            detail: RoutineDetail(duration: "3일", goal: "목표 없음", alarm: .every24Hours),
+            title: routine.title,
+            detail: routine.detail,
             seedName: seed.name,
             createdAt: Date(),
             modifiedAt: Date()
