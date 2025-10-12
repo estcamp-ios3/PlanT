@@ -140,14 +140,14 @@ struct RoutineListView: View {
             case .manualCreateDetails(let routine):
                 RoutineRegisterView(
                     mode: .details(routine),
-                    categoryTitle: category(for: routine).title,
+                    categoryTitle: category(for: routine).categoryTitle,
                     path: $path
                 )
                 .environmentObject(store)
             case .manualCreateEdit(let routine):
                 RoutineRegisterView(
                     mode: .edit(routine),
-                    categoryTitle: category(for: routine).title,
+                    categoryTitle: category(for: routine).categoryTitle,
                     path: $path
                 )
                 .environmentObject(store)

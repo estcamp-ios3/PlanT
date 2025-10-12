@@ -29,7 +29,9 @@ struct RoutineRegisterView: View {
     @State private var selectedAlarms: Set<Int> = [15]
     @State private var currentMode: RoutineRegisterMode
     @State private var goToseedStatus = false
-
+    @State private var goalDays: String = "3"
+    @State private var goalHours: String = "24"
+    @State private var goalTask: String = "5page"
     @Binding var path: NavigationPath
 
     private var isFormValid: Bool {
@@ -112,7 +114,6 @@ extension RoutineRegisterView {
     }
 }
 
-// MARK: - DRAFT CONSTRUCTION HELPER
 extension RoutineRegisterView {
     private var draft: RoutineDraft {
         RoutineDraft(
@@ -120,12 +121,13 @@ extension RoutineRegisterView {
             categoryTitle: selectedCategory,
             routineTypeId: routineTitle,
             routineTypeTitle: routineTitle,
-            frequencyPerWeekId: "3x", // Could be refined
-            frequencyPerWeekTitle: "주 3회", // Placeholder or computed from UI selection
-            durationId: "3일", // Placeholder or computed from UI
-            durationTitle: "3일", // Placeholder or computed from UI
+            frequencyPerWeekId: "3x",
+            frequencyPerWeekTitle: "주 3회",
+            durationId: "3일",
+            durationTitle: "3일",
             periodIsNoLimit: !useDate,
-            reminderOn: !selectedAlarms.isEmpty
+            reminderOn: !selectedAlarms.isEmpty,
+            goal: "\(goalTask)일 \(goalHours)시간마다 \(goalTask) 하기"
         )
     }
 }
@@ -269,15 +271,15 @@ extension RoutineRegisterView {
             Text("목표")
                 .font(.subheadline).bold()
             HStack {
-                TextField("3", text: .constant("3"))
+                TextField("3", text: $goalDays)
                     .frame(width: 40)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                 Text("일")
-                TextField("24", text: .constant("24"))
+                TextField("24", text: $goalHours)
                     .frame(width: 50)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                 Text("시간 마다")
-                TextField("5page", text: .constant("5page"))
+                TextField("5page", text: $goalTask)
                     .frame(width: 80)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                 Text("하기")

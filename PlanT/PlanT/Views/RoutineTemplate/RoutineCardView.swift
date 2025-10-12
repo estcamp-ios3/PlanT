@@ -34,7 +34,7 @@ struct RoutineCardView: View {
                 
                 // 왼쪽 영역: 카테고리 + 목표
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("카테고리: \(category.title)")
+                    Text("카테고리: \(category.categoryTitle)")
                     
                     // 목표가 비어있지 않으면 보여줌
                     if !routine.detail.goal.isEmpty {

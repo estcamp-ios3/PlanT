@@ -65,7 +65,7 @@ struct SeedStatusView: View {
                             title: draft.routineTypeTitle.isEmpty ? "새 루틴" : draft.routineTypeTitle,
                             detail: RoutineDetail(
                                 duration: draft.durationTitle,
-                                goal: "",
+                                goal: draft.goal, 
                                 alarm: draft.reminderOn ? .every24Hours : .every48Hours
                             ),
                             seedName: seed.name
@@ -123,3 +123,4 @@ struct SeedStatusView: View {
         }
     }
 }
+

@@ -17,4 +17,5 @@ struct RoutineDraft: Hashable, Identifiable {
     var durationTitle: String       // 1회 수행 시간 표시용 제목
     var periodIsNoLimit: Bool       // 기간 제한 없음 여부 (true: 기간 없음)
     var reminderOn: Bool            // 알림 사용 여부
+    var goal: String                
 }

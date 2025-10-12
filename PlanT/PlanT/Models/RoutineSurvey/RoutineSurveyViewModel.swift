@@ -175,7 +175,8 @@ extension RoutineSurveyViewModel {
             durationId: durationId,
             durationTitle: title(for: "duration", optionId: durationId),
             periodIsNoLimit: periodYes,
-            reminderOn: reminderYes
+            reminderOn: reminderYes,
+            goal: "\(title(for: "health_type", optionId: routineTypeId))"
         )
     }
 }
