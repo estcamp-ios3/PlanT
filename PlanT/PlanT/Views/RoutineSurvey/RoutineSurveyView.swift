@@ -12,18 +12,16 @@ extension Notification.Name {
 }
 
 struct RoutineSurveyView: View {
+    @Binding var path: NavigationPath
     @StateObject private var vm = RoutineSurveyViewModel()
     @Environment(\.dismiss) private var dismiss
+
+    enum Route: Hashable {
+        case seedStatus(draft: RoutineDraft)
+    }
     
     var body: some View {
         VStack() {
-            //                    // 헤더
-            //                    Text("\(vm.currentIndex + 1) / \(vm.steps.count)")
-            //                        .font(.footer).foregroundStyle(.secondary)
-            //                        .padding(.horizontal, 16)
-            //                        .padding(.top, 12)
-            //
-            // Body: step kind에 따라 전용/공통 렌더링
             Group {
                 switch vm.currentStep.kind {
                 case .categoryGrid:
@@ -50,18 +48,15 @@ struct RoutineSurveyView: View {
                     .plantSecondaryButton()
                 }
                 
-                
                 Button {
                     if vm.isLast {
-                        NotificationCenter.default.post(name: .routineCreated, object: nil)
-                        // TODO: 실제 생성 로직이 있다면 여기서 처리
-                        dismiss()  // 현재 화면 종료 → 첫 탭의 이전 화면으로 복귀
+                        path.append(Route.seedStatus(draft: vm.draft))
                     } else {
                         vm.next()
                     }
                 }
                 label: {
-                    Text(vm.isLast ? "등록하기" : "다음")
+                    Text(vm.isLast ? "생성" : "다음")
                 }
                 .plantPrimaryButton()
                 .disabled(!vm.canGoNext)
@@ -70,6 +65,12 @@ struct RoutineSurveyView: View {
         .padding(16)
         .frame(maxWidth: .infinity)
         .animation(.snappy, value: vm.currentIndex)
+        .navigationDestination(for: Route.self) { route in
+            switch route {
+            case .seedStatus(let draft):
+                SeedStatusView(state: .notPlanted, draft: draft, path: $path)
+            }
+        }
     }
     
 }
@@ -77,5 +78,9 @@ struct RoutineSurveyView: View {
 
 
 #Preview {
-    RoutineSurveyView()
+    // Note: The preview must provide a NavigationPath binding
+    NavigationStack {
+        RoutineSurveyView(path: .constant(NavigationPath()))
+    }
 }
+

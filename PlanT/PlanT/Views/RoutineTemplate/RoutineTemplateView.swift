@@ -7,20 +7,7 @@
 import Foundation
 import SwiftUI
 
-// MARK: - 알람 주기 정의
-// 루틴 알림의 주기 단위 (문자열로 표현)
-enum AlarmCycle: String {
-    case every24Hours = "24시간 마다"
-    case every48Hours = "48시간 마다"
-}
 
-// MARK: - 루틴 세부 정보 모델
-// 루틴의 구체적인 속성(기간, 목표, 알림 설정)
-struct RoutineDetail: Equatable {
-    let duration: String   // 루틴 기간
-    let goal: String       // 루틴 목표
-    let alarm: AlarmCycle  // 알림 주기
-}
 
 
 
@@ -33,7 +20,6 @@ struct RoutineCategory: Identifiable {
     let routines: [Routine]       // 카테고리에 포함된 루틴 리스트
 }
 
-// MARK: - 샘플 데이터 (DEBUG 전용)
 let sampleCategories: [RoutineCategory] = [
     RoutineCategory(
         emoji: "🌱",
@@ -133,9 +119,42 @@ struct RoutineTemplateView: View {
             if let routine = sampleCategories
                 .flatMap({ $0.routines })
                 .first(where: { $0.id == id }) {
-                SeedStatusView(state: .planted(routine), path: $path)
+
+                // Find the category for this routine
+                let category = sampleCategories.first { cat in
+                    cat.routines.contains(where: { $0.id == id })
+                }
+
+                // Build a draft from the selected template
+                let draft = RoutineDraft(
+                    categoryId: category?.title ?? "category",
+                    categoryTitle: category?.title ?? "-",
+                    routineTypeId: routine.title,
+                    routineTypeTitle: routine.title,
+                    frequencyPerWeekId: "3x",
+                    frequencyPerWeekTitle: "주 3회",
+                    durationId: routine.detail.duration,
+                    durationTitle: routine.detail.duration,
+                    periodIsNoLimit: true,
+                    reminderOn: routine.detail.alarm == .every24Hours
+                )
+
+                SeedStatusView(state: .planted(routine), draft: draft, path: $path)
             } else {
-                SeedStatusView(state: .notPlanted, path: $path)
+                // Fallback draft when routine is not found
+                let fallbackDraft = RoutineDraft(
+                    categoryId: "-",
+                    categoryTitle: "-",
+                    routineTypeId: "-",
+                    routineTypeTitle: "-",
+                    frequencyPerWeekId: "-",
+                    frequencyPerWeekTitle: "-",
+                    durationId: "-",
+                    durationTitle: "-",
+                    periodIsNoLimit: true,
+                    reminderOn: false
+                )
+                SeedStatusView(state: .notPlanted, draft: fallbackDraft, path: $path)
             }
         }
     }

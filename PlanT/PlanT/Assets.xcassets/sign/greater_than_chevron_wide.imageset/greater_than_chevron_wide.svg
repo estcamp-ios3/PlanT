@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <title>Wider Greater-than Chevron</title>
+  <desc>Vertically elongated greater-than (>) icon</desc>
+  <polyline points="25,10 75,50 25,90"
+            fill="none"
+            stroke="#222222"
+            stroke-width="10"
+            stroke-linecap="round"
+            stroke-linejoin="round"/>
+</svg>

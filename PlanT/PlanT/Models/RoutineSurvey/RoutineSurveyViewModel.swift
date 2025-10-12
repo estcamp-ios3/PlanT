@@ -10,7 +10,14 @@ import Combine
 
 @MainActor
 final class RoutineSurveyViewModel: ObservableObject {
-    // 1) 단계 정의 (디자인 문서 기반)
+    
+    var categoryTitles: [String] {
+        guard let categoryStep = steps.first(where: { $0.id == "category" }) else {
+            return []
+        }
+        return categoryStep.options.map { $0.title }
+    }
+    // 설문 단계 정의: 각 화면에서 보여줄 질문/옵션/선택 제한 등을 순서대로 나열합니다.
     @Published private(set) var steps: [SurveyStep] = [
         .init(id: "category", kind: .categoryGrid,
               title: "루틴 카테고리를 선택해 주세요",
@@ -66,13 +73,15 @@ final class RoutineSurveyViewModel: ObservableObject {
               options: [], minSelection: 0, maxSelection: nil)
     ]
 
-    // 2) 진행 상태
+    // 현재 진행 중인 단계의 인덱스 (0부터 시작)
     @Published private(set) var currentIndex: Int = 0
+    // 사용자가 선택한 값들을 저장하는 딕셔너리 (stepID -> 선택된 optionID들의 집합)
     @Published private var selections: [String: Set<String>] = [:] // stepID -> optionIDs
 
+    // 현재 단계에 해당하는 SurveyStep 반환 (UI에서 참조)
     var currentStep: SurveyStep { steps[currentIndex] }
 
-    // 3) 선택/검증/이동
+    // 현재 단계에서 특정 옵션이 선택되어 있는지 여부
     func isSelected(_ option: Option) -> Bool {
         selections[currentStep.id, default: []].contains(option.id)
     }
@@ -81,19 +90,24 @@ final class RoutineSurveyViewModel: ObservableObject {
         var set = selections[currentStep.id, default: []]
         
         if set.contains(option.id) {
+            // 이미 선택된 옵션이면 해제
             set.remove(option.id)
         } else {
-            // 단일 선택이면 기존 모두 해제
+            // 단일 선택 단계인 경우, 기존 선택을 모두 해제하고 새 선택만 유지
             if currentStep.maxSelection == 1 { set.removeAll() }
-            // 최대 선택 수 제한
+            // 최대 선택 수를 초과하지 않도록 방지
             if let max = currentStep.maxSelection, set.count >= max { return }
+            // 새 옵션 추가
             set.insert(option.id)
         }
+        // 수동으로 변경 알림 발생 (뷰 갱신 유도)
         objectWillChange.send()
+        // 선택 결과 저장
         selections[currentStep.id] = set
         
     }
 
+    // 다음 단계로 진행 가능한지 검증 (요약 단계는 항상 가능)
     var canGoNext: Bool {
         switch currentStep.kind {
         case .summary: return true
@@ -103,18 +117,21 @@ final class RoutineSurveyViewModel: ObservableObject {
         }
     }
 
+    // 첫 단계/마지막 단계 여부 편의 프로퍼티
     var isFirst: Bool { currentIndex == 0 }
     var isLast:  Bool { currentIndex == steps.count - 1 }
 
+    // 다음 단계로 이동 (검증 통과 시에만)
     func next() {
         guard canGoNext else { return }
         if !isLast { currentIndex += 1 }
     }
+    // 이전 단계로 이동
     func back() {
         if !isFirst { currentIndex -= 1 }
     }
 
-    // 4) 요약 텍스트 생성
+    // 사용자가 선택한 값을 요약 텍스트로 구성하여 표시
     var summaryText: String {
         func pick(_ id: String) -> String? { selections[id]?.first }
         let cat  = pick("category") ?? "-"
@@ -127,3 +144,38 @@ final class RoutineSurveyViewModel: ObservableObject {
     }
 }
 
+// MARK: - 설문 결과를 RoutineDraft(루틴 초안)로 변환하여 다음 화면에 전달
+extension RoutineSurveyViewModel {
+    // Draft built from current selections for navigation to SeedStatusView
+    var draft: RoutineDraft {
+        // 선택된 optionId를 가져오는 헬퍼 (없으면 "-")
+        func pick(_ id: String) -> String { selections[id]?.first ?? "-" }
+        // optionId를 사람이 읽기 쉬운 title로 바꾸는 헬퍼
+        func title(for stepId: String, optionId: String) -> String {
+            guard let step = steps.first(where: { $0.id == stepId }),
+                  let opt = step.options.first(where: { $0.id == optionId }) else { return optionId }
+            return opt.title
+        }
+        // 각 단계에서 선택된 값 추출
+        let categoryId = pick("category")
+        let routineTypeId = pick("health_type")
+        let frequencyId = pick("frequency_per_week")
+        let durationId = pick("duration")
+        let periodYes = pick("set_period") == "yes"
+        let reminderYes = pick("set_reminder") == "yes"
+
+        // 초안(RoutineDraft) 구성: id와 title을 함께 보관해 다음 화면에서 유연하게 사용
+        return RoutineDraft(
+            categoryId: categoryId,
+            categoryTitle: title(for: "category", optionId: categoryId),
+            routineTypeId: routineTypeId,
+            routineTypeTitle: title(for: "health_type", optionId: routineTypeId),
+            frequencyPerWeekId: frequencyId,
+            frequencyPerWeekTitle: title(for: "frequency_per_week", optionId: frequencyId),
+            durationId: durationId,
+            durationTitle: title(for: "duration", optionId: durationId),
+            periodIsNoLimit: periodYes,
+            reminderOn: reminderYes
+        )
+    }
+}
