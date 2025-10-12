@@ -15,15 +15,17 @@ import SwiftUI
 // 루틴들을 카테고리별로 그룹화
 struct RoutineCategory: Identifiable {
     let id = UUID()               // 카테고리 고유 식별자
+    let categoryId: String
+    let categoryTitle: String
     let emoji: String             // 카테고리 이모지 아이콘
-    let title: String             // 카테고리 이름
     let routines: [Routine]       // 카테고리에 포함된 루틴 리스트
 }
 
 let sampleCategories: [RoutineCategory] = [
     RoutineCategory(
+        categoryId:  "category02",
+        categoryTitle: "지적/성장",
         emoji: "🌱",
-        title: "지적 성장",
         routines: [
             Routine(
                 title: "독서",
@@ -36,8 +38,9 @@ let sampleCategories: [RoutineCategory] = [
         ]
     ),
     RoutineCategory(
+        categoryId:  "category04",
+        categoryTitle: "전문/역량",
         emoji: "💻",
-        title: "전문 역량",
         routines: [
             Routine(
                 title: "프로그래밍",
@@ -50,8 +53,9 @@ let sampleCategories: [RoutineCategory] = [
         ]
     ),
     RoutineCategory(
+        categoryId:  "category06",
+        categoryTitle: "지적/성장",
         emoji: "💪",
-        title: "신체·건강",
         routines: [
             Routine(
                 title: "물 마시기",
@@ -116,19 +120,12 @@ struct RoutineTemplateView: View {
         // NavigationLink와 함께 사용되는 navigationDestination
         // selectedRoutineID(UUID)가 전달되면 해당 ID를 바인딩으로 SeedStatusView 화면으로 이동
         .navigationDestination(for: UUID.self) { id in
-            if let routine = sampleCategories
-                .flatMap({ $0.routines })
-                .first(where: { $0.id == id }) {
+            if let routine = sampleCategories.flatMap({ $0.routines }).first(where: { $0.id == id }),
+               let category = sampleCategories.first(where: {$0.routines.contains(where: { $0.id == id }) }) {
 
-                // Find the category for this routine
-                let category = sampleCategories.first { cat in
-                    cat.routines.contains(where: { $0.id == id })
-                }
-
-                // Build a draft from the selected template
                 let draft = RoutineDraft(
-                    categoryId: category?.title ?? "category",
-                    categoryTitle: category?.title ?? "-",
+                    categoryId: category.categoryId,
+                    categoryTitle: category.categoryTitle,
                     routineTypeId: routine.title,
                     routineTypeTitle: routine.title,
                     frequencyPerWeekId: "3x",
@@ -136,12 +133,12 @@ struct RoutineTemplateView: View {
                     durationId: routine.detail.duration,
                     durationTitle: routine.detail.duration,
                     periodIsNoLimit: true,
-                    reminderOn: routine.detail.alarm == .every24Hours
+                    reminderOn: routine.detail.alarm == .every24Hours,
+                    goal: routine.detail.goal
                 )
 
                 SeedStatusView(state: .planted(routine), draft: draft, path: $path)
             } else {
-                // Fallback draft when routine is not found
                 let fallbackDraft = RoutineDraft(
                     categoryId: "-",
                     categoryTitle: "-",
@@ -152,7 +149,8 @@ struct RoutineTemplateView: View {
                     durationId: "-",
                     durationTitle: "-",
                     periodIsNoLimit: true,
-                    reminderOn: false
+                    reminderOn: false,
+                    goal: "-"
                 )
                 SeedStatusView(state: .notPlanted, draft: fallbackDraft, path: $path)
             }

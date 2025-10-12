@@ -17,7 +17,7 @@ struct RoutineCategorySectionView: View {
         // SwiftUI Section: 헤더와 콘텐츠로 구성
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text("\(category.emoji) \(category.title)") // 카테고리 표시
+                Text("\(category.emoji) \(category.categoryTitle)") // 카테고리 표시
                     .font(.title3)
                     .bold()
                     .padding(.leading, 4)
