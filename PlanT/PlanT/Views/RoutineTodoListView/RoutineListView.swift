@@ -28,12 +28,12 @@ struct RoutineListView: View {
     }
     
     private func category(for routine: Routine) -> RoutineCategory {
-        for category in routineTemplates {
-            if category.categoryId == routine.categoryId {
+        for category in sampleCategories {
+            if category.routines.contains(where: { $0.id == routine.id }) {
                 return category
             }
         }
-        return routineTemplates.first!
+        return sampleCategories.first!
     }
     
     var body: some View {

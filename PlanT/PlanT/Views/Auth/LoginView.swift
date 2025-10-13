@@ -10,19 +10,23 @@ import Supabase
 
 struct LoginView: View {
     @EnvironmentObject var authStore: AuthStore
-    @StateObject private var userAuthModel = UserAuthModel()
+    @StateObject private var viewModel: LoginViewModel
     @State private var isPresentingSignUp = false
 
-    // 키보드 관련 상태
     @State private var keyboardHeight: CGFloat = 0
     @State private var isKeyboardVisible: Bool = false
 
     private enum Field: Hashable { case id, pw }
     @FocusState private var focus: Field?
-    
+
     // ✅ 더미 계정 정보
     private let dummyEmail = "test@plant.com"
     private let dummyPassword = "Test123!"
+
+    // ✅ 초기화 (authStore를 ViewModel에 전달)
+    init(authStore: AuthStore) {
+        _viewModel = StateObject(wrappedValue: LoginViewModel(authStore: authStore))
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -33,25 +37,27 @@ struct LoginView: View {
                 .padding(.top, 10)
 
             VStack(spacing: 16) {
-                TextField("E-mail", text: $userAuthModel.email)
+                TextField("E-mail", text: $viewModel.email)
                     .authTextFieldStyle(.signIn)
                     .focusRoute($focus, equals: .id, submit: .next, next: .pw)
 
-                SecureField("Password", text: $userAuthModel.password)
+                SecureField("Password", text: $viewModel.password)
                     .authTextFieldStyle(.signIn)
                     .focusRoute($focus, equals: .pw, submit: .go, next: nil)
+                    .padding(.bottom, 8)
 
-                Button("로그인") {
-                    Task {
-                        do {
-                            try await authStore.signIn(email: userAuthModel.email,
-                                                       password: userAuthModel.password)
-                        } catch {
-                            print("❌ 로그인 실패:", error.localizedDescription)
-                        }
+                Button {
+                    Task { await viewModel.signIn() }
+                } label: {
+                    if viewModel.isLoading {
+                        ProgressView()
+                    } else {
+                        Text("로그인")
                     }
                 }
                 .plantPrimaryButton()
+                .disabled(viewModel.isLoading)
+                .padding(.bottom, 16)
 
                 Button("Sign Up") { isPresentingSignUp = true }
                     .foregroundColor(.black)
@@ -59,18 +65,25 @@ struct LoginView: View {
                         SignUpView()
                             .environmentObject(authStore)
                     }
+
+                // ✅ 에러 표시
+                if let error = viewModel.errorMessage {
+                    Text(error)
+                        .font(.footnote)
+                        .foregroundColor(.red)
+                }
             }
             .padding(.horizontal, 24)
-            .padding(.bottom, keyboardHeight)   // 키보드만큼 올림
+            .padding(.bottom, keyboardHeight)
         }
         .ignoresSafeArea(.keyboard, edges: .bottom)
         .onAppear {
             observeKeyboard()
-            Task { await authStore.restoreSession() }
-            
-            // ✅ 앱 실행 시 자동으로 더미 계정 정보 입력
-            userAuthModel.email = dummyEmail
-            userAuthModel.password = dummyPassword // 더미 테스트 끝나면 지우기
+            Task { await viewModel.restoreSession() }
+
+            // ✅ 더미 계정 자동 입력
+            viewModel.email = dummyEmail
+            viewModel.password = dummyPassword
         }
         .onDisappear { removeKeyboardObserver() }
     }
@@ -106,7 +119,7 @@ struct LoginView: View {
 
 #Preview {
     NavigationView {
-        LoginView()
-            .environmentObject(AuthStore()) // 프리뷰에서도 주입
+        LoginView(authStore: AuthStore())
+            .environmentObject(AuthStore())
     }
 }
