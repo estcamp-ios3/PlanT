@@ -11,59 +11,8 @@ import SwiftUI
 
 
 
-// MARK: - 루틴 카테고리 모델
-// 루틴들을 카테고리별로 그룹화
-struct RoutineCategory: Identifiable {
-    let id = UUID()               // 카테고리 고유 식별자
-    let categoryId: String
-    let categoryTitle: String
-    let emoji: String             // 카테고리 이모지 아이콘
-    let routines: [Routine]       // 카테고리에 포함된 루틴 리스트
-}
 
-let sampleCategories: [RoutineCategory] = [
-    RoutineCategory(
-        categoryId:  "category02",
-        categoryTitle: "지적/성장",
-        emoji: "🌱",
-        routines: [
-            Routine(
-                title: "독서",
-                detail: RoutineDetail(duration: "3일", goal: "5page/일", alarm: .every24Hours)
-            ),
-            Routine(
-                title: "새로운 언어 학습",
-                detail: RoutineDetail(duration: "3일", goal: "10단어/일", alarm: .every24Hours)
-            )
-        ]
-    ),
-    RoutineCategory(
-        categoryId:  "category04",
-        categoryTitle: "전문/역량",
-        emoji: "💻",
-        routines: [
-            Routine(
-                title: "프로그래밍",
-                detail: RoutineDetail(duration: "4주", goal: "6시간/일", alarm: .every24Hours)
-            ),
-            Routine(
-                title: "디자인/영상 편집",
-                detail: RoutineDetail(duration: "1주", goal: "4시간/일", alarm: .every48Hours)
-            )
-        ]
-    ),
-    RoutineCategory(
-        categoryId:  "category06",
-        categoryTitle: "지적/성장",
-        emoji: "💪",
-        routines: [
-            Routine(
-                title: "물 마시기",
-                detail: RoutineDetail(duration: "루틴여부: Yes", goal: "", alarm: .every24Hours)
-            )
-        ]
-    )
-]
+
 
 // MARK: - 루틴 템플릿 선택 화면
 // 여러 루틴 카테고리를 카드 리스트 형태로 표시하고,
@@ -71,7 +20,7 @@ let sampleCategories: [RoutineCategory] = [
 struct RoutineTemplateView: View {
     
     @Binding var path: NavigationPath
-    let categories: [RoutineCategory] = sampleCategories     // 표시할 루틴 카테고리 목록
+    let categories: [RoutineCategory] = routineTemplates     // 표시할 루틴 카테고리 목록
     @State private var selectedRoutineID: UUID? = nil // 현재 선택된 루틴 ID (없으면 nil)
     
     // 초기화 시점에 전달받은 categories가 없으면
@@ -86,7 +35,7 @@ struct RoutineTemplateView: View {
             VStack(spacing: 5) {
                 
                 // 카테고리 단위 섹션을 반복 렌더링
-                ForEach(sampleCategories) { category in
+                ForEach(routineTemplates) { category in
                     RoutineCategorySectionView(
                         category: category,
                         selectedRoutineID: $selectedRoutineID
@@ -120,8 +69,8 @@ struct RoutineTemplateView: View {
         // NavigationLink와 함께 사용되는 navigationDestination
         // selectedRoutineID(UUID)가 전달되면 해당 ID를 바인딩으로 SeedStatusView 화면으로 이동
         .navigationDestination(for: UUID.self) { id in
-            if let routine = sampleCategories.flatMap({ $0.routines }).first(where: { $0.id == id }),
-               let category = sampleCategories.first(where: {$0.routines.contains(where: { $0.id == id }) }) {
+            if let routine = routineTemplates.flatMap({ $0.routines }).first(where: { $0.id == id }),
+               let category = routineTemplates.first(where: {$0.routines.contains(where: { $0.id == id }) }) {
 
                 let draft = RoutineDraft(
                     categoryId: category.categoryId,
