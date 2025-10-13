@@ -141,14 +141,15 @@ struct TodoListView: View {
         }
         .onChange(of: isShowingAddGroupAlert) { newValue in
             // alert가 닫힐 때 (isShowingAddGroupAlert가 false가 될 때)
-//            if oldValue == true && newValue == false {
+            if !newValue {
+                // 그리고 newGroupTitle에 텍스트가 있을 때 (생성 버튼을 눌렀을 때)
                 if !newGroupTitle.isEmpty {
                     let newGroup = ChecklistGroup(title: newGroupTitle, items: [])
                     checklistGroups.insert(newGroup, at: 0)
                 }
-                newGroupTitle = ""
-//            }
-//            newGroupTitle = ""
+            }
+            // 작업이 끝났으니 텍스트 필드를 초기화합니다.
+            newGroupTitle = ""
         }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
