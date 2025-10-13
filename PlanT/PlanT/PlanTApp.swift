@@ -31,7 +31,7 @@ struct PlanTApp: App {
                     .environmentObject(authStore)
                     .environmentObject(RoutineStore(context: sharedModelContainer.mainContext))
             } else {
-                LoginView()
+                LoginView(authStore: authStore)
                     .environmentObject(authStore)
             }
         }
