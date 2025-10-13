@@ -164,9 +164,11 @@ extension RoutineSurveyViewModel {
         let periodYes = pick("set_period") == "yes"
         let reminderYes = pick("set_reminder") == "yes"
 
+        let categoryNumericId: Int64 = categoryId.numericInt64()
+
         // 초안(RoutineDraft) 구성: id와 title을 함께 보관해 다음 화면에서 유연하게 사용
         return RoutineDraft(
-            categoryId: categoryId,
+            categoryId: categoryNumericId,
             categoryTitle: title(for: "category", optionId: categoryId),
             routineTypeId: routineTypeId,
             routineTypeTitle: title(for: "health_type", optionId: routineTypeId),
@@ -176,7 +178,9 @@ extension RoutineSurveyViewModel {
             durationTitle: title(for: "duration", optionId: durationId),
             periodIsNoLimit: periodYes,
             reminderOn: reminderYes,
-            goal: "\(title(for: "health_type", optionId: routineTypeId))"
+            goal: "\(title(for: "health_type", optionId: routineTypeId))",
+            isFavorite: false
         )
     }
 }
+
