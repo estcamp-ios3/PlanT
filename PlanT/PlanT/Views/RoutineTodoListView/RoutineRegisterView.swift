@@ -102,10 +102,11 @@ extension RoutineRegisterView {
             useDate = true
             selectedAlarms = [15]
         case .details(let routine),
-             .edit(let routine):
+                .edit(let routine):
             routineTitle = routine.title
-            if selectedCategory == "선택하세요" {
-                selectedCategory = "알 수 없는 카테고리"
+            
+            if let category = routineTemplates.first(where: { $0.routines.contains(where: { $0.id == routine.id }) }) {
+                selectedCategory = category.categoryTitle
             }
             startDate = Date()
             endDate = Date()
@@ -127,7 +128,9 @@ extension RoutineRegisterView {
             durationTitle: "3일",
             periodIsNoLimit: !useDate,
             reminderOn: !selectedAlarms.isEmpty,
-            goal: "\(goalTask)일 \(goalHours)시간마다 \(goalTask) 하기"
+            goal: "\(goalTask)일 \(goalHours)시간마다 \(goalTask) 하기",
+            isFavorite: false
+
         )
     }
 }
@@ -249,10 +252,6 @@ extension RoutineRegisterView {
                 } else {
                     VStack(alignment: .leading, spacing: 12) {
                         DatePicker("종일 날짜", selection: $endDate, displayedComponents: .date)
-                            .datePickerStyle(.compact)
-                            .labelsHidden()
-                            .frame(height: 40)
-                        DatePicker("", selection: $endDate, displayedComponents: .hourAndMinute)
                             .datePickerStyle(.compact)
                             .labelsHidden()
                             .frame(height: 40)
