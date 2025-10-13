@@ -31,56 +31,56 @@ final class RoutineSurveyViewModel: ObservableObject {
                 .init(id: "category06", title: "재정/삶의 관리", thumb: "categories06"),
               ],
               minSelection: 1, maxSelection: 1),
-
-        .init(id: "health_type", kind: .single,
-              title: "어떤 루틴을 시작할까요?",
-              message: "신체, 건강(들)을 선택하셨어요!",
-              options: [
-                .init(id: "walk",  title: "걷기"),
-                .init(id: "yoga",  title: "요가"),
-                .init(id: "gym",   title: "근력운동"),
-                .init(id: "water", title: "물 마시기")
-              ],
-              minSelection: 1, maxSelection: 1),
-
-        .init(id: "frequency_per_week", kind: .single,
-              title: "1주에 몇 회 정도 진행할까요?",
-              message: nil,
-              options: (1...7).map { .init(id: "\($0)x", title: "주 \($0)회") },
-              minSelection: 1, maxSelection: 1),
-
-        .init(id: "duration", kind: .single,
-              title: "한 번 할 때 몇 분 할까요?",
-              message: nil,
-              options: ["10분","20분","30분","40분"].map { .init(id: $0, title: $0) },
-              minSelection: 1, maxSelection: 1),
-
-        .init(id: "set_period", kind: .confirm,
-              title: "기간 없이 진행할까요?",
-              message: "나중에 언제든 변경할 수 있어요.",
-              options: [.init(id: "yes", title: "예"), .init(id: "no", title: "아니요")],
-              minSelection: 1, maxSelection: 1),
-
-        .init(id: "set_reminder", kind: .confirm,
-              title: "알림을 설정하시겠습니까?",
-              message: nil,
-              options: [.init(id: "yes", title: "예"), .init(id: "no", title: "아니요")],
-              minSelection: 1, maxSelection: 1),
-
-        .init(id: "summary", kind: .summary,
-              title: "요약을 확인하고 생성할까요?",
-              message: nil,
-              options: [], minSelection: 0, maxSelection: nil)
+        
+            .init(id: "health_type", kind: .single,
+                  title: "어떤 루틴을 시작할까요?",
+                  message: "신체, 건강(들)을 선택하셨어요!",
+                  options: [
+                    .init(id: "walk",  title: "걷기"),
+                    .init(id: "yoga",  title: "요가"),
+                    .init(id: "gym",   title: "근력운동"),
+                    .init(id: "water", title: "물 마시기")
+                  ],
+                  minSelection: 1, maxSelection: 1),
+        
+            .init(id: "frequency_per_week", kind: .single,
+                  title: "1주에 몇 회 정도 진행할까요?",
+                  message: nil,
+                  options: (1...7).map { .init(id: "\($0)x", title: "주 \($0)회") },
+                  minSelection: 1, maxSelection: 1),
+        
+            .init(id: "duration", kind: .single,
+                  title: "한 번 할 때 몇 분 할까요?",
+                  message: nil,
+                  options: ["10분","20분","30분","40분"].map { .init(id: $0, title: $0) },
+                  minSelection: 1, maxSelection: 1),
+        
+            .init(id: "set_period", kind: .confirm,
+                  title: "기간 없이 진행할까요?",
+                  message: "나중에 언제든 변경할 수 있어요.",
+                  options: [.init(id: "yes", title: "예"), .init(id: "no", title: "아니요")],
+                  minSelection: 1, maxSelection: 1),
+        
+            .init(id: "set_reminder", kind: .confirm,
+                  title: "알림을 설정하시겠습니까?",
+                  message: nil,
+                  options: [.init(id: "yes", title: "예"), .init(id: "no", title: "아니요")],
+                  minSelection: 1, maxSelection: 1),
+        
+            .init(id: "summary", kind: .summary,
+                  title: "요약을 확인하고 생성할까요?",
+                  message: nil,
+                  options: [], minSelection: 0, maxSelection: nil)
     ]
-
+    
     // 현재 진행 중인 단계의 인덱스 (0부터 시작)
     @Published private(set) var currentIndex: Int = 0
     // 사용자가 선택한 값들을 저장하는 딕셔너리 (stepID -> 선택된 optionID들의 집합)
     @Published private var selections: [String: Set<String>] = [:] // stepID -> optionIDs
-
+    
     // 현재 단계에 해당하는 SurveyStep 반환 (UI에서 참조)
     var currentStep: SurveyStep { steps[currentIndex] }
-
+    
     /// 앞에서 사용자가 고른 카테고리의 표시용 제목
     var selectedCategoryTitle: String? {
         guard let categoryStep = steps.first(where: { $0.id == "category" }),
@@ -92,7 +92,7 @@ final class RoutineSurveyViewModel: ObservableObject {
     func isSelected(_ option: Option) -> Bool {
         selections[currentStep.id, default: []].contains(option.id)
     }
-
+    
     func toggle(_ option: Option) {
         var set = selections[currentStep.id, default: []]
         
@@ -113,7 +113,7 @@ final class RoutineSurveyViewModel: ObservableObject {
         selections[currentStep.id] = set
         
     }
-
+    
     // 다음 단계로 진행 가능한지 검증 (요약 단계는 항상 가능)
     var canGoNext: Bool {
         switch currentStep.kind {
@@ -123,11 +123,11 @@ final class RoutineSurveyViewModel: ObservableObject {
             return count >= currentStep.minSelection
         }
     }
-
+    
     // 첫 단계/마지막 단계 여부 편의 프로퍼티
     var isFirst: Bool { currentIndex == 0 }
     var isLast:  Bool { currentIndex == steps.count - 1 }
-
+    
     // 다음 단계로 이동 (검증 통과 시에만)
     func next() {
         guard canGoNext else { return }
@@ -137,7 +137,7 @@ final class RoutineSurveyViewModel: ObservableObject {
     func back() {
         if !isFirst { currentIndex -= 1 }
     }
-
+    
     // 사용자가 선택한 값을 요약 텍스트로 구성하여 표시
     var summaryText: String {
         func pick(_ id: String) -> String? { selections[id]?.first }
@@ -170,9 +170,10 @@ extension RoutineSurveyViewModel {
         let durationId = pick("duration")
         let periodYes = pick("set_period") == "yes"
         let reminderYes = pick("set_reminder") == "yes"
-
+        
         // 초안(RoutineDraft) 구성: id와 title을 함께 보관해 다음 화면에서 유연하게 사용
         return RoutineDraft(
+        
             categoryId: categoryId,
             categoryTitle: title(for: "category", optionId: categoryId),
             routineTypeId: routineTypeId,
@@ -183,7 +184,8 @@ extension RoutineSurveyViewModel {
             durationTitle: title(for: "duration", optionId: durationId),
             periodIsNoLimit: periodYes,
             reminderOn: reminderYes,
-            goal: "\(title(for: "health_type", optionId: routineTypeId))"
+            goal: "\(title(for: "health_type", optionId: routineTypeId))",
+            isFavorite: false
         )
     }
 }

@@ -19,15 +19,25 @@ struct OptionGridItem: View {
         } label: {
             
             HStack(spacing: 10) {
-                if let name = option.thumb, !name.isEmpty {
+                if let symbol = option.icon, !symbol.isEmpty {
+                    // Prefer SF Symbol when provided (Category uses icon_name)
+                    Image(systemName: symbol)
+                        .font(.system(size: 28, weight: .semibold))
+                        .frame(width: 40, height: 40, alignment: .center)
+                        .foregroundStyle(Color("Gray900"))
+                        .padding(.trailing, 4)
+                } else if let name = option.thumb, !name.isEmpty {
+                    // Fallback to asset thumbnail
                     Image(name)
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .frame(height: 80)
                         .cornerRadius(cornerRadius2)
-                    
                 } else {
+                    // Final fallback
                     Image(systemName: "square.grid.2x2")
+                        .font(.system(size: 24, weight: .regular))
+                        .foregroundStyle(Color("Gray400"))
                 }
                 Text(option.title)
                     .font(.title3)
