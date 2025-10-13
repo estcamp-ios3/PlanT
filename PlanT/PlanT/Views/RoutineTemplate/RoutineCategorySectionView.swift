@@ -50,7 +50,8 @@ struct RoutineCategorySectionView: View {
                                 selectedRoutineID = routine.id
                             }
                         },
-                        tapBehavior: .selectOnly
+                        tapBehavior: .selectOnly,
+                        selected: selectedRoutineID == routine.id
                     )
                 }
             }

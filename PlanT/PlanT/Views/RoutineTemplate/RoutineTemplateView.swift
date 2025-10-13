@@ -7,13 +7,6 @@
 import Foundation
 import SwiftUI
 
-
-
-
-
-
-
-
 // MARK: - 루틴 템플릿 선택 화면
 // 여러 루틴 카테고리를 카드 리스트 형태로 표시하고,
 // 루틴을 선택할 수 있는 화면
@@ -41,31 +34,34 @@ struct RoutineTemplateView: View {
                         selectedRoutineID: $selectedRoutineID
                     )
                 }
-                
-                // 루틴이 선택된 경우
-                if let id = selectedRoutineID {
-                    // NavigationLink를 통해 다음 화면으로 이동 가능
-                    NavigationLink(value: id) {
-                        Text("다음")
-                    }
-                    .plantPrimaryButton()
-                    .padding(.top, 20)
-                    
-                    // 루틴이 선택되지 않은 경우
-                } else {
-                    Button { /* action 없음 */ } label: {
-                        Text("다음")
-                    }
-                    .plantPrimaryButton()
-                    .padding(.top, 20)
-                    .disabled(true)
-                }
+                Spacer().frame(height: 80)
             }
             .padding()
         }
         // 내비게이션 타이틀
         .navigationTitle("루틴 템플릿 선택")
-        
+        .safeAreaInset(edge: .bottom) {
+            // 루틴이 선택된 경우
+            if let id = selectedRoutineID {
+                // NavigationLink를 통해 다음 화면으로 이동 가능
+                NavigationLink(value: id) {
+                    Text("다음")
+                }
+                .plantPrimaryButton()
+                .padding(.horizontal, 20)
+
+                // 루틴이 선택되지 않은 경우
+            } else {
+                Button { /* action 없음 */ } label: {
+                    Text("다음")
+                }
+                .plantPrimaryButton()
+                .disabled(true)
+                .padding(.horizontal, 20)
+            }
+        }
+        .padding(.bottom, 12)
+        .background(Color(.systemBackground))
         // NavigationLink와 함께 사용되는 navigationDestination
         // selectedRoutineID(UUID)가 전달되면 해당 ID를 바인딩으로 SeedStatusView 화면으로 이동
         .navigationDestination(for: UUID.self) { id in

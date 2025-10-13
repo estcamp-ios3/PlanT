@@ -32,6 +32,7 @@ struct RoutineRegisterView: View {
     @State private var goalDays: String = "3"
     @State private var goalHours: String = "24"
     @State private var goalTask: String = "5page"
+    @State private var showAlarms: Bool = true
     @Binding var path: NavigationPath
 
     private var isFormValid: Bool {
@@ -65,8 +66,7 @@ struct RoutineRegisterView: View {
                 goalSection()
                 Divider()
                 alarmSection()
-                Divider()
-                addButton()
+                    .padding(.bottom, 80)
             }
             .padding(.horizontal)
             .onAppear { setupMode() }
@@ -74,15 +74,19 @@ struct RoutineRegisterView: View {
         }
         .navigationTitle(modeTitle)
         .toolbar { toolbarContent() }
-        .navigationDestination(isPresented: $goToseedStatus) {
-            SeedStatusView(
-                state: .notPlanted,
-                draft: draft,
-                path: $path
-            )
+        .safeAreaInset(edge: .bottom) {
+            addButton()
+        }
+            .navigationDestination(isPresented: $goToseedStatus) {
+                SeedStatusView(
+                    state: .notPlanted,
+                    draft: draft,
+                    path: $path
+                )
+            }
         }
     }
-}
+
 
 extension RoutineRegisterView {
     private var modeTitle: String {
@@ -202,7 +206,9 @@ extension RoutineRegisterView {
                 Spacer()
                 Toggle("", isOn: $useDate)
                     .labelsHidden()
+                    .toggleStyle(CustomToggleStyle())
             }
+       
 
             if useDate {
                 HStack(spacing: 16) {
@@ -292,8 +298,17 @@ extension RoutineRegisterView {
     @ViewBuilder
     private func alarmSection() -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("알림")
-                .font(.subheadline).bold()
+            HStack {
+                Text("알림")
+                    .font(.subheadline).bold()
+            Spacer()
+                
+            Toggle("", isOn: $showAlarms)
+                    .labelsHidden()
+                    .toggleStyle(CustomToggleStyle())
+            }
+            if showAlarms {
+                
             HStack {
                 ForEach(alarms, id: \.self) { minute in
                     Button(action: {
@@ -312,6 +327,9 @@ extension RoutineRegisterView {
                             .cornerRadius(8)
                     }
                 }
+            }
+            .transition(.opacity.combined(with: .move(edge: .top)))
+            .animation(.spring(), value: showAlarms)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -436,4 +454,3 @@ struct RadioButton: View {
         .buttonStyle(.plain)
     }
 }
-

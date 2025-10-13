@@ -20,6 +20,8 @@ struct RoutineCardView: View {
     var selectable: Bool = true
     var onSelect: (() -> Void)? = nil
     var tapBehavior: TapBehavior = .selectOnly
+    let selected: Bool
+
 
     var body: some View {
         // 전체 카드 UI
@@ -54,17 +56,12 @@ struct RoutineCardView: View {
                 Spacer() // 오른쪽 영역 끝에도 공간 추가 (양쪽 균형 맞춤)
             }
         }
-        .padding()
-        .background(Color.white)
-        .cornerRadius(10)
-        .overlay(
-            // 카드 테두리
-            RoundedRectangle(cornerRadius: 10)
-                .stroke(isSelected ? Color.orange : Color.gray, lineWidth:1)
-            // 선택되면 주황색 테두리, 아니면 회색 테두리
-        )
-        .shadow(radius: 1)
-        .contentShape(Rectangle())
+        .padding(.vertical, 12)
+        .padding(.horizontal, 16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(selected ? Color("BrandAccent"): Color("BrandSecondary"))
+        .cornerRadius(cornerRadius4)
+        .animation(.snappy, value: selected)
         .allowsHitTesting(true)
         .onTapGesture {
             switch tapBehavior {
