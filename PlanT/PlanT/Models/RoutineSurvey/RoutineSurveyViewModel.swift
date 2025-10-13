@@ -23,12 +23,12 @@ final class RoutineSurveyViewModel: ObservableObject {
               title: "루틴 카테고리를 선택해 주세요",
               message: nil,
               options: [
-                .init(id: "category01", title: "대인관계/커뮤니케이션", thumb: "categories_01"),
-                .init(id: "category02", title: "지적/성장", thumb: "categories_02"),
-                .init(id: "category03", title: "정서/마음", thumb: "categories_03"),
-                .init(id: "category04", title: "전문 역량", thumb: "categories_04"),
-                .init(id: "category05", title: "재정/삶의 관리", thumb: "categories_05"),
-                .init(id: "category06", title: "신체/건강", thumb: "categories_06")
+                .init(id: "category01", title: "지적/성장", thumb: "categories01"),
+                .init(id: "category02", title: "전문 역량", thumb: "categories02"),
+                .init(id: "category03", title: "신체/건강", thumb: "categories03"),
+                .init(id: "category04", title: "정서/마음", thumb: "categories04"),
+                .init(id: "category05", title: "대인관계/커뮤니케이션", thumb: "categories05"),
+                .init(id: "category06", title: "재정/삶의 관리", thumb: "categories06"),
               ],
               minSelection: 1, maxSelection: 1),
 
@@ -81,6 +81,13 @@ final class RoutineSurveyViewModel: ObservableObject {
     // 현재 단계에 해당하는 SurveyStep 반환 (UI에서 참조)
     var currentStep: SurveyStep { steps[currentIndex] }
 
+    /// 앞에서 사용자가 고른 카테고리의 표시용 제목
+    var selectedCategoryTitle: String? {
+        guard let categoryStep = steps.first(where: { $0.id == "category" }),
+              let selectedId = selections["category"]?.first,
+              let opt = categoryStep.options.first(where: { $0.id == selectedId }) else { return nil }
+        return opt.title
+    }
     // 현재 단계에서 특정 옵션이 선택되어 있는지 여부
     func isSelected(_ option: Option) -> Bool {
         selections[currentStep.id, default: []].contains(option.id)
