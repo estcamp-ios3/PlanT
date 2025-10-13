@@ -10,12 +10,13 @@ import Combine
 
 @MainActor
 final class RoutineSurveyViewModel: ObservableObject {
-    
     var categoryTitles: [String] {
         guard let categoryStep = steps.first(where: { $0.id == "category" }) else {
             return []
         }
         return categoryStep.options.map { $0.title }
+        
+        
     }
     // 설문 단계 정의: 각 화면에서 보여줄 질문/옵션/선택 제한 등을 순서대로 나열합니다.
     @Published private(set) var steps: [SurveyStep] = [
@@ -35,12 +36,7 @@ final class RoutineSurveyViewModel: ObservableObject {
             .init(id: "health_type", kind: .single,
                   title: "어떤 루틴을 시작할까요?",
                   message: "신체, 건강(들)을 선택하셨어요!",
-                  options: [
-                    .init(id: "walk",  title: "걷기"),
-                    .init(id: "yoga",  title: "요가"),
-                    .init(id: "gym",   title: "근력운동"),
-                    .init(id: "water", title: "물 마시기")
-                  ],
+                  options: [ ],
                   minSelection: 1, maxSelection: 1),
         
             .init(id: "frequency_per_week", kind: .single,
@@ -52,7 +48,7 @@ final class RoutineSurveyViewModel: ObservableObject {
             .init(id: "duration", kind: .single,
                   title: "한 번 할 때 몇 분 할까요?",
                   message: nil,
-                  options: ["10분","20분","30분","40분"].map { .init(id: $0, title: $0) },
+                  options: ["10분","20분","30분","40분"].map { .init(id: $0, title: $0) } + [.init(id: "custom_input", title: "직접 입력", icon: "square.and.pencil")],
                   minSelection: 1, maxSelection: 1),
         
             .init(id: "set_period", kind: .confirm,
@@ -87,6 +83,38 @@ final class RoutineSurveyViewModel: ObservableObject {
               let selectedId = selections["category"]?.first,
               let opt = categoryStep.options.first(where: { $0.id == selectedId }) else { return nil }
         return opt.title
+    }
+    
+    // 직접입력 값 주입 API
+    func selectValue(for stepId: String, value: String) {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty {
+            selections.removeValue(forKey: stepId) // 비어있으면 선택 해제 → 다음 비활성
+        } else {
+            selections[stepId] = [trimmed]         // 단일 선택이므로 한 개만 보관
+        }
+        objectWillChange.send()                    // 뷰 갱신
+    }
+    
+    // 선택된 값을 사람이 읽을 문자열로 (커스텀 입력 지원)
+    func displayValue(for stepId: String) -> String? {
+        guard let raw = selections[stepId]?.first else { return nil }
+        if let step = steps.first(where: { $0.id == stepId }),
+           let opt  = step.options.first(where: { $0.id == raw }) {
+            return opt.title
+        }
+        return raw // 커스텀 입력 ("25분") 같은 케이스
+    }
+
+    // 현재 단계 이전까지의 (질문, 답변) 목록
+    func priorAnswers() -> [(question: String, answer: String)] {
+        let idx = currentIndex
+        guard steps.indices.contains(idx) else { return [] }
+        let previous = steps.prefix(idx)
+        return previous.compactMap { s in
+            guard let v = displayValue(for: s.id) else { return nil }
+            return (s.title, v)
+        }
     }
     // 현재 단계에서 특정 옵션이 선택되어 있는지 여부
     func isSelected(_ option: Option) -> Bool {
@@ -137,17 +165,81 @@ final class RoutineSurveyViewModel: ObservableObject {
     func back() {
         if !isFirst { currentIndex -= 1 }
     }
+    // 현재 선택된 카테고리 id를 slug로 변환
+    private func normalizedSlug(from categoryKey: String) -> String? {
+        switch categoryKey {
+        case "category01": return "knowledge"
+        case "category02": return "career"
+        case "category03": return "body"
+        case "category04": return "mind"
+        case "category05": return "social"
+        case "category06": return "finance"
+        default: return nil
+        }
+    }
+
+    // health_type 단계에서 사용할 동적 옵션(카테고리 기반)
+    private func healthTypeOptionsForCurrentCategory() -> [Option] {
+        guard let selectedCatKey = selections["category"]?.first,
+              let slug = normalizedSlug(from: selectedCatKey),
+              let cat = CategorySlug(rawValue: slug) else { return [] }
+        return ActivityTemplatesMock.byCategory[cat] ?? []
+    }
+    // ✅ 뷰에서 호출할 단일 진입점
+    func options(for step: SurveyStep) -> [Option] {
+        if step.id == "health_type" { return healthTypeOptionsForCurrentCategory() }
+        return step.options
+    }
     
+    // stepId + optionId -> 사람이 읽는 option.title로 변환
+    private func title(for stepId: String, optionId: String) -> String {
+        if let step = steps.first(where: { $0.id == stepId }),
+           let opt = step.options.first(where: { $0.id == optionId }) {
+            return opt.title
+        }
+        // health_type의 경우, UI에서 동적으로 로드한 템플릿에서 탐색
+        if stepId == "health_type" {
+            if let opt = healthTypeOptionsForCurrentCategory().first(where: { $0.id == optionId }) {
+                return opt.title
+            }
+            // 혹시 카테고리 미선택 상태면 모든 템플릿을 전수검사하여 찾기(안전망)
+            for (_, opts) in ActivityTemplatesMock.byCategory {
+                if let hit = opts.first(where: { $0.id == optionId }) { return hit.title }
+            }
+        }
+        return optionId
+    }
+
+    /// 고정 message 대신 선택값에 기반한 동적 메시지 제공
+    func message(for step: SurveyStep) -> String? {
+        // health_type 단계: 앞 단계에서 고른 카테고리의 제목을 보여준다
+        if step.id == "health_type" {
+            if let selectedId = selections["category"]?.first {
+                let catTitle = title(for: "category", optionId: selectedId)
+                return "\(catTitle)(을)를 선택하셨어요!"
+            } else {
+                return step.message // 아직 선택 전이면 기본 문구 사용
+            }
+        }
+        return step.message
+    }
+
     // 사용자가 선택한 값을 요약 텍스트로 구성하여 표시
     var summaryText: String {
         func pick(_ id: String) -> String? { selections[id]?.first }
-        let cat  = pick("category") ?? "-"
-        let type = pick("health_type") ?? "-"
-        let freq = pick("frequency_per_week") ?? "-"
-        let dur  = pick("duration") ?? "-"
-        let per  = pick("set_period") == "yes" ? "기간 없음" : "기간 설정"
-        let rem  = pick("set_reminder") == "yes" ? "알림 ON" : "알림 OFF"
-        return "카테고리: \(cat)\n루틴: \(type)\n빈도: \(freq)\n시간: \(dur)\n기간: \(per)\n알림: \(rem)"
+        let catId  = pick("category") ?? "-"
+        let typeId = pick("health_type") ?? "-"
+        let freqId = pick("frequency_per_week") ?? "-"
+        let durId  = pick("duration") ?? "-"
+        let perTxt = pick("set_period") == "yes" ? "기간 없음" : "기간 설정"
+        let remTxt = pick("set_reminder") == "yes" ? "알림 ON" : "알림 OFF"
+
+        let catTitle  = catId == "-" ? "-" : title(for: "category", optionId: catId)
+        let typeTitle = typeId == "-" ? "-" : title(for: "health_type", optionId: typeId)
+        let freqTitle = freqId == "-" ? "-" : title(for: "frequency_per_week", optionId: freqId)
+        let durTitle  = durId == "-" ? "-" : title(for: "duration", optionId: durId)
+
+        return "카테고리: \(catTitle)\n루틴: \(typeTitle)\n빈도: \(freqTitle)\n시간: \(durTitle)\n기간: \(perTxt)\n알림: \(remTxt)"
     }
 }
 
@@ -157,12 +249,6 @@ extension RoutineSurveyViewModel {
     var draft: RoutineDraft {
         // 선택된 optionId를 가져오는 헬퍼 (없으면 "-")
         func pick(_ id: String) -> String { selections[id]?.first ?? "-" }
-        // optionId를 사람이 읽기 쉬운 title로 바꾸는 헬퍼
-        func title(for stepId: String, optionId: String) -> String {
-            guard let step = steps.first(where: { $0.id == stepId }),
-                  let opt = step.options.first(where: { $0.id == optionId }) else { return optionId }
-            return opt.title
-        }
         // 각 단계에서 선택된 값 추출
         let categoryId = pick("category")
         let routineTypeId = pick("health_type")
@@ -173,7 +259,7 @@ extension RoutineSurveyViewModel {
         
         // 초안(RoutineDraft) 구성: id와 title을 함께 보관해 다음 화면에서 유연하게 사용
         return RoutineDraft(
-        
+            
             categoryId: categoryId,
             categoryTitle: title(for: "category", optionId: categoryId),
             routineTypeId: routineTypeId,

@@ -20,21 +20,21 @@ struct OptionGridItem: View {
             
             HStack(spacing: 10) {
                 if let symbol = option.icon, !symbol.isEmpty {
-                    // Prefer SF Symbol when provided (Category uses icon_name)
+                    // 제공된 경우 SF 심볼을 우선 사용 (Category는 icon_name 사용)
                     Image(systemName: symbol)
                         .font(.system(size: 28, weight: .semibold))
                         .frame(width: 40, height: 40, alignment: .center)
                         .foregroundStyle(Color("Gray900"))
                         .padding(.trailing, 4)
                 } else if let name = option.thumb, !name.isEmpty {
-                    // Fallback to asset thumbnail
+                    // 에셋 썸네일로 대체
                     Image(name)
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .frame(height: 80)
                         .cornerRadius(cornerRadius2)
                 } else {
-                    // Final fallback
+                    // 최종 대체
                     Image(systemName: "square.grid.2x2")
                         .font(.system(size: 24, weight: .regular))
                         .foregroundStyle(Color("Gray400"))
@@ -82,3 +82,4 @@ struct OptionGridItemStyle: ButtonStyle {
             .animation(.snappy, value: selected)
     }
 }
+

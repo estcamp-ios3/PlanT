@@ -35,11 +35,14 @@ struct RoutineSurveyView: View {
                         step: vm.currentStep,
                     )
                 }
-            }
-            .animation(.snappy, value: vm.currentIndex)
-            
-            // 풋터
-            HStack{
+            }            
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity)
+        .animation(.snappy, value: vm.currentIndex)
+        .ignoresSafeArea(.keyboard, edges: .bottom)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            HStack {
                 if !vm.isFirst {
                     Button { vm.back() }
                     label: {
@@ -54,17 +57,15 @@ struct RoutineSurveyView: View {
                     } else {
                         vm.next()
                     }
-                }
-                label: {
+                } label: {
                     Text(vm.isLast ? "생성" : "다음")
                 }
                 .plantPrimaryButton()
                 .disabled(!vm.canGoNext)
             }
+            .padding(.horizontal, 16)
+            .padding(.bottom, 12)
         }
-        .padding(16)
-        .frame(maxWidth: .infinity)
-        .animation(.snappy, value: vm.currentIndex)
         .navigationDestination(for: Route.self) { route in
             switch route {
             case .seedStatus(let draft):

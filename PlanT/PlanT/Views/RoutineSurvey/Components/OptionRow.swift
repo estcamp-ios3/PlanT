@@ -17,12 +17,12 @@ struct OptionRow: View {
 
             action()
         } label: {
-            HStack (spacing:16) {
+            HStack (spacing:vertical2) {
                 if let name = option.icon, !name.isEmpty {
-                    Image(name)
+                    Image(systemName: name)
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                        .frame(width: 24, height: 24)
+                        .frame(width: 20, height: 20)
                     
                 } else {
                     Image(systemName: "leaf.fill")  // 기본 System Image
@@ -31,7 +31,7 @@ struct OptionRow: View {
                     .font(.title3)
                     .fontWeight(selected ? .bold : .regular) // 선택되면 굵게
                     .foregroundStyle(Color("Gray900"))
-                Spacer()
+                    .contentTransition(.identity)
             }
         }
         .buttonStyle(OptionRowStyle(selected: selected))
@@ -44,7 +44,7 @@ struct OptionRowStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .padding(.vertical, 12)
-            .padding(.horizontal, 16)
+            .padding(.horizontal, 24)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(selected ? Color("BrandAccent"): Color("BrandSecondary"))
             .cornerRadius(cornerRadius4)
