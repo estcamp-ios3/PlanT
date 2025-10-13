@@ -44,6 +44,7 @@ struct LoginView: View {
                 SecureField("Password", text: $viewModel.password)
                     .authTextFieldStyle(.signIn)
                     .focusRoute($focus, equals: .pw, submit: .go, next: nil)
+                    .padding(.bottom, 8)
 
                 Button {
                     Task { await viewModel.signIn() }
@@ -56,6 +57,7 @@ struct LoginView: View {
                 }
                 .plantPrimaryButton()
                 .disabled(viewModel.isLoading)
+                .padding(.bottom, 16)
 
                 Button("Sign Up") { isPresentingSignUp = true }
                     .foregroundColor(.black)
