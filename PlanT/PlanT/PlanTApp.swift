@@ -10,6 +10,7 @@ import SwiftData
 
 @main
 struct PlanTApp: App {
+    @StateObject private var authStore = AuthStore()
     
     // SwiftData용 컨테이너 정의
     var sharedModelContainer: ModelContainer = {
@@ -25,10 +26,15 @@ struct PlanTApp: App {
     
     var body: some Scene {
         WindowGroup {
-            
-            LoginView()
+            if authStore.isAuthenticated {
+                ContentView()
+                    .environmentObject(authStore)
+                    .environmentObject(RoutineStore(context: sharedModelContainer.mainContext))
+            } else {
+                LoginView()
+                    .environmentObject(authStore)
+            }
         }
-        .environmentObject(RoutineStore(context: sharedModelContainer.mainContext))
         .modelContainer(sharedModelContainer)
     }
 }
