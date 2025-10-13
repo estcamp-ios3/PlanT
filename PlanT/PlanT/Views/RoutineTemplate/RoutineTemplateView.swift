@@ -134,7 +134,8 @@ struct RoutineTemplateView: View {
                     durationTitle: routine.detail.duration,
                     periodIsNoLimit: true,
                     reminderOn: routine.detail.alarm == .every24Hours,
-                    goal: routine.detail.goal
+                    goal: routine.detail.goal,
+                    isFavorite: false
                 )
 
                 SeedStatusView(state: .planted(routine), draft: draft, path: $path)
@@ -150,7 +151,8 @@ struct RoutineTemplateView: View {
                     durationTitle: "-",
                     periodIsNoLimit: true,
                     reminderOn: false,
-                    goal: "-"
+                    goal: "-",
+                    isFavorite: false
                 )
                 SeedStatusView(state: .notPlanted, draft: fallbackDraft, path: $path)
             }
