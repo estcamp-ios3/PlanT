@@ -20,7 +20,7 @@ struct RoutineDraft: Codable, Hashable, Identifiable {
     // MARK: - Routine Category (카테고리 정보)
     /// [category_id] bigint | 필수 | 루틴이 속한 카테고리 식별자 (서버 routines.category_id)
     /// 예: 12345
-    var categoryId: Int64
+    var categoryId: String
 
     /// [클라이언트 전용] 카테고리 이름 (화면 표시용)
     /// 예: "운동", "공부"
@@ -98,4 +98,79 @@ struct RoutineDraft: Codable, Hashable, Identifiable {
     // var repeat_pattern_id: String?  // 반복 패턴 식별자 (예: 매주, 매월)
     // var progress_status: String?    // 현재 진행 상태
     // var parent_routine_id: UUID?    // 부모 루틴 id (하위 루틴 관리용)
+}
+
+// MARK: - 서버 전송용 DTO
+/// 서버에 루틴을 생성/수정 요청할 때 사용하는 전송 전용 모델
+struct RoutineCreateDTO: Codable {
+    let categoryId: Int64
+    let routineTypeId: String
+    let frequencyPerWeekId: String
+    let durationId: String
+    let periodIsNoLimit: Bool
+    let startDate: Date?
+    let endDate: Date?
+    let reminderOn: Bool
+    let reminderTime: String? // "HH:mm:ss"
+    let reminderDays: [String]?
+    let goal: String
+    let notes: String?
+    let iconName: String?
+    let isFavorite: Bool
+}
+
+// MARK: - 변환/유효성 검사 헬퍼
+extension RoutineDraft {
+    enum DraftValidationError: Error, LocalizedError {
+        case invalidCategoryId
+        case invalidReminderTime
+
+        var errorDescription: String? {
+            switch self {
+            case .invalidCategoryId:
+                return "카테고리 ID가 올바른 숫자가 아닙니다."
+            case .invalidReminderTime:
+                return "알림 시각 형식이 올바르지 않습니다."
+            }
+        }
+    }
+
+    /// 화면 전용 Draft -> 서버 전송용 DTO 변환
+    /// - Throws: DraftValidationError
+    func toDTO() throws -> RoutineCreateDTO {
+        // 1) categoryId(String) -> Int64 변환
+        let trimmedCategoryId = categoryId.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let categoryIdInt = Int64(trimmedCategoryId) else {
+            throw DraftValidationError.invalidCategoryId
+        }
+
+        // 2) reminderTime(Date) -> "HH:mm:ss" 문자열 변환
+        var timeString: String? = nil
+        if let reminderTime {
+            let formatter = DateFormatter()
+            formatter.locale = Locale(identifier: "en_US_POSIX")
+            formatter.dateFormat = "HH:mm:ss"
+            timeString = formatter.string(from: reminderTime)
+        }
+
+        // 3) Weekday enum -> 서버 문자열 배열 (rawValue 사용 가정)
+        let days = reminderDays?.map { $0.rawValue }
+
+        return RoutineCreateDTO(
+            categoryId: categoryIdInt,
+            routineTypeId: routineTypeId,
+            frequencyPerWeekId: frequencyPerWeekId,
+            durationId: durationId,
+            periodIsNoLimit: periodIsNoLimit,
+            startDate: periodIsNoLimit ? nil : startDate,
+            endDate: periodIsNoLimit ? nil : endDate,
+            reminderOn: reminderOn,
+            reminderTime: timeString,
+            reminderDays: days,
+            goal: goal,
+            notes: notes,
+            iconName: iconName,
+            isFavorite: isFavorite
+        )
+    }
 }

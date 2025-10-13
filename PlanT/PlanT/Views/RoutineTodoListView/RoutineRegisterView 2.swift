@@ -116,10 +116,8 @@
 //
 //extension RoutineRegisterView {
 //    private var draft: RoutineDraft {
-//        let categoryIdNumeric: Int64 = selectedCategory.numericInt64()
-//
 //        return RoutineDraft(
-//            categoryId: categoryIdNumeric,
+//            categoryId: selectedCategory,
 //            categoryTitle: selectedCategory,
 //            routineTypeId: routineTitle,
 //            routineTypeTitle: routineTitle,

@@ -132,7 +132,7 @@
 //               let category = sampleCategories.first(where: {$0.routines.contains(where: { $0.id == id }) }) {
 //
 //                let draft = RoutineDraft(
-//                    categoryId: category.categoryId.numericInt64(),
+//                    categoryId: category.categoryId,
 //                    categoryTitle: category.categoryTitle,
 //                    routineTypeId: routine.title,
 //                    routineTypeTitle: routine.title,
