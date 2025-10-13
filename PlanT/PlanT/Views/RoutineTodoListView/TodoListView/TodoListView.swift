@@ -71,7 +71,7 @@ struct TodoListView: View {
                     // 계산된 행의 수만큼 반복
                     ForEach(0..<rowCount, id: \.self) { rowIndex in
                         // 각 행은 수평으로 아이템을 나열하는 HStack
-                        HStack(spacing: 16) {
+                        HStack {
                             // 행의 첫 번째 아이템 인덱스 계산
                             let firstItemIndex = rowIndex * 2
                             // 해당 인덱스의 아이템에 대한 뷰 생성
@@ -96,8 +96,9 @@ struct TodoListView: View {
                         // 마지막 행이 아닐 경우에만 구분선 추가
                         if rowIndex < rowCount - 1 {
                             Rectangle()
-                                .frame(height: 3)
-                                .foregroundColor(Color.gray.opacity(0.3))
+                                .frame(height: 13)
+//                                .foregroundColor(Color.gray.opacity(0.3))
+                                .foregroundColor(.clear)
                                 .padding(.vertical, 8)
                         }
                     }
@@ -105,19 +106,20 @@ struct TodoListView: View {
                 .padding()
             }
 
-            // 플로팅 액션 버튼 (오른쪽 하단)
-            Button(action: {
-                self.isShowingAddGroupAlert.toggle()
-            }) {
-                Image(systemName: "plus")
-                    .font(.title.weight(.semibold))
-                    .padding()
-                    .background(Color.orange)
-                    .foregroundColor(.white)
-                    .clipShape(Circle())
-                    .shadow(radius: 4, x: 0, y: 4)
-            }
-            .padding()
+//            // 플로팅 액션 버튼 (오른쪽 하단)
+//            Button(action: {
+//                self.isShowingAddGroupAlert.toggle()
+//            }) {
+//                Image(systemName: "plus")
+//                    .font(.title.weight(.semibold))
+//                    .padding()
+////                    .background(Color.orange)
+//                    .background(Color.clear)
+//                    .foregroundColor(.green)
+//                    .clipShape(Circle())
+//                    .shadow(radius: 4, x: 0, y: 4)
+//            }
+//            .padding()
         }
         .alert("할일 그룹 생성", isPresented: $isShowingAddGroupAlert) {
             // Alert 내부에 TextField 추가
@@ -139,14 +141,27 @@ struct TodoListView: View {
         }
         .onChange(of: isShowingAddGroupAlert) { newValue in
             // alert가 닫힐 때 (isShowingAddGroupAlert가 false가 될 때)
-            if !newValue {
-                // 그리고 newGroupTitle에 텍스트가 있을 때 (생성 버튼을 눌렀을 때)
+//            if oldValue == true && newValue == false {
                 if !newGroupTitle.isEmpty {
                     let newGroup = ChecklistGroup(title: newGroupTitle, items: [])
                     checklistGroups.insert(newGroup, at: 0)
                 }
-                // 작업이 끝났으니 텍스트 필드를 초기화합니다.
                 newGroupTitle = ""
+//            }
+//            newGroupTitle = ""
+        }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button(action: {
+                    self.isShowingAddGroupAlert.toggle()
+                }) {
+                    Image(systemName: "plus")
+                        .font(.body.weight(.semibold))
+                        .foregroundColor(.green)
+                        .shadow(radius: 4, x: 0, y: 4)
+                }
+                .padding(.trailing)
+                .offset(x: 10)
             }
         }
     }
@@ -154,6 +169,7 @@ struct TodoListView: View {
 
 struct ChecklistCardView: View {
     @Binding var group: ChecklistGroup
+    @State private var deleteDialog = false
     public var onDelete: () -> Void
 
     public var body: some View {
@@ -184,7 +200,35 @@ struct ChecklistCardView: View {
                 RoundedRectangle(cornerRadius: 10)
                     .stroke(Color.gray.opacity(0.3), lineWidth: 1)
             )
-            .frame(maxWidth: 180, maxHeight: 220, alignment: .top)
+//            .frame(minWidth: 180, maxWidth: 180, minHeight: 220, alignment: .top)
+            .frame(minWidth: 180, maxWidth: 180, minHeight: 220, maxHeight: 220, alignment: .top)
+            .background(Color.gray.opacity(0.2))
+            .overlay(
+                Button(action: {
+                    // 삭제 액션
+                    print("삭제 버튼 클릭")
+//                    onDelete()
+                    deleteDialog.toggle()
+                }) {
+                    Image(systemName: "xmark.circle.fill")
+//                        .foregroundColor(.red)
+                        .background(Color.white.clipShape(Circle()))
+                }
+                .padding(8)
+                , alignment: .topTrailing  // 오른쪽 상단
+            )
+            .confirmationDialog(
+                "삭제하시겠습니까?",
+                isPresented: $deleteDialog,
+                titleVisibility: .visible
+            ) {
+                Button("삭제", role: .destructive) {
+                    withAnimation {
+                        onDelete()
+                    }
+                }
+                Button("취소", role: .cancel) { }
+            }
 
             // 카드 제목
             Text(group.title)
@@ -192,6 +236,9 @@ struct ChecklistCardView: View {
                 .lineLimit(1)
         }
         .contextMenu {
+            // 1. 수정 버튼을 만들기
+
+            // 2. 삭제 버튼
             Button(role: .destructive) {
                 // 삭제 버튼을 누르면 콜백 클로저 실행
                 onDelete()
@@ -213,6 +260,16 @@ struct ChecklistItemView: View {
                 .foregroundColor(item.isChecked ? .blue : .gray.opacity(0.5))
 
             Text(item.text)
+//                .strikethrough(item.isChecked, color: .red)
+//                .customStrikethrough(item.isChecked, color: .red, offset: -1)
+                .customStrikethrough(
+                                    text: item.text,
+                                    active: item.isChecked,
+                                    color: .red,
+//                                    alphanumericOffset: -2, // 영어
+                                    mixedOffset: -2           // 한글
+                                )
+
                 .foregroundColor(.primary) // .black 대신 .primary를 사용하면 다크모드 대응 용이
                 .lineLimit(1)
 
