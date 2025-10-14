@@ -99,8 +99,10 @@ struct CommonStyleDemo: View {
         }
         
         // MARK: - Checkbox + Label
-        CheckLabelView(isChecked: $isAllDay, label: "종일")
-        CheckLabelView(isChecked: $isAny, label: "아무거나")
+        HStack(spacing: vertical3) {
+            CheckLabelView(isChecked: $isAllDay, label: "종일")
+            CheckLabelView(isChecked: $isAny, label: "종료일")
+        }
     }
 }
 #Preview("Light") {
