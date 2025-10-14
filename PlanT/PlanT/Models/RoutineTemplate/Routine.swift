@@ -15,6 +15,7 @@ final class Routine {
     var id = UUID()
     var title: String
     var detail: RoutineDetail
+    var categoryId: String
     var seedName: String?
     var note: String?
     var isCompleted: Bool = false
@@ -26,6 +27,7 @@ final class Routine {
         id: UUID = UUID(),
         title: String,
         detail: RoutineDetail,
+        categoryId: String,
         seedName: String? = nil,
         note: String? = nil,
         isCompleted: Bool = false,
@@ -35,6 +37,7 @@ final class Routine {
         self.id = id
         self.title = title
         self.detail = detail
+        self.categoryId = categoryId
         self.seedName = seedName
         self.note = note
         self.isCompleted = isCompleted

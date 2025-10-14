@@ -4,9 +4,9 @@
 //
 //  Created by 박성관 on 10/9/25.
 //
+import Foundation
+import SwiftUI
 
-<<<<<<< HEAD
-=======
 // MARK: - 루틴 카테고리 모델
 // 루틴들을 카테고리별로 그룹화
 struct RoutineCategory: Identifiable {
@@ -183,4 +183,3 @@ let routineTemplates: [RoutineCategory] = [
         ]
     )
 ]
->>>>>>> dev.mirror
