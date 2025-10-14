@@ -73,6 +73,7 @@ struct RoutineDTO: Codable {
         }
 }
 
+@MainActor
 extension Routine {
     var dto: RoutineDTO {
         RoutineDTO(

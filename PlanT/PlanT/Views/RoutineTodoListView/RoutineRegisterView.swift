@@ -102,7 +102,7 @@ extension RoutineRegisterView {
     private func setupMode() {
         switch currentMode {
         case .create:
-            selectedCategory = "선택하세요"
+            selectedCategory = "카테고리 선택 ⌵"
             useDate = true
             selectedAlarms = [15]
         case .details(let routine),
@@ -142,15 +142,12 @@ extension RoutineRegisterView {
     private func categorySection() -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text("카테고리 선택")
-                    .font(.subheadline).bold()
-
                 if case .details = currentMode {
                     Text(selectedCategory)
                         .padding(.vertical, 12)
                         .padding(.horizontal, 12)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color(.systemGray6))
+                        .background(Color("F2F0CE"))
                         .cornerRadius(8)
                 } else {
                     Menu {
@@ -174,7 +171,7 @@ extension RoutineRegisterView {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 12)
                         .padding(.horizontal, 12)
-                        .background(Color(.systemGray6))
+                        .background(Color("F2F0CE"))
                         .cornerRadius(8)
                     }
                 }
