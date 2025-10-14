@@ -45,32 +45,32 @@ struct SignUpView: View {
                 
                 Text("Nick Name")
                     .signUpLabelStyle()
-                    .padding(.top, 12)
+                    .padding(.top, 10)
                 TextField("닉네임을 입력하세요", text: $userAuthModel.nickName)
                     .authTextFieldStyle(.signUp)
                 
                 Text("E-mail")
                     .signUpLabelStyle()
-                    .padding(.top, 12)
+                    .padding(.top, 10)
                 TextField("로그인에 사용할 Email을 입력하세요", text: $userAuthModel.email)
                     .authTextFieldStyle(.signUp)
                 
                 Text("Password")
                     .signUpLabelStyle()
-                    .padding(.top, 12)
+                    .padding(.top, 10)
                 SecureField("비밀번호를 입력하세요", text: $userAuthModel.password)
                     .authTextFieldStyle(.signUp)
                 
                 Text("Password Confirm")
                     .signUpLabelStyle()
-                    .padding(.top, 12)
+                    .padding(.top, 10)
                 SecureField("입력한 비밀번호를 확인합니다", text: $userAuthModel.passwordConfirm)
                     .authTextFieldStyle(.signUp)
             }
             .padding(.horizontal)
             VStack {
                 Text("Selected Mate")
-                    .padding(.top, 12)
+                    .padding(.top, 10)
                     .signUpLabelStyle()
             }
             .padding(.horizontal)
