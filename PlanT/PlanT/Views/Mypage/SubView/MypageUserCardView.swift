@@ -28,14 +28,14 @@ struct MypageUserCardView: View {
                     .fixedSize(horizontal: false, vertical: true)
 
                 Spacer()
-
+            }
+            .overlay(alignment: .topTrailing) {
                 Button("설정") {
                     viewModel.onTapSettings?()
                 }
-                .font(.system(size: 16, weight: .semibold))
+                .font(.system(size: 14, weight: .semibold))
                 .foregroundColor(.gray)
-                .padding(.bottom, 35)
-                .padding(4)
+                .padding(6)
             }
 
             // 하단 통계 3칼럼
