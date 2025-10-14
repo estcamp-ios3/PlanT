@@ -36,7 +36,7 @@ struct RoutineRegisterView: View {
     @Binding var path: NavigationPath
 
     private var isFormValid: Bool {
-        selectedCategory != "선택하세요" &&
+        selectedCategory != "카테고리 선택 ⌵" &&
         !routineTitle.trimmingCharacters(in: .whitespaces).isEmpty
     }
 
@@ -147,7 +147,7 @@ extension RoutineRegisterView {
                         .padding(.vertical, 12)
                         .padding(.horizontal, 12)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color("F2F0CE"))
+                        .background(Color("Gray400"))
                         .cornerRadius(8)
                 } else {
                     Menu {
@@ -168,7 +168,7 @@ extension RoutineRegisterView {
                                     .foregroundColor(.gray)
                             }
                         }
-                        .frame(maxWidth: .infinity)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.vertical, 12)
                         .padding(.horizontal, 12)
                         .background(Color("F2F0CE"))
@@ -181,7 +181,7 @@ extension RoutineRegisterView {
                     .padding(.vertical, 12)
                     .padding(.horizontal, 12)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Color(.systemGray6))
+                    .background(Color("Gray400"))
                     .cornerRadius(8)
             } else {
                 TextField("루틴 제목을 입력하세요", text: $routineTitle)
@@ -256,10 +256,6 @@ extension RoutineRegisterView {
                             .datePickerStyle(.compact)
                             .labelsHidden()
                             .frame(height: 40)
-                        DatePicker("", selection: $endDate, displayedComponents: .hourAndMinute)
-                            .datePickerStyle(.compact)
-                            .labelsHidden()
-                            .frame(height: 40)
                     }
                     .padding(.top, 8)
                 }
@@ -279,10 +275,10 @@ extension RoutineRegisterView {
                     .frame(width: 40)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                 Text("일")
-                TextField("24", text: $goalHours)
+                TextField("20", text: $goalHours)
                     .frame(width: 50)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
-                Text("시간 마다")
+                Text("분")
                 TextField("5page", text: $goalTask)
                     .frame(width: 80)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
