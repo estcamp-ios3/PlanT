@@ -8,35 +8,35 @@
 import SwiftUI
 
 struct TodoListView: View {
-    @State private var checklistGroups: [ChecklistGroup] = [
-        ChecklistGroup(title: "iOS 3차 앱개발 프..", items: [
-            ChecklistItem(text: "와이어 프레임", isChecked: false),
-            ChecklistItem(text: "기능명세", isChecked: false),
-            ChecklistItem(text: "화면 플로우(사용자 시나...", isChecked: false),
-            ChecklistItem(text: "아이디어", isChecked: true),
-            ChecklistItem(text: "ADS", isChecked: true)
+    @State private var checklistGroups: [TodoListCard] = [
+        TodoListCard(title: "iOS 3차 앱개발 프..", items: [
+            TodoListCheckItem(text: "와이어 프레임", isChecked: false),
+            TodoListCheckItem(text: "기능명세", isChecked: false),
+            TodoListCheckItem(text: "화면 플로우(사용자 시나...", isChecked: false),
+            TodoListCheckItem(text: "아이디어", isChecked: true),
+            TodoListCheckItem(text: "ADS", isChecked: true)
         ]),
-        ChecklistGroup(title: "장보기", items: [
-            ChecklistItem(text: "대파 1단", isChecked: false),
-            ChecklistItem(text: "한우 1++ 안심 스테이크...", isChecked: false)
+        TodoListCard(title: "장보기", items: [
+            TodoListCheckItem(text: "대파 1단", isChecked: false),
+            TodoListCheckItem(text: "한우 1++ 안심 스테이크...", isChecked: false)
         ]),
-        ChecklistGroup(title: "iOS 3차 앱개발 프..", items: [
-            ChecklistItem(text: "와이어 프레임", isChecked: false),
-            ChecklistItem(text: "기능명세", isChecked: false),
-            ChecklistItem(text: "화면 플로우(사용자 시나...", isChecked: false),
-            ChecklistItem(text: "아이디어", isChecked: true),
-            ChecklistItem(text: "ADS", isChecked: true)
+        TodoListCard(title: "iOS 3차 앱개발 프..", items: [
+            TodoListCheckItem(text: "와이어 프레임", isChecked: false),
+            TodoListCheckItem(text: "기능명세", isChecked: false),
+            TodoListCheckItem(text: "화면 플로우(사용자 시나...", isChecked: false),
+            TodoListCheckItem(text: "아이디어", isChecked: true),
+            TodoListCheckItem(text: "ADS", isChecked: true)
         ]),
-        ChecklistGroup(title: "장보기", items: [
-            ChecklistItem(text: "대파 1단", isChecked: false),
-            ChecklistItem(text: "한우 1++ 안심 스테이크...", isChecked: false)
+        TodoListCard(title: "장보기", items: [
+            TodoListCheckItem(text: "대파 1단", isChecked: false),
+            TodoListCheckItem(text: "한우 1++ 안심 스테이크...", isChecked: false)
         ]),
-        ChecklistGroup(title: "iOS 3차 앱개발 프..", items: [
-            ChecklistItem(text: "와이어 프레임", isChecked: false),
-            ChecklistItem(text: "기능명세", isChecked: false),
-            ChecklistItem(text: "화면 플로우(사용자 시나...", isChecked: false),
-            ChecklistItem(text: "아이디어", isChecked: true),
-            ChecklistItem(text: "ADS", isChecked: true)
+        TodoListCard(title: "iOS 3차 앱개발 프..", items: [
+            TodoListCheckItem(text: "와이어 프레임", isChecked: false),
+            TodoListCheckItem(text: "기능명세", isChecked: false),
+            TodoListCheckItem(text: "화면 플로우(사용자 시나...", isChecked: false),
+            TodoListCheckItem(text: "아이디어", isChecked: true),
+            TodoListCheckItem(text: "ADS", isChecked: true)
         ]) // 마지막 아이템을 홀수 개로 만들어 테스트
     ]
 
@@ -67,6 +67,7 @@ struct TodoListView: View {
             // 스크롤 가능한 뷰
             ScrollView {
                 // 수직으로 행과 구분선을 쌓기 위한 VStack
+<<<<<<< HEAD
                 VStack(spacing: 24) {
                     // 계산된 행의 수만큼 반복
                     ForEach(0..<rowCount, id: \.self) { rowIndex in
@@ -85,22 +86,57 @@ struct TodoListView: View {
                                 // 존재하면 두 번째 아이템에 대한 뷰 생성
                                 ChecklistCardView(group: $checklistGroups[secondItemIndex]) {
                                     deleteGroup(with: $checklistGroups[secondItemIndex].id)
+=======
+                NavigationStack {
+                    VStack(spacing: 24) {
+                        // 계산된 행의 수만큼 반복
+                        ForEach(0..<rowCount, id: \.self) { rowIndex in
+                            // 각 행은 수평으로 아이템을 나열하는 HStack
+                            HStack {
+                                // 행의 첫 번째 아이템 인덱스 계산
+                                let firstItemIndex = rowIndex * 2
+                                // 해당 인덱스의 아이템에 대한 뷰 생성
+                                TodoListCardView(group: $checklistGroups[firstItemIndex]) {
+                                    deleteGroup(with: $checklistGroups[firstItemIndex].id)
+>>>>>>> dev.mirror
                                 }
-                            } else {
-                                // 아이템 개수가 홀수라 마지막 행에 아이템이 하나뿐인 경우,
-                                // 공간을 채워 왼쪽 정렬을 유지
-                                Spacer()
-                            }
-                        }
 
+<<<<<<< HEAD
                         // 마지막 행이 아닐 경우에만 구분선 추가
                         if rowIndex < rowCount - 1 {
                             Rectangle()
                                 .frame(height: 3)
                                 .foregroundColor(Color.gray.opacity(0.3))
                                 .padding(.vertical, 8)
+=======
+                                // 행의 두 번째 아이템이 존재하는지 확인
+                                let secondItemIndex = firstItemIndex + 1
+                                if secondItemIndex < checklistGroups.count {
+                                    // 존재하면 두 번째 아이템에 대한 뷰 생성
+                                    TodoListCardView(group: $checklistGroups[secondItemIndex]) {
+                                        deleteGroup(with: $checklistGroups[secondItemIndex].id)
+                                    }
+                                } else {
+                                    // 아이템 개수가 홀수라 마지막 행에 아이템이 하나뿐인 경우,
+                                    // 공간을 채워 왼쪽 정렬을 유지
+                                    Spacer()
+                                }
+                            }
+
+                            // 마지막 행이 아닐 경우에만 구분선 추가
+                            if rowIndex < rowCount - 1 {
+                                Rectangle()
+                                    .frame(height: 13)
+                                //                                .foregroundColor(Color.gray.opacity(0.3))
+                                    .foregroundColor(.clear)
+                                    .padding(.vertical, 8)
+                            }
+>>>>>>> dev.mirror
                         }
                     }
+//                    .navigationDestination(item: $selectedItem) { item in
+//                        ChecklistDetailView(item: item)
+//                    }
                 }
                 .padding()
             }
@@ -141,7 +177,7 @@ struct TodoListView: View {
             // alert가 닫힐 때 (isShowingAddGroupAlert가 false가 될 때)
             if oldValue == true && newValue == false {
                 if !newGroupTitle.isEmpty {
-                    let newGroup = ChecklistGroup(title: newGroupTitle, items: [])
+                    let newGroup = TodoListCard(title: newGroupTitle, items: [])
                     checklistGroups.insert(newGroup, at: 0)
                 }
                 newGroupTitle = ""
@@ -150,6 +186,7 @@ struct TodoListView: View {
     }
 }
 
+<<<<<<< HEAD
 struct ChecklistCardView: View {
     @Binding var group: ChecklistGroup
     public var onDelete: () -> Void
@@ -241,21 +278,8 @@ struct ChecklistItemView: View {
     }
 }
 
+=======
+>>>>>>> dev.mirror
 #Preview {
     TodoListView()
-}
-
-
-// 개별 체크리스트 항목을 위한 모델
-struct ChecklistItem: Identifiable {
-    let id = UUID()
-    var text: String
-    var isChecked: Bool
-}
-
-// 체크리스트 카드(그룹)를 위한 모델
-struct ChecklistGroup: Identifiable {
-    let id = UUID()
-    var title: String
-    var items: [ChecklistItem]
 }
