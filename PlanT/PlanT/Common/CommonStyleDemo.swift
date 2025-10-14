@@ -8,6 +8,9 @@
 import SwiftUI
 
 struct CommonStyleDemo: View {
+    @State private var isAllDay = false
+    @State private var isAny = false
+    
     var body: some View {
         ScrollView {
             VStack(spacing: vertical5) {
@@ -94,6 +97,10 @@ struct CommonStyleDemo: View {
             .padding(20)
             .padding(.bottom, 68)
         }
+        
+        // MARK: - Checkbox + Label
+        CheckLabelView(isChecked: $isAllDay, label: "종일")
+        CheckLabelView(isChecked: $isAny, label: "아무거나")
     }
 }
 #Preview("Light") {
