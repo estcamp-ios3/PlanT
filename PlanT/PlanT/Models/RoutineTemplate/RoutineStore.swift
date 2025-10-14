@@ -31,10 +31,11 @@ final class RoutineStore: ObservableObject {
     
     
     
-    func addRoutine(from seed: Seed, basedOn routine: Routine) {
+    func addRoutine(from seed: Seed, basedOn routine: Routine, categoryId: String) {
         let newRoutine = Routine(
             title: routine.title,
             detail: routine.detail,
+            categoryId: categoryId,
             seedName: seed.name,
             createdAt: Date(),
             modifiedAt: Date()

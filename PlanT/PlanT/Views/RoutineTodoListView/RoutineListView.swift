@@ -28,12 +28,12 @@ struct RoutineListView: View {
     }
     
     private func category(for routine: Routine) -> RoutineCategory {
-        for category in sampleCategories {
-            if category.routines.contains(where: { $0.id == routine.id }) {
+        for category in routineTemplates {
+            if category.categoryId == routine.categoryId {
                 return category
             }
         }
-        return sampleCategories.first!
+        return routineTemplates.first!
     }
     
     var body: some View {
@@ -49,12 +49,10 @@ struct RoutineListView: View {
                             routine: routine,
                             category: category(for: routine),
                             isSelected: .constant(false),
-                            selectable: true,
                             onSelect: {
                                 path.append(Route.manualCreateDetails(routine))
                             },
-                            tapBehavior: .navigate,
-                            selected: false
+                            tapBehavior: .navigate, selected: false
                         )
                         .contextMenu {
                             Button(role: .destructive) {

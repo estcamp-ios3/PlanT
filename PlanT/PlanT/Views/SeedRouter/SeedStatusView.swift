@@ -57,7 +57,7 @@ struct SeedStatusView: View {
                     // 기존: store.routines.insert(routine, at: 0) → 삭제
                     // 루틴 등록은 RoutineStore의 addRoutine 메서드를 사용해야 함
                     if case .planted(let routine) = state {
-                        store.addRoutine(from: seed, basedOn: routine)
+                        store.addRoutine(from: seed, basedOn: routine, categoryId: draft.categoryId)
                         path = NavigationPath()
                     } else {
                         // .notPlanted 상태에서는 draft와 seed로 Routine 생성 & 추가
@@ -65,15 +65,16 @@ struct SeedStatusView: View {
                             title: draft.routineTypeTitle.isEmpty ? "새 루틴" : draft.routineTypeTitle,
                             detail: RoutineDetail(
                                 duration: draft.durationTitle,
-                                goal: draft.goal, 
+                                goal: draft.goal,
                                 alarm: draft.reminderOn ? .every24Hours : .every48Hours
                             ),
+                            categoryId: draft.categoryId,
                             seedName: seed.name
                         )
                         // 새로운 메서드를 RoutineStore에 추가하는 것이 바람직함
                         // 임시로 직접 context에 저장 로직을 이곳에 두거나,
                         // store에 편의 메서드 추가 권장
-                        store.addRoutine(from: seed, basedOn: routine)
+                        store.addRoutine(from: seed, basedOn: routine, categoryId: draft.categoryId )
                         path = NavigationPath()
                     }
                 }
@@ -123,4 +124,3 @@ struct SeedStatusView: View {
         }
     }
 }
-
