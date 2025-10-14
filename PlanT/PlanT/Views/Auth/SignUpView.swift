@@ -15,11 +15,6 @@ struct SignUpView: View {
     
     // ✅ 유효성 검사
     private var isSignUpValid: Bool {
-        print("UserName:", userAuthModel.userName.count)
-        print("NickName:", userAuthModel.nickName.count)
-        print("Email:", userAuthModel.email.count)
-        print("Password:", userAuthModel.password)
-        print("Confirm:", userAuthModel.passwordConfirm)
         return userAuthModel.userName.count >= 2 &&
         userAuthModel.nickName.count >= 1 &&
         userAuthModel.email.count >= 4 &&
