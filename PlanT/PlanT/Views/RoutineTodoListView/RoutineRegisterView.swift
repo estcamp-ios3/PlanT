@@ -131,7 +131,7 @@ extension RoutineRegisterView {
             durationTitle: "3일",
             periodIsNoLimit: !useDate,
             reminderOn: !selectedAlarms.isEmpty,
-            goal: "\(goalTask)일 \(goalHours)시간마다 \(goalTask) 하기",
+            goal: "\(goalHours)분/\(goalDays)일",
             isFavorite:  false
         )
     }
