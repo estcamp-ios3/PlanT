@@ -35,7 +35,7 @@ struct PlantSecondaryButtonStyle: ButtonStyle {
     
     func makeBody(configuration: Configuration) -> some View {
         // 디자인 시스템 색상(Assets) 사용, 없을 경우 시스템 기본 색으로 폴백
-        let primaryBG  = Color(uiColor: UIColor(named: "BrandSecondary") ?? .white)
+        let primaryBG  = Color(.white)
         let disabledBG = Color(uiColor: UIColor(named: "Gray100") ?? .systemGray5)
         let primaryFG  = Color(uiColor: UIColor(named: "3B4019") ?? .black)
         let disabledFG = Color(uiColor: UIColor(named: "Gray400") ?? .systemGray)
@@ -61,7 +61,7 @@ struct PlantSecondaryButtonStyle: ButtonStyle {
             // 테두리: 아주 옅은 외곽선으로 입체감 부여
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .strokeBorder(Color.black.opacity(0.05), lineWidth: 0.5)
+                    .strokeBorder(Color("Gray400"), lineWidth: 1)
             )
             // 눌림 상태에서 살짝 투명해 보이도록 처리
             .opacity(configuration.isPressed ? 0.95 : 1)

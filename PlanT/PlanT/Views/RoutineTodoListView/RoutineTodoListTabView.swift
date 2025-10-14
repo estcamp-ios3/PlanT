@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct RoutineTodoListTabView: View {
+    @Binding var path: NavigationPath
     enum Segment: String, CaseIterable, Identifiable {
         case routine = "Routine"
         case todo = "Todo"
@@ -37,17 +38,17 @@ struct RoutineTodoListTabView: View {
             .padding([.horizontal, .top])
 
             if selected == .routine {
-                RoutineListView()
+                RoutineListView(path: $path)
             } else {
-                List(todos, id: \.self) { item in
-                    Text("item")
-                }
-                .listStyle(.insetGrouped)
+                TodoListView()
+                    .listStyle(.insetGrouped)
+//                List(todos, id: \.self) { item in
+//                    Text("item")
+//                }
+//                .listStyle(.insetGrouped)
             }
         }
     }
 }
 
-#Preview {
-    RoutineTodoListTabView()
-}
+
