@@ -30,8 +30,9 @@ final class UserAuthModel: ObservableObject {
             email: email,
             password: password,
             data: [
-                "userName": .string(userName),   // ✅ AnyJSON
-                "nickName": .string(nickName)
+                "userName": .string(userName),
+                "nickName": .string(nickName),
+                "mate": .string(mate)
             ]
         )
 
