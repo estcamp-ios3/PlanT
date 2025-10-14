@@ -49,10 +49,12 @@ struct RoutineListView: View {
                             routine: routine,
                             category: category(for: routine),
                             isSelected: .constant(false),
+                            selectable: true,
                             onSelect: {
                                 path.append(Route.manualCreateDetails(routine))
                             },
-                            tapBehavior: .navigate
+                            tapBehavior: .navigate,
+                            selected: false
                         )
                         .contextMenu {
                             Button(role: .destructive) {

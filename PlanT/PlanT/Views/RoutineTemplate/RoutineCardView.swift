@@ -20,60 +20,48 @@ struct RoutineCardView: View {
     var selectable: Bool = true
     var onSelect: (() -> Void)? = nil
     var tapBehavior: TapBehavior = .selectOnly
-
+    let selected: Bool
+    
+    
     var body: some View {
         // 전체 카드 UI
-        VStack(alignment: .leading, spacing: 4) {
-            
-            // 루틴 제목 표시 (가장 위에 큰 글씨)
-            Text(routine.title)
-                .font(.headline)
-            
-            // 제목 밑에 나오는 상세 정보 (카테고리, 목표, 기간, 알림설정)
-            HStack {
+        Button {
+            switch tapBehavior {
+            case .selectOnly, .navigate:
+                onSelect?()
+            }
+        } label: {
+            VStack(alignment: .leading, spacing: 4) {
                 
-                // 왼쪽 영역: 카테고리 + 목표
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("카테고리: \(category.categoryTitle)")
+                // 루틴 제목 표시 (가장 위에 큰 글씨)
+                Text(routine.title)
+                    .font(.headline)
+                
+                // 제목 밑에 나오는 상세 정보 (카테고리, 목표, 기간, 알림설정)
+                HStack {
                     
-                    // 목표가 비어있지 않으면 보여줌
-                    if !routine.detail.goal.isEmpty {
-                        Text("목표: \(routine.detail.goal)")
+                    // 왼쪽 영역: 카테고리 + 목표
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("카테고리: \(category.categoryTitle)")
+                        
+                        // 목표가 비어있지 않으면 보여줌
+                        if !routine.detail.goal.isEmpty {
+                            Text("목표: \(routine.detail.goal)")
+                        }
+                    }
+                    
+                    Spacer()
+                    
+                    // 오른쪽 영역: 기간 + 알림설정
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("기간: \(routine.detail.duration)") // 루틴 기간
+                        
+                        Text("알림설정: \(routine.detail.alarm.rawValue)") // 알림 설정 값
                     }
                 }
-                
-                Spacer()
-                
-                // 오른쪽 영역: 기간 + 알림설정
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("기간: \(routine.detail.duration)") // 루틴 기간
-                    
-                    Text("알림설정: \(routine.detail.alarm.rawValue)") // 알림 설정 값
-                }
-                
-                Spacer() // 오른쪽 영역 끝에도 공간 추가 (양쪽 균형 맞춤)
             }
         }
-        .padding()
-        .background(Color.white)
-        .cornerRadius(10)
-        .overlay(
-            // 카드 테두리
-            RoundedRectangle(cornerRadius: 10)
-                .stroke(isSelected ? Color.orange : Color.gray, lineWidth:1)
-            // 선택되면 주황색 테두리, 아니면 회색 테두리
-        )
-        .shadow(radius: 1)
-        .contentShape(Rectangle())
-        .allowsHitTesting(true)
-        .onTapGesture {
-            switch tapBehavior {
-            case .selectOnly:
-                onSelect?()
-            case .navigate:
-                onSelect?()
-            }
-        }
+        .buttonStyle(OptionGridItemStyle(selected: isSelected))
     }
 }
 
