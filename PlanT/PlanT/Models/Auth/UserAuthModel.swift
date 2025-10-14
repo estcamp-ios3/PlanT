@@ -9,8 +9,12 @@ import Foundation
 import Combine
 import Supabase
 
-@MainActor
+/// 회원가입/로그인 입력값을 보관하고 Supabase Auth를 호출하는 모델.
+/// - NOTE: `@MainActor`를 붙이지 않았습니다.
+///   이 모델은 주로 TextField 바인딩용이며, 네트워크 호출만 수행하고
+///   내부에서 UI 상태를 변경하지 않습니다.
 final class UserAuthModel: ObservableObject {
+    // MARK: - Form Fields
     @Published var userName: String = ""
     @Published var nickName: String = ""
     @Published var email: String = ""
@@ -21,32 +25,39 @@ final class UserAuthModel: ObservableObject {
     private let client = SupabaseManager.shared.client
 
     // MARK: - 회원가입
+    /// Supabase Auth로 회원가입을 수행합니다.
+    /// - Throws: Supabase 에러 또는 로컬 유효성 검사 에러
     func signUp() async throws {
         guard password == passwordConfirm else {
             throw AuthError.passwordsDoNotMatch
         }
 
-        let response = try await client.auth.signUp(
+        // Auth 사용자 메타데이터에 함께 저장 (profiles 트리거가 있다면 자동 반영)
+        let meta: [String: AnyJSON] = [
+            "userName": .string(userName),
+            "nickName": .string(nickName),
+            "mate": .string(mate)
+        ]
+
+        let result = try await client.auth.signUp(
             email: email,
             password: password,
-            data: [
-                "userName": .string(userName),
-                "nickName": .string(nickName),
-                "mate": .string(mate)
-            ]
+            data: meta
         )
 
-        // ✅ user는 non-optional, email은 optional
-        print("✅ 회원가입 성공:", response.user.email ?? "Unknown")
+        // result.session은 프로젝트 설정(이메일 확인 필요 여부)에 따라 nil일 수 있음
+        print("✅ 회원가입 성공: \(result.user.email ?? "Unknown")")
     }
 
     // MARK: - 로그인
+    /// Supabase Auth로 로그인합니다.
+    /// - Throws: Supabase 에러
     func signIn() async throws {
-        let response = try await client.auth.signIn(
+        let result = try await client.auth.signIn(
             email: email,
             password: password
         )
-        print("✅ 로그인 성공:", response.user.email ?? "Unknown")
+        print("✅ 로그인 성공: \(result.user.email ?? "Unknown")")
     }
 }
 
