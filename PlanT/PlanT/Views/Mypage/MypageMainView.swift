@@ -9,14 +9,15 @@ import SwiftUI
 
 struct MypageMainView: View {
     @EnvironmentObject var authStore: AuthStore   // ✅ 전역 로그인 상태 접근
-    
+
     var body: some View {
-        VStack {
+        VStack(spacing: 20) {
+            // ✅ 사용자 카드 (닉네임 연동)
             MypageUserCardView(
                 viewModel: MypageUserCardViewModel(
                     model: MypageUserCardModel(
                         mateName: "MrPurr",
-                        nickName: "닉네임: 나는 확신의 P이다\n이번에는 꼭 완료해야지",
+                        nickName: "닉네임: \(authStore.nickName ?? "불러오는 중...")",
                         growingCount: 12,
                         harvestedCount: 1032,
                         points: 1200
@@ -24,13 +25,24 @@ struct MypageMainView: View {
                     onTapSettings: { print("설정 탭") }
                 )
             )
-            
+
             MypagePlantsCardView()
+
+            // ✅ 현재 사용자 정보 표시 (디버그용)
+            VStack(spacing: 4) {
+                if let email = authStore.userEmail {
+                    Text("📧 \(email)")
+                }
+                if let name = authStore.userName {
+                    Text("👤 \(name)")
+                }
+            }
+            .font(.footnote)
+            .foregroundColor(.gray)
         }
         .padding()
         .background(Color.white)
-        
-        // ✅ 네비게이션 상단 오른쪽에 로그아웃 버튼 추가
+        .navigationTitle("마이페이지")
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
@@ -49,6 +61,6 @@ struct MypageMainView: View {
 #Preview {
     NavigationStack {
         MypageMainView()
-            .environmentObject(AuthStore())  // ✅ 미리보기에서도 필요
+            .environmentObject(AuthStore())
     }
 }
