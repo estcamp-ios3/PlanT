@@ -28,24 +28,11 @@ struct MypageMainView: View {
 
             MypagePlantsCardView()
 
-            // ✅ 현재 사용자 정보 표시 (디버그용)
-            VStack(spacing: 4) {
-                if let email = authStore.userEmail {
-                    Text("📧 \(email)")
-                }
-                if let name = authStore.userName {
-                    Text("👤 \(name)")
-                }
-                if let mate = authStore.mate {
-                    Text("🐾 \(mate)")
-                }
-            }
             .font(.footnote)
             .foregroundColor(.gray)
         }
         .padding()
         .background(Color.white)
-        .navigationTitle("마이페이지")
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
