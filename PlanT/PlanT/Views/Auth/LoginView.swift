@@ -34,7 +34,7 @@ struct LoginView: View {
                 .resizable()
                 .scaledToFit()
                 .frame(width: 400, height: 500)
-                .padding(.top, 10)
+                .padding(.top, 50)
 
             VStack(spacing: 0) {
                 TextField("E-mail", text: $viewModel.email)
@@ -75,7 +75,7 @@ struct LoginView: View {
                 }
             }
             .padding(.horizontal, vertical6)
-            .padding(.bottom, keyboardHeight)
+            .padding(.bottom, isPresentingSignUp ? 0 : keyboardHeight)
         }
         .ignoresSafeArea(.keyboard, edges: .bottom)
         .onAppear {
