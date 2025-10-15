@@ -395,6 +395,7 @@ extension RoutineRegisterView {
             routine.modifiedAt = Date()
             do {
                 try context.save()
+                store.loadRoutines()
                 print("루틴 수정 완료: \(routine.title)")
                 dismiss()
             } catch {
