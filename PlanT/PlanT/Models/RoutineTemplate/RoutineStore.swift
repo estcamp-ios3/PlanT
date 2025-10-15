@@ -7,12 +7,14 @@
 import Foundation
 import SwiftData
 import Combine
+import Supabase
 
 @MainActor
 final class RoutineStore: ObservableObject {
     @Published private(set) var routines: [Routine] = []
     
     private var context: ModelContext
+    private let client = SupabaseManager.shared.client
     
     init(context: ModelContext) {
         self.context = context
@@ -28,9 +30,6 @@ final class RoutineStore: ObservableObject {
         }
     }
     
-    
-    
-    
     func addRoutine(from seed: Seed, basedOn routine: Routine, categoryId: String) {
         let newRoutine = Routine(
             title: routine.title,
@@ -41,22 +40,42 @@ final class RoutineStore: ObservableObject {
             modifiedAt: Date()
         )
         context.insert(newRoutine)
-        
         do {
             try context.save()
-            loadRoutines()
+            print(" SwiftData 저장 완료:", newRoutine.title)
         } catch {
-            print("X 루틴 저장 실패:", error)
+            print("SwiftData 저장 실패:", error)
         }
+        Task {
+            do {
+                try await client.from("routines").insert(newRoutine.dto).execute()
+                print(" Supabase 업로드 완료:", newRoutine.title)
+            } catch {
+                print(" Supabase 업로드 실패:", error.localizedDescription)
+            }
+        }
+        loadRoutines()
     }
     
     func deleteRoutine(_ routine: Routine) {
         context.delete(routine)
         do {
             try context.save()
-            loadRoutines()
+            print(" SwiftData 삭제 완료:", routine.title)
         } catch {
-            print("X 루틴 삭제 실패:", )
+            print("SwiftData 삭제 실패:", error)
         }
+        Task {
+            do {
+                try await client.from("routines")
+                    .delete()
+                    .eq("id", value: routine.id)
+                    .execute()
+                print(" Supabase 삭제 완료:", routine.title)
+            } catch {
+                print(" Supabase 삭제 실패:", error.localizedDescription)
+            }
+        }
+        loadRoutines()
     }
 }

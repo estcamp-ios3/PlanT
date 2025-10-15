@@ -33,6 +33,7 @@ struct PlanTApp: App {
             } else {
                 LoginView(authStore: authStore)
                     .environmentObject(authStore)
+                    .task { await authStore.restoreSession() }
             }
         }
         .modelContainer(sharedModelContainer)
