@@ -137,7 +137,6 @@ final class AuthStore: ObservableObject {
         do {
             // 1) 쿼리 실행
             let response = try await client
-                .database
                 .from("profiles")
                 .select()      // 기본은 "*"
                 .eq("id", value: uid)
