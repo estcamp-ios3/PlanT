@@ -38,7 +38,7 @@ struct MypageMainView: View {
                 Button {
                     Task { await authStore.signOut() }
                 } label: {
-                    Text("로그아웃")
+                    Image(systemName: "door.left.hand.open")
                         .foregroundColor(.red)
                 }
             }
