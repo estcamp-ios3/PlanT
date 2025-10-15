@@ -36,15 +36,16 @@ struct LoginView: View {
                 .frame(width: 400, height: 500)
                 .padding(.top, 10)
 
-            VStack(spacing: 16) {
+            VStack(spacing: 0) {
                 TextField("E-mail", text: $viewModel.email)
                     .authTextFieldStyle(.signIn)
                     .focusRoute($focus, equals: .id, submit: .next, next: .pw)
+                    .padding(.bottom, vertical3)
 
                 SecureField("Password", text: $viewModel.password)
                     .authTextFieldStyle(.signIn)
                     .focusRoute($focus, equals: .pw, submit: .go, next: nil)
-                    .padding(.bottom, 8)
+                    .padding(.bottom, vertical4)
 
                 Button {
                     Task { await viewModel.signIn() }
@@ -57,7 +58,7 @@ struct LoginView: View {
                 }
                 .plantPrimaryButton()
                 .disabled(viewModel.isLoading)
-                .padding(.bottom, 16)
+                .padding(.bottom, vertical5)
 
                 Button("Sign Up") { isPresentingSignUp = true }
                     .foregroundColor(.black)
@@ -73,7 +74,7 @@ struct LoginView: View {
                         .foregroundColor(.red)
                 }
             }
-            .padding(.horizontal, 24)
+            .padding(.horizontal, vertical6)
             .padding(.bottom, keyboardHeight)
         }
         .ignoresSafeArea(.keyboard, edges: .bottom)
