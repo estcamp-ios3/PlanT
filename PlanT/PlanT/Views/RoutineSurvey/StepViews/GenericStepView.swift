@@ -21,7 +21,7 @@ struct GenericStepView: View {
         // Compute displayOptions outside of the ViewBuilder to avoid returning Void in a ViewBuilder context
         let displayOptions: [Option] = vm.options(for: step)
         
-        return ScrollView {
+        return Group {
             VStack(alignment: .leading, spacing: vertical1) {
                 if step.id == "health_type", let catTitle = vm.selectedCategoryTitle {
                     // 선택된 카테고리 제목만 PlantPrimary 컬러 적용
@@ -134,7 +134,7 @@ struct GenericStepView: View {
             }
             
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+//        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .onChange(of: step.id) { oldValue, newValue in
             showCustomField = false
             customText = ""
