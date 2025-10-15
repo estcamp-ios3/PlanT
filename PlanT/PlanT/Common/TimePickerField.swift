@@ -23,7 +23,7 @@ struct TimePickerField: View {
         Button {
             if isEnabled { showSheet = true }
         } label: {
-            Text(isEnabled ? timeText : placeholder)
+            Text(!(timeText == "HH:MM") ? timeText : placeholder)
                 .multilineTextAlignment(.leading)  //왼쪽정렬
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.vertical, vertical2)
