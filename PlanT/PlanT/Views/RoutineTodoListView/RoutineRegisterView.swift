@@ -282,7 +282,6 @@ extension RoutineRegisterView {
                 TextField("5page", text: $goalTask)
                     .frame(width: 80)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
-                Text("하기")
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }

@@ -17,7 +17,7 @@ struct SeedStatusView: View {
     @State private var goToRoutineList = false   // 루틴 리스트 화면으로 내비게이션 여부
     @EnvironmentObject var store: RoutineStore
     var body: some View {
-        VStack(spacing: 24) {
+        VStack {
             Spacer(minLength: 140)
 
             // 분기 처리: 씨앗이 선택된 경우 vs 선택되지 않은 경우
@@ -53,7 +53,7 @@ struct SeedStatusView: View {
                 .padding(.horizontal, 20)
                 
                 // 등록하기 버튼 → 루틴 리스트 화면으로 이동
-                Button("등록하기") {
+                Button("등록 하기") {
                     // 기존: store.routines.insert(routine, at: 0) → 삭제
                     // 루틴 등록은 RoutineStore의 addRoutine 메서드를 사용해야 함
                     if case .planted(let routine) = state {
