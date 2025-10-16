@@ -7,6 +7,10 @@
 
 import SwiftUI
 
+enum SeedStatus {
+    case notPlanted
+    case planted(Routine) // 이미 심겨진 루틴 정보
+}
 
 struct SeedStatusView: View {
     let state: SeedStatus
@@ -18,8 +22,8 @@ struct SeedStatusView: View {
     @EnvironmentObject var store: RoutineStore
     var body: some View {
         VStack {
-            Spacer(minLength: 140)
-
+            Spacer(minLength: 40)
+            
             // 분기 처리: 씨앗이 선택된 경우 vs 선택되지 않은 경우
             if let seed = selectedSeed {
                 
@@ -44,6 +48,7 @@ struct SeedStatusView: View {
                     .scaledToFit()
                     .frame(width: 250, height: 250)
                 
+                Spacer()
                 
                 // 씨앗 다시 선택하기 버튼 → 선택 시트 재호출
                 Button("씨앗 다시 선택하기") {
@@ -55,7 +60,6 @@ struct SeedStatusView: View {
                 // 등록하기 버튼 → 루틴 리스트 화면으로 이동
                 Button("등록 하기") {
                     // 기존: store.routines.insert(routine, at: 0) → 삭제
-                    // 루틴 등록은 RoutineStore의 addRoutine 메서드를 사용해야 함
                     if case .planted(let routine) = state {
                         store.addRoutine(from: seed, basedOn: routine, categoryId: draft.categoryId)
                         path = NavigationPath()
@@ -71,9 +75,6 @@ struct SeedStatusView: View {
                             categoryId: draft.categoryId,
                             seedName: seed.name
                         )
-                        // 새로운 메서드를 RoutineStore에 추가하는 것이 바람직함
-                        // 임시로 직접 context에 저장 로직을 이곳에 두거나,
-                        // store에 편의 메서드 추가 권장
                         store.addRoutine(from: seed, basedOn: routine, categoryId: draft.categoryId )
                         path = NavigationPath()
                     }
@@ -81,7 +82,6 @@ struct SeedStatusView: View {
                 .plantPrimaryButton()
                 .padding(.horizontal, 20)
                 
-                Spacer(minLength: 20)
                 
             } else {
                 // 씨앗 미선택 상태 ----------------------
@@ -111,8 +111,6 @@ struct SeedStatusView: View {
                 .plantPrimaryButton()
                 .padding(.horizontal, 20)
             }
-            
-            Spacer(minLength: 50)
         }
         // 내비게이션: goToRoutineList가 true가 되면 RoutineListView로 전환
         .navigationDestination(isPresented: $goToRoutineList) {
