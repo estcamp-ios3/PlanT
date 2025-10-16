@@ -53,7 +53,7 @@ struct MypagePlantsCardView: View {
                             .foregroundColor(.primary)
                         Spacer()
                         Text("\(Int(progress * 100))%")
-                            .font(.system(size: 16, weight: .semibold))
+                            .font(.system(size: vertical4, weight: .semibold))
                             .foregroundColor(.secondary)
                     }
 

@@ -40,3 +40,7 @@ public struct PlantProgressBar: View {
         .frame(height: height)
     }
 }
+
+#Preview {
+    PlantProgressBar(progress: 0.25, height: vertical4)
+}
