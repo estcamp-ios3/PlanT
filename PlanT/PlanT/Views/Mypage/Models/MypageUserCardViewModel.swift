@@ -1,5 +1,5 @@
 //
-//  MypageUserCardViewModel.swift
+//  MyPageUserCardViewModel.swift
 //  PlanT
 //
 //  Created by 이지훈 on 9/30/25.
@@ -11,16 +11,14 @@ import Combine
 @MainActor
 final class MypageUserCardViewModel: ObservableObject {
     @Published var model: MypageUserCardModel
-    private var cancellables = Set<AnyCancellable>()
+    @Published var isShowingSetting = false  // 화면 전환 ViewModel에서 관리
 
     private let authStore: AuthStore
-    var onTapSettings: (() -> Void)?
+    private var cancellables = Set<AnyCancellable>()
 
-    init(authStore: AuthStore, onTapSettings: (() -> Void)? = nil) {
+    init(authStore: AuthStore) {
         self.authStore = authStore
-        self.onTapSettings = onTapSettings
 
-        // 초기값
         self.model = MypageUserCardModel(
             mateName: authStore.mate ?? "MrPurr",
             nickName: "닉네임: \(authStore.nickName ?? "불러오는 중...")",
@@ -32,7 +30,6 @@ final class MypageUserCardViewModel: ObservableObject {
         bindAuthStore()
     }
 
-    /// AuthStore의 상태 변화 감지
     private func bindAuthStore() {
         authStore.$nickName
             .combineLatest(authStore.$mate)
@@ -42,5 +39,9 @@ final class MypageUserCardViewModel: ObservableObject {
                 self.model.nickName = "닉네임: \(nick ?? "불러오는 중...")"
             }
             .store(in: &cancellables)
+    }
+
+    func tapSettings() {
+        isShowingSetting = true
     }
 }
