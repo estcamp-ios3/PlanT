@@ -1,5 +1,5 @@
 //
-//  MyPageUserCardView.swift
+//  MypageUserCardView.swift
 //  PlanT
 //
 //  Created by 이지훈 on 9/30/25.
@@ -8,8 +8,13 @@
 import SwiftUI
 
 struct MypageUserCardView: View {
-    @ObservedObject var viewModel: MypageUserCardViewModel
-    
+    @StateObject private var viewModel: MypageUserCardViewModel
+
+    /// ✅ AuthStore를 주입받아 내부에서 ViewModel 생성
+    init(authStore: AuthStore) {
+        _viewModel = StateObject(wrappedValue: MypageUserCardViewModel(authStore: authStore))
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             // 상단: 아바타 + 닉네임 + 설정 버튼
@@ -20,16 +25,15 @@ struct MypageUserCardView: View {
                     .frame(width: 48, height: 48)
                     .padding(6)
                     .background(Circle().fill(Color.white))
-                
+
                 Text(viewModel.model.nickName)
                     .font(.system(size: 18, weight: .heavy))
                     .foregroundColor(.black)
                     .lineSpacing(2)
-                
+
                 Spacer()
             }
             .overlay(alignment: .topTrailing) {
-                
                 Button("설정") {
                     viewModel.tapSettings()
                 }
@@ -37,7 +41,7 @@ struct MypageUserCardView: View {
                 .foregroundColor(.gray)
                 .padding(6)
             }
-            
+
             // 하단 통계 섹션
             HStack(spacing: 16) {
                 StatItem(
@@ -65,37 +69,37 @@ struct MypageUserCardView: View {
             RoundedRectangle(cornerRadius: 20, style: .continuous)
                 .fill(Color(UIColor.systemGray6))
         )
-        // ✅ ViewModel이 관리하는 상태를 이용해 화면 이동
+        // ✅ ViewModel의 상태를 기반으로 네비게이션 전환
         .navigationDestination(isPresented: $viewModel.isShowingSetting) {
             SettingView()
         }
     }
 }
 
-// 내부에서 쓰는 서브뷰(같은 파일에 포함)
+// MARK: - 하위 뷰
 private struct StatItem: View {
     let icon: Image
     let label: String
     let value: Int
     let tint: Color
-    
+
     var body: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: vertical2) {
             icon
                 .resizable()
                 .scaledToFit()
                 .frame(width: 28, height: 28)
                 .foregroundStyle(tint)
                 .shadow(color: .black.opacity(0.08), radius: 2, x: 0, y: 1)
-            
+
             VStack(alignment: .leading, spacing: 2) {
                 Text(label)
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(.system(size: vertical3, weight: .semibold))
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
-                
+
                 Text(value.formatted(.number.grouping(.automatic)))
-                    .font(.system(size: 20, weight: .bold))
+                    .font(.system(size: vertical5, weight: .bold))
                     .foregroundColor(tint)
             }
         }
@@ -103,25 +107,15 @@ private struct StatItem: View {
     }
 }
 
-private struct MypageUserCardView_PreviewWrapper: View {
-    @StateObject var mock = AuthStore()
-    
-    var body: some View {
-        let vm = MypageUserCardViewModel(authStore: mock)
-        
-        MypageUserCardView(viewModel: vm)
+#Preview {
+    let mock = AuthStore()
+    mock.nickName = "나는 확신의 P이다\n이번에는 꼭 완료해야지"
+    mock.mate = "MrPurr"
+
+    return NavigationStack {
+        MypageUserCardView(authStore: mock)
             .environmentObject(mock)
             .padding()
             .background(Color.white)
-            .onAppear {
-                mock.nickName = "나는 확신의 P이다\n이번에는 꼭 완료해야지"
-                mock.mate = "MrPurr"
-            }
-    }
-}
-
-#Preview {
-    NavigationStack {
-        MypageUserCardView_PreviewWrapper()
     }
 }
