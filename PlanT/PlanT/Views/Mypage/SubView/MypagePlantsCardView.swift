@@ -29,13 +29,13 @@ struct MypagePlantsCardView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                 
                 // ✅ 카드 본문
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: vertical2) {
                     Text(title)
                         .font(.system(size: 22, weight: .bold))
                         .foregroundColor(.primary)
 
                     Text(subtitle)
-                        .font(.system(size: 15, weight: .regular))
+                        .font(.system(size: vertical4, weight: .regular))
                         .foregroundColor(.secondary)
                         .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -49,7 +49,7 @@ struct MypagePlantsCardView: View {
                     // 진행률 라벨 + % 표시
                     HStack {
                         Text("진행률")
-                            .font(.system(size: 16, weight: .semibold))
+                            .font(.system(size: vertical4, weight: .semibold))
                             .foregroundColor(.primary)
                         Spacer()
                         Text("\(Int(progress * 100))%")
@@ -61,19 +61,19 @@ struct MypagePlantsCardView: View {
                     PlantProgressBar(progress: progress)
 
                     // 메이트 코멘트
-                    HStack(alignment: .top, spacing: 8) {
+                    HStack(alignment: .top, spacing: vertical2) {
                         Image(authStore.mate ?? "MrPurr")
                             .resizable()
                             .scaledToFit()
                             .frame(width: 40, height: 40)
 
                         Text(mateComent)
-                            .font(.system(size: 16, weight: .semibold))
+                            .font(.system(size: vertical4, weight: .semibold))
                             .foregroundColor(.gray)
                             .lineLimit(2)
                             .fixedSize(horizontal: false, vertical: true)
                     }
-                    .padding(.top, 4)
+                    .padding(.top, vertical1)
                 }
                 .padding(20)
                 .background(
