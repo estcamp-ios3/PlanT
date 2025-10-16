@@ -5,16 +5,11 @@
 //  Created by 이지훈 on 9/30/25.
 //
 
-//
-//  MypagePlantsCardView.swift
-//  PlanT
-//
-//  Created by 이지훈 on 9/30/25.
-//
-
 import SwiftUI
 
 struct MypagePlantsCardView: View {
+    @EnvironmentObject var authStore: AuthStore
+    
     // MARK: Config (샘플 바인딩 가능)
     private var title: String = "러닝 루틴(할 일 제목)"
     private var subtitle: String = "설정한 목표: 확신의 P가 한땀한땀 쌓아나가는 목표"
@@ -57,7 +52,7 @@ struct MypagePlantsCardView: View {
 
                 // 메이트/코멘트
                 HStack(alignment: .top, spacing: 8) {
-                    Image(mateImageName)
+                    Image(authStore.mate ?? "MrPurr")
                         .resizable()
                         .scaledToFit()
                         .frame(width: 40, height: 40)
@@ -84,8 +79,9 @@ struct MypagePlantsCardView: View {
 
 #Preview {
     NavigationStack {
-        ScrollView { // 미리보기 스크롤 여유
+        ScrollView {
             MypagePlantsCardView()
+                .environmentObject(AuthStore())
         }
     }
 }
