@@ -44,7 +44,7 @@ final class AuthStore: ObservableObject {
         logCurrentUser()
     }
 
-    /// 회원가입 (이미 가입된 이메일이면 자동 로그인 시도)
+    /// 회원가입
     func signUp(user: UserAuthModel) async throws {
         guard user.password == user.passwordConfirm else {
             throw AuthError.passwordsDoNotMatch
