@@ -45,15 +45,14 @@ struct RoutineListView: View {
                         .padding()
                 } else {
                     ForEach(store.routines) { routine in
-                        RoutineCardView(
+                        RoutineCardModernView(
                             routine: routine,
-                            category: category(for: routine),
-                            isSelected: .constant(false),
-                            onSelect: {
-                                path.append(Route.manualCreateDetails(routine))
-                            },
-                            tapBehavior: .navigate, selected: false
+                            progress: 0
                         )
+                        .onTapGesture{
+                            path.append(Route.manualCreateDetails(routine))
+                        }
+                        
                         .contextMenu {
                             Button(role: .destructive) {
                                 store.deleteRoutine(routine)
@@ -64,7 +63,7 @@ struct RoutineListView: View {
                     }
                 }
             }
-            .padding(16)
+            .padding()
             .frame(maxWidth: .infinity)
         }
         .overlay(alignment: .bottomTrailing) {

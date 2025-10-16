@@ -43,7 +43,7 @@ struct SeedStatusView: View {
                 Spacer()
                 
                 // 선택된 씨앗 이미지 표시
-                Image(seed.imageName)
+                Image("\(seed.imagePrefix)01")
                     .resizable()
                     .scaledToFit()
                     .frame(width: 250, height: 250)
@@ -68,7 +68,7 @@ struct SeedStatusView: View {
                         let routine = Routine(
                             title: draft.routineTypeTitle.isEmpty ? "새 루틴" : draft.routineTypeTitle,
                             categoryId: draft.categoryId,
-                            seedName: seed.name,
+                            seedName: seed.imagePrefix,
                             duration: draft.durationTitle,
                             goal: draft.goal,
                             alarm: draft.reminderOn ? .every24Hours : .every48Hours,

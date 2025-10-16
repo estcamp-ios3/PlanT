@@ -14,6 +14,8 @@ enum AlarmCycle: String, Codable {
     case off = "off"
 }
 
+var seedName: String?
+var seedPrefix: String?
 // MARK: - 루틴 모델
 // 개별 루틴 하나를 표현하는 데이터
 @Model
@@ -121,7 +123,14 @@ extension Routine {
             frequencyPerWeekTitle: frequencyPerWeekTitle,
             createdAt: createdAt,
             modifiedAt: modifiedAt
-            )
+        )
     }
+}
 
+extension Routine {
+    func seedImage(for progressPercent: Double) -> String {
+        let stage = max(1, min(5, Int(progressPercent / 20) + 1))
+        let prefix = seedPrefix ?? "seed_Apple"
+        return "\(prefix)0\(stage)"
+    }
 }
