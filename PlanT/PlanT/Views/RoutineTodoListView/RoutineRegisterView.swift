@@ -125,13 +125,13 @@ extension RoutineRegisterView {
             categoryTitle: selectedCategory,
             routineTypeId: routineTitle,
             routineTypeTitle: routineTitle,
-            frequencyPerWeekId: "3x",
-            frequencyPerWeekTitle: "주 3회",
+            frequencyPerWeekId: "\(goalDays)x",
+            frequencyPerWeekTitle: "주 \(goalDays)회",
             durationId: "\(goalDays)min",
             durationTitle: "\(goalDays)일", // 기간
             periodIsNoLimit: !useDate,
             reminderOn: !selectedAlarms.isEmpty,
-            goal: "\(goalHours) \(goalDays)",
+            goal: "\(goalHours)분 /일",
             isFavorite:  false
         )
     }
@@ -142,14 +142,15 @@ extension RoutineRegisterView {
     private func categorySection() -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                if case .details = currentMode {
+                switch currentMode {
+                case .details, .edit:
                     Text(selectedCategory)
                         .padding(.vertical, 12)
                         .padding(.horizontal, 12)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color("Gray400"))
+                        .background(Color("F2F0CE"))
                         .cornerRadius(8)
-                } else {
+                default:
                     Menu {
                         ForEach(viewModel.categoryTitles, id: \.self) { title in
                             Button {
