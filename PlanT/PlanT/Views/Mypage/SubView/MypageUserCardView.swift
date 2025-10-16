@@ -100,18 +100,15 @@ private struct StatItem: View {
 }
 
 #Preview {
-    MypageUserCardView(
-        viewModel: MypageUserCardViewModel(
-            model: MypageUserCardModel(
-                mateName: "MrPurr",
-                nickName: "닉네임: 나는 확신의 P이다\n이번에는 꼭 완료해야지",
-                growingCount: 12,
-                harvestedCount: 1032,
-                points: 1200
-            ),
-            onTapSettings: { print("설정 탭") }
-        )
-    )
-    .padding()
-    .background(Color.white)
+    // 1) 프리뷰용 가짜 AuthStore 생성 + 값 주입
+    let mock = AuthStore()
+    mock.nickName = "나는 확신의 P이다\n이번에는 꼭 완료해야지"
+    mock.mate = "MrPurr"
+
+    // 2) ViewModel을 authStore로 초기화
+    let vm = MypageUserCardViewModel(authStore: mock, onTapSettings: { print("설정 탭") })
+
+    // 3) View 구성
+    return MypageUserCardView(viewModel: vm)
+        .environmentObject(mock) // 실제 화면과 동일하게 환경객체도 주입
 }
