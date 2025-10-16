@@ -1,5 +1,5 @@
 //
-//  MyPageUserCardViewModel.swift
+//  MypageUserCardViewModel.swift
 //  PlanT
 //
 //  Created by 이지훈 on 9/30/25.
@@ -11,7 +11,7 @@ import Combine
 @MainActor
 final class MypageUserCardViewModel: ObservableObject {
     @Published var model: MypageUserCardModel
-    @Published var isShowingSetting = false  // 화면 전환 ViewModel에서 관리
+    @Published var isShowingSetting = false
 
     private let authStore: AuthStore
     private var cancellables = Set<AnyCancellable>()
@@ -19,6 +19,7 @@ final class MypageUserCardViewModel: ObservableObject {
     init(authStore: AuthStore) {
         self.authStore = authStore
 
+        // 초기 모델 상태 설정
         self.model = MypageUserCardModel(
             mateName: authStore.mate ?? "MrPurr",
             nickName: "닉네임: \(authStore.nickName ?? "불러오는 중...")",
@@ -30,17 +31,20 @@ final class MypageUserCardViewModel: ObservableObject {
         bindAuthStore()
     }
 
+    /// ✅ AuthStore의 상태를 구독해 model을 자동 갱신
     private func bindAuthStore() {
         authStore.$nickName
             .combineLatest(authStore.$mate)
-            .sink { [weak self] nick, mate in
-                guard let self = self else { return }
-                self.model.mateName = mate ?? "MrPurr"
-                self.model.nickName = "닉네임: \(nick ?? "불러오는 중...")"
+            .map { nick, mate in
+                var updatedModel = self.model
+                updatedModel.mateName = mate ?? "MrPurr"
+                updatedModel.nickName = "닉네임: \(nick ?? "불러오는 중...")"
+                return updatedModel
             }
-            .store(in: &cancellables)
+            .assign(to: &$model)
     }
 
+    /// ✅ 설정 버튼 탭 시 화면 이동 트리거
     func tapSettings() {
         isShowingSetting = true
     }

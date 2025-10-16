@@ -13,10 +13,8 @@ struct MypageMainView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: vertical3) {
-                // ✅ ViewModel이 직접 authStore를 구독하도록 변경됨
-                MypageUserCardView(
-                    viewModel: MypageUserCardViewModel(authStore: authStore)
-                )
+                // ✅ ViewModel이 내부에서 authStore를 구독함
+                MypageUserCardView(authStore: authStore)
 
                 MypageItemView()
                 MypagePlantsCardView()
