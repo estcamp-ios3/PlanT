@@ -95,7 +95,7 @@ struct RoutineDraft: Codable, Hashable, Identifiable {
 
     // MARK: - TODO: 서버 routines 테이블에 있지만 클라이언트 초안에 미포함된 필드 예시
     // var deleted_at: Date?    // 삭제 시각 (서버 관리용)
-    // var repeat_pattern_id: String?  // 반복 패턴 식별자 (예: 매주, 매월)
+    // var repeat_pattern_id: String?  // 반a복 패턴 식별자 (예: 매주, 매월)
     // var progress_status: String?    // 현재 진행 상태
     // var parent_routine_id: UUID?    // 부모 루틴 id (하위 루틴 관리용)
 }

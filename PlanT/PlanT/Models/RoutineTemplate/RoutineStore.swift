@@ -14,7 +14,7 @@ final class RoutineStore: ObservableObject {
     @Published private(set) var routines: [Routine] = []
     
     private var context: ModelContext
-    private let client = SupabaseManager.shared.client
+    private let client = supabaseClient
     
     init(context: ModelContext) {
         self.context = context
@@ -33,9 +33,15 @@ final class RoutineStore: ObservableObject {
     func addRoutine(from seed: Seed, basedOn routine: Routine, categoryId: String) {
         let newRoutine = Routine(
             title: routine.title,
-            detail: routine.detail,
             categoryId: categoryId,
             seedName: seed.name,
+            duration: routine.duration,
+            goal:  routine.goal,
+            alarm: routine.alarm,
+            frequencyPerWeekId: routine.frequencyPerWeekId,
+            frequencyPerWeekTitle: routine.frequencyPerWeekTitle,
+            note: routine.note,
+            isCompleted: false,
             createdAt: Date(),
             modifiedAt: Date()
         )

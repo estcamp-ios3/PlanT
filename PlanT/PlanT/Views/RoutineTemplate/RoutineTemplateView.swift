@@ -75,11 +75,11 @@ struct RoutineTemplateView: View {
                     routineTypeTitle: routine.title,
                     frequencyPerWeekId: "3x",
                     frequencyPerWeekTitle: "주 3회",
-                    durationId: routine.detail.duration,
-                    durationTitle: routine.detail.duration,
+                    durationId: routine.duration,
+                    durationTitle: routine.duration,
                     periodIsNoLimit: true,
-                    reminderOn: routine.detail.alarm == .every24Hours,
-                    goal: routine.detail.goal,
+                    reminderOn: routine.alarm == .every24Hours,
+                    goal: routine.goal,
                     isFavorite: false
 
                 )

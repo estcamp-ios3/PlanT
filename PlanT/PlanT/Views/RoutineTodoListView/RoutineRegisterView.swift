@@ -127,11 +127,11 @@ extension RoutineRegisterView {
             routineTypeTitle: routineTitle,
             frequencyPerWeekId: "3x",
             frequencyPerWeekTitle: "주 3회",
-            durationId: "3일",
-            durationTitle: "3일",
+            durationId: "\(goalDays)min",
+            durationTitle: "\(goalDays)일", // 기간
             periodIsNoLimit: !useDate,
             reminderOn: !selectedAlarms.isEmpty,
-            goal: "\(goalHours)분/\(goalDays)일",
+            goal: "\(goalHours) \(goalDays)",
             isFavorite:  false
         )
     }
@@ -274,12 +274,12 @@ extension RoutineRegisterView {
                 TextField("3", text: $goalDays)
                     .frame(width: 40)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
-                Text("일")
+                Text("일 동안,  하루")
                 TextField("20", text: $goalHours)
                     .frame(width: 50)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                 Text("분")
-                TextField("5page", text: $goalTask)
+                TextField("", text: $goalTask)
                     .frame(width: 80)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
             }

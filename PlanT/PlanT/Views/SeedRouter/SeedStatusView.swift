@@ -58,7 +58,7 @@ struct SeedStatusView: View {
                 .padding(.horizontal, 20)
                 
                 // 등록하기 버튼 → 루틴 리스트 화면으로 이동
-                Button("등록 하기") {
+                Button("루틴 등록하기") {
                     // 기존: store.routines.insert(routine, at: 0) → 삭제
                     if case .planted(let routine) = state {
                         store.addRoutine(from: seed, basedOn: routine, categoryId: draft.categoryId)
@@ -67,13 +67,17 @@ struct SeedStatusView: View {
                         // .notPlanted 상태에서는 draft와 seed로 Routine 생성 & 추가
                         let routine = Routine(
                             title: draft.routineTypeTitle.isEmpty ? "새 루틴" : draft.routineTypeTitle,
-                            detail: RoutineDetail(
-                                duration: draft.durationTitle,
-                                goal: draft.goal,
-                                alarm: draft.reminderOn ? .every24Hours : .every48Hours
-                            ),
                             categoryId: draft.categoryId,
-                            seedName: seed.name
+                            seedName: seed.name,
+                            duration: draft.durationTitle,
+                            goal: draft.goal,
+                            alarm: draft.reminderOn ? .every24Hours : .every48Hours,
+                            frequencyPerWeekId: draft.frequencyPerWeekId,
+                            frequencyPerWeekTitle: draft.frequencyPerWeekTitle,
+                            note: nil,
+                            isCompleted: false,
+                            createdAt: Date(),
+                            modifiedAt: Date()
                         )
                         store.addRoutine(from: seed, basedOn: routine, categoryId: draft.categoryId )
                         path = NavigationPath()

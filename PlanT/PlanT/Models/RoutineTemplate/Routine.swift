@@ -8,15 +8,29 @@
 import Foundation
 import SwiftData
 
+enum AlarmCycle: String, Codable {
+    case every24Hours = "every24Hours"
+    case every48Hours = "every48Hours"
+    case off = "off"
+}
+
 // MARK: - 루틴 모델
 // 개별 루틴 하나를 표현하는 데이터
 @Model
 final class Routine: Identifiable {
     var id = UUID()
     var title: String
-    var detail: RoutineDetail
+    
     var categoryId: String
     var seedName: String?
+    
+    var duration: String
+    var goal: String
+    var alarm: AlarmCycle
+    
+    var frequencyPerWeekId: String
+    var frequencyPerWeekTitle: String
+    
     var note: String?
     var isCompleted: Bool = false
     var createdAt: Date
@@ -25,17 +39,30 @@ final class Routine: Identifiable {
     init(
         id: UUID = UUID(),
         title: String,
-        detail: RoutineDetail,
         categoryId: String,
+        
         seedName: String? = nil,
+        duration: String,
+        goal: String,
+        alarm: AlarmCycle,
+        
+        frequencyPerWeekId: String,
+        frequencyPerWeekTitle: String,
+        
         note: String? = nil,
         isCompleted: Bool = false,
         createdAt: Date = Date(),
         modifiedAt: Date = Date()
     ) {
+        
         self.id = id
         self.title = title
-        self.detail = detail
+        self.duration = duration
+        self.goal = goal
+        self.alarm = alarm
+        self.frequencyPerWeekId = frequencyPerWeekId
+        self.frequencyPerWeekTitle = frequencyPerWeekTitle
+
         self.categoryId = categoryId
         self.seedName = seedName
         self.note = note
@@ -55,6 +82,8 @@ struct RoutineDTO: Codable {
     var duration: String
     var goal: String
     var alarm: String
+    var frequencyPerWeekId: String
+    var frequencyPerWeekTitle: String
     var createdAt: Date
     var modifiedAt: Date
     
@@ -68,6 +97,8 @@ struct RoutineDTO: Codable {
             case duration
             case goal
             case alarm
+            case frequencyPerWeekId = "frequency_per_week_id"
+            case frequencyPerWeekTitle = "frequency_per_week_title"
             case createdAt = "created_at"
             case modifiedAt = "modified_at"
         }
@@ -83,9 +114,11 @@ extension Routine {
             seedName: seedName,
             note: note,
             isCompleted: isCompleted,
-            duration: detail.duration,
-            goal: detail.goal,
-            alarm: detail.alarm.rawValue,
+            duration: duration,
+            goal: goal,
+            alarm: alarm.rawValue,
+            frequencyPerWeekId: frequencyPerWeekId,
+            frequencyPerWeekTitle: frequencyPerWeekTitle,
             createdAt: createdAt,
             modifiedAt: modifiedAt
             )
