@@ -1,5 +1,5 @@
 //
-//  MypageUserCardView.swift
+//  MyPageUserCardView.swift
 //  PlanT
 //
 //  Created by 이지훈 on 9/30/25.
@@ -9,10 +9,10 @@ import SwiftUI
 
 struct MypageUserCardView: View {
     @ObservedObject var viewModel: MypageUserCardViewModel
-
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // 상단: 아바타 + 타이틀 + 설정
+            // 상단: 아바타 + 닉네임 + 설정 버튼
             HStack(alignment: .center, spacing: 12) {
                 Image(viewModel.model.mateName)
                     .resizable()
@@ -20,43 +20,43 @@ struct MypageUserCardView: View {
                     .frame(width: 48, height: 48)
                     .padding(6)
                     .background(Circle().fill(Color.white))
-
+                
                 Text(viewModel.model.nickName)
                     .font(.system(size: 18, weight: .heavy))
                     .foregroundColor(.black)
                     .lineSpacing(2)
-                    .fixedSize(horizontal: false, vertical: true)
-
+                
                 Spacer()
             }
             .overlay(alignment: .topTrailing) {
+                
                 Button("설정") {
-                    viewModel.onTapSettings?()
+                    viewModel.tapSettings()
                 }
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundColor(.gray)
                 .padding(6)
             }
-
-            // 하단 통계 3칼럼
+            
+            // 하단 통계 섹션
             HStack(spacing: 16) {
                 StatItem(
                     icon: Image(systemName: "leaf.fill"),
                     label: "성장중인 작물",
                     value: viewModel.model.growingCount,
-                    tint: .green
+                    tint: Color.green
                 )
                 StatItem(
                     icon: Image(systemName: "globe"),
                     label: "수확한 작물",
                     value: viewModel.model.harvestedCount,
-                    tint: .blue
+                    tint: Color.blue
                 )
                 StatItem(
                     icon: Image(systemName: "circlebadge.fill"),
                     label: "보유포인트",
                     value: viewModel.model.points,
-                    tint: .orange
+                    tint: Color.orange
                 )
             }
         }
@@ -65,6 +65,10 @@ struct MypageUserCardView: View {
             RoundedRectangle(cornerRadius: 20, style: .continuous)
                 .fill(Color(UIColor.systemGray6))
         )
+        // ✅ ViewModel이 관리하는 상태를 이용해 화면 이동
+        .navigationDestination(isPresented: $viewModel.isShowingSetting) {
+            SettingView()
+        }
     }
 }
 
@@ -74,7 +78,7 @@ private struct StatItem: View {
     let label: String
     let value: Int
     let tint: Color
-
+    
     var body: some View {
         HStack(spacing: 10) {
             icon
@@ -83,13 +87,13 @@ private struct StatItem: View {
                 .frame(width: 28, height: 28)
                 .foregroundStyle(tint)
                 .shadow(color: .black.opacity(0.08), radius: 2, x: 0, y: 1)
-
+            
             VStack(alignment: .leading, spacing: 2) {
                 Text(label)
                     .font(.system(size: 12, weight: .semibold))
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
-
+                
                 Text(value.formatted(.number.grouping(.automatic)))
                     .font(.system(size: 20, weight: .bold))
                     .foregroundColor(tint)
@@ -99,19 +103,25 @@ private struct StatItem: View {
     }
 }
 
+private struct MypageUserCardView_PreviewWrapper: View {
+    @StateObject var mock = AuthStore()
+    
+    var body: some View {
+        let vm = MypageUserCardViewModel(authStore: mock)
+        
+        MypageUserCardView(viewModel: vm)
+            .environmentObject(mock)
+            .padding()
+            .background(Color.white)
+            .onAppear {
+                mock.nickName = "나는 확신의 P이다\n이번에는 꼭 완료해야지"
+                mock.mate = "MrPurr"
+            }
+    }
+}
+
 #Preview {
-    MypageUserCardView(
-        viewModel: MypageUserCardViewModel(
-            model: MypageUserCardModel(
-                mateName: "MrPurr",
-                nickName: "닉네임: 나는 확신의 P이다\n이번에는 꼭 완료해야지",
-                growingCount: 12,
-                harvestedCount: 1032,
-                points: 1200
-            ),
-            onTapSettings: { print("설정 탭") }
-        )
-    )
-    .padding()
-    .background(Color.white)
+    NavigationStack {
+        MypageUserCardView_PreviewWrapper()
+    }
 }

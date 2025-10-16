@@ -10,14 +10,8 @@
 import Foundation
 import Supabase
 
-final class SupabaseManager {
-    static let shared = SupabaseManager()
-    let client: SupabaseClient
-
-    private init() {
-        client = SupabaseClient(
-            supabaseURL: URL(string: "https://zgkbeonrsmpqxmdluuke.supabase.co")!,
-            supabaseKey: "sb_publishable_Du9vakPpo5HS9voxeMkoRQ_FnGpIa5P"
-        )
-    }
-}
+/// ✅ Supabase 전역 클라이언트 인스턴스 (싱글톤 X, 전역 상수)
+let supabaseClient = SupabaseClient(
+    supabaseURL: URL(string: "https://zgkbeonrsmpqxmdluuke.supabase.co")!,
+    supabaseKey: "sb_publishable_Du9vakPpo5HS9voxeMkoRQ_FnGpIa5P"
+)

@@ -8,38 +8,29 @@
 import SwiftUI
 
 struct MypageMainView: View {
-    @EnvironmentObject var authStore: AuthStore   // ✅ 전역 로그인 상태 접근
+    @EnvironmentObject var authStore: AuthStore
 
     var body: some View {
-        VStack(spacing: 20) {
-            // ✅ 사용자 카드 (닉네임 & 메이트 연동)
-            MypageUserCardView(
-                viewModel: MypageUserCardViewModel(
-                    model: MypageUserCardModel(
-                        mateName: authStore.mate ?? "MrPurr",  // ✅ 서버 메타데이터에서 반영
-                        nickName: "닉네임: \(authStore.nickName ?? "불러오는 중...")",
-                        growingCount: 12,
-                        harvestedCount: 1032,
-                        points: 1200
-                    ),
-                    onTapSettings: { print("설정 탭") }
+        ScrollView {
+            VStack(spacing: vertical3) {
+                // ✅ ViewModel이 직접 authStore를 구독하도록 변경됨
+                MypageUserCardView(
+                    viewModel: MypageUserCardViewModel(authStore: authStore)
                 )
-            )
 
-            MypagePlantsCardView()
-
-            .font(.footnote)
-            .foregroundColor(.gray)
-        }
-        .padding()
-        .background(Color.white)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button {
-                    Task { await authStore.signOut() }
-                } label: {
-                    Image(systemName: "door.left.hand.open")
-                        .foregroundColor(.red)
+                MypageItemView()
+                MypagePlantsCardView()
+            }
+            .padding()
+            .background(Color.white)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        Task { await authStore.signOut() }
+                    } label: {
+                        Image(systemName: "door.left.hand.open")
+                            .foregroundColor(.red)
+                    }
                 }
             }
         }

@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import Supabase
 
 struct LoginView: View {
     @EnvironmentObject var authStore: AuthStore
