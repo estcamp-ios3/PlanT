@@ -8,54 +8,69 @@
 import SwiftUI
 import AlanAI
 
-let clientId = "89a3432c-e591-4751-9b97-2d4fc2d9fa6a" // 지훈 키값
-let alanAI = AlanAI(clientID: clientId)
+// MARK: - AlanAI 클라이언트 (글로벌 재사용)
+private let clientId = "89a3432c-e591-4751-9b97-2d4fc2d9fa6a"
+private let alanAI = AlanAI(clientID: clientId)
 
-let routine = [
-    "물마시기, 아침 6시 기상시, 500ml, 1잔, 총7회 중 6회 완료",
-    "운동하기, 아침 7시 기상시, 30분, 3회, 총5회 중 2회 완료",
-    "독서하기, 아침 8시 기상시, 1시간, 1회, 총4회 중 2회 완료"
+// MARK: - 데이터 모델 (토큰 절약용 JSON 구조)
+struct RoutineItem: Codable {
+    let title: String
+    let time: String
+    let amount: String
+    let unit: String
+    let total: Int
+    let done: Int
+}
+
+// 샘플 데이터
+private let routines: [RoutineItem] = [
+    .init(title: "물마시기", time: "06:00", amount: "500", unit: "ml",  total: 7, done: 6),
+    .init(title: "운동하기", time: "07:00", amount: "30",  unit: "min", total: 5, done: 2),
+    .init(title: "독서하기", time: "08:00", amount: "60",  unit: "min", total: 4, done: 2),
 ]
 
-let question1 = """
-다음 조건에 맞는 답변을 한국어로 제공해.
-1. 각 \(routine)에 대해 응원의 말을 달성율에 따라 다음과 같은 형식으로 적어줘:
-~~만큼 했어요(예: 거의 다 했다, 반 정도 달성했다, 시작이 반이다 이런 식으로). 앞으로 n회만 하면 목표 달성이에요!
-"""
+// MARK: - 프롬프트 (짧고 구조화)
+private func makePrompt() -> String {
+    let json = (try? String(data: JSONEncoder().encode(routines), encoding: .utf8)) ?? "[]"
+    return """
+    다음 JSON 배열을 보고 각 항목마다 한국어로 한 줄 응원을 만들어줘.
+    형식: "~~만큼 했어요. 앞으로 n회면 목표 달성이에요!"
+    제약: 각 줄은 25자 이내, 총 \(routines.count)줄만.
 
-struct AlanAITest: View {
-    @State private var answer: String = ""
+    JSON:
+    \(json)
+    """
+}
 
-    var body: some View {
-        VStack(spacing: 16) {
-            ScrollView {
-                Text(answer)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .multilineTextAlignment(.center)
-                    .padding()
-            }
+// MARK: - 간단 캐시 (같은 질문이면 즉시 반환)
+actor AnswerCache {
+    private var map: [String: String] = [:]
+    func get(_ key: String) -> String? { map[key] }
+    func set(_ key: String, value: String) { map[key] = value }
+}
+private let cache = AnswerCache()
 
-            Button("Ask Alan") {
-                Task {
-                    // ✅ 1️⃣ 먼저 “응답 생성중” 표시
-                    await MainActor.run {
-                        answer = "🤖 응답 생성중..."
-                    }
-
-                    // ✅ 2️⃣ 실제 AlanAI 호출 후 결과 표시
-                    let result = await askAlan(question: question1)
-                    await MainActor.run {
-                        answer = result
-                    }
-                }
-            }
-            .buttonStyle(.borderedProminent)
-        }
-        .padding()
+// MARK: - 프리워밍 (앱/뷰 진입 시 한 번 호출 권장)
+private var didPrewarm = false
+@MainActor
+private func prewarmAlanIfNeeded() {
+    guard !didPrewarm else { return }
+    didPrewarm = true
+    Task.detached {
+        _ = try? await alanAI.question(query: "ping")
     }
 }
 
-func askAlan(question: String) async -> String {
+// MARK: - 네트워크 호출 (캐시 래핑)
+private func askAlanCached(question: String) async -> String {
+    let key = String(question.hashValue)
+    if let cached = await cache.get(key) { return cached }
+    let result = await askAlanNetwork(question: question)
+    await cache.set(key, value: result)
+    return result
+}
+
+private func askAlanNetwork(question: String) async -> String {
     do {
         let response: AlanResponse? = try await alanAI.question(query: question)
         if let response {
@@ -64,8 +79,56 @@ func askAlan(question: String) async -> String {
             return "❌ AlanAI 응답이 비어 있습니다."
         }
     } catch {
-        print("❌ AlanAI Error:", error.localizedDescription)
-        return "❌ 오류 발생: \(error.localizedDescription)"
+        return "❌ 오류: \(error.localizedDescription)"
+    }
+}
+
+// MARK: - View
+struct AlanAITest: View {
+    @State private var answer: String = ""
+    @State private var isLoading = false
+
+    var body: some View {
+        VStack(spacing: 16) {
+            Group {
+                if isLoading {
+                    VStack(spacing: 8) {
+                        ProgressView()
+                        Text("🤖 응답 생성중...").foregroundStyle(.secondary)
+                    }
+                } else {
+                    ScrollView {
+                        Text(answer.isEmpty ? "버튼을 눌러 응답을 받아보세요." : answer)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .multilineTextAlignment(.center)
+                            .padding()
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, minHeight: 160)
+
+            Button {
+                Task {
+                    await MainActor.run {
+                        isLoading = true
+                        answer = "🤖 응답 생성중..."
+                    }
+                    let prompt = makePrompt()
+                    let result = await askAlanCached(question: prompt)
+                    await MainActor.run {
+                        isLoading = false
+                        answer = result
+                    }
+                }
+            } label: {
+                Text(isLoading ? "요청 중..." : "Ask Alan")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .disabled(isLoading)
+        }
+        .padding()
+        .task { prewarmAlanIfNeeded() } // 프리워밍
     }
 }
 
