@@ -17,7 +17,7 @@ struct MypageMainView: View {
                 MypageUserCardView(authStore: authStore)
 
                 MypageItemView()
-                MypagePlantsCardView()
+                MypagePlantsCardView(authStore: authStore)
             }
             .padding(.horizontal)
         }
