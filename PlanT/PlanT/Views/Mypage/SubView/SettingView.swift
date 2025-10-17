@@ -9,15 +9,17 @@ import SwiftUI
 
 struct SettingView: View {
     @EnvironmentObject var authStore: AuthStore
+    @State private var showSignOutAlert = false
 
     var body: some View {
         ScrollView {
             VStack {
+                Text("설정 화면")
             }
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
-                        Task { await authStore.signOut() }
+                        showSignOutAlert = true
                     } label: {
                         Image(systemName: "door.left.hand.open")
                             .foregroundColor(.red)
@@ -27,6 +29,13 @@ struct SettingView: View {
         }
         .navigationTitle("설정")
         .navigationBarTitleDisplayMode(.inline)
+        // ✅ Alert 추가
+        .alert("현재 계정에서 로그아웃 됩니다.", isPresented: $showSignOutAlert) {
+            Button("취소", role: .cancel) { }
+            Button("로그아웃", role: .destructive) {
+                Task { await authStore.signOut() }
+            }
+        }
     }
 }
 
