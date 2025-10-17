@@ -1,6 +1,15 @@
 {
-  "originHash" : "a2b47b975283c007063016d75469b395d89f8763da1d376160fb8c6dcfdb6109",
+  "originHash" : "f0cd33b6223728793c7bedf333734746b388ff11cfba67c8eff44c378c9b9a70",
   "pins" : [
+    {
+      "identity" : "alan-ios-sdk",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/estcamp-ios3/alan-ios-sdk",
+      "state" : {
+        "branch" : "main",
+        "revision" : "270bf8853a816a692a5a4c321d5db58fdd2b0c11"
+      }
+    },
     {
       "identity" : "supabase-swift",
       "kind" : "remoteSourceControl",
