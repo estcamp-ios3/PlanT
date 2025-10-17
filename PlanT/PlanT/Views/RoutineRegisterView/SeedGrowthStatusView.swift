@@ -41,10 +41,11 @@ struct SeedGrowthStatusView: View {
                 Text("\(displayName) \(currentStage)단계")
                     .font(.subheadline)
             }
-            Image(routine.seedImage(for: progress))
+            Image(routine.seedImage(for: progress, totalCount: totalCount))
                 .resizable()
                 .scaledToFit()
                 .frame(height: 350)
+                .frame(maxWidth: .infinity, alignment: .center)
             
             HStack {
                 Text("\(completedCount)/\(totalCount) 회 완료")
@@ -81,7 +82,7 @@ struct SeedGrowthStatusView: View {
             print("👉 progress:", progress)
             print("👉 currentStage:", currentStage)
             print("✅ seedName:", routine.seedName ?? "nil")
-            print("✅ seedImagePath:", routine.seedImage(for: progress))
+            print("✅ seedImagePath:", routine.seedImage(for: progress,totalCount: totalCount))
         }
     }
     private var displayName: String {
