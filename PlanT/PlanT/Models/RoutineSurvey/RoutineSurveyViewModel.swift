@@ -42,7 +42,7 @@ final class RoutineSurveyViewModel: ObservableObject {
             .init(id: "frequency_per_week", kind: .single,
                   title: "1주에 몇 회 정도 진행할까요?",
                   message: nil,
-                  options: (1...7).map { .init(id: "\($0)x", title: "주 \($0)회") },
+                  options: (1...7).map { .init(id: "\($0)", title: "주 \($0)회") },
                   minSelection: 1, maxSelection: 1),
         
             .init(id: "duration", kind: .single,
@@ -270,7 +270,7 @@ extension RoutineSurveyViewModel {
             durationTitle: title(for: "duration", optionId: durationId),
             periodIsNoLimit: periodYes,
             reminderOn: reminderYes,
-            goal: "\(title(for: "health_type", optionId: routineTypeId))",
+            goal: "\(durationId)/ 일",
             isFavorite: false
         )
     }

@@ -10,9 +10,8 @@ import SwiftUI
 // 씨앗 데이터 모델 (이름 + 이미지 이름)
 struct Seed: Equatable {
     let name: String
-    let imageName: String
+    let imagePrefix: String
 }
-
 /// - 모든 씨앗을 그리드(Grid)로 보여주고,
 /// - 선택 시 선택 상태를 바인딩(@Binding)으로 부모에 전달,
 struct SeedSelectionView: View {
@@ -21,9 +20,9 @@ struct SeedSelectionView: View {
     
     // 전체 씨앗 리스트 (Seed? 배열로 구성하여 빈 칸 표현 가능)
     let allSeeds: [Seed?] = [
-        Seed(name: "사과", imageName: "seed_Apple01"),
-        Seed(name: "복숭아", imageName: "seed_Peach01"),
-        Seed(name: "해바라기", imageName: "seed_Sunflower01"),
+        Seed(name: "사과", imagePrefix: "seed_Apple"),
+        Seed(name: "복숭아", imagePrefix: "seed_Peach"),
+        Seed(name: "해바라기", imagePrefix: "seed_Sunflower"),
         nil, nil, nil,
         nil, nil, nil,
     ]
@@ -61,7 +60,7 @@ struct SeedSelectionView: View {
                                         Spacer().frame(height: 4)
                                         ZStack {
                                             // 씨앗 이미지
-                                            Image(seed.imageName)
+                                            Image("\(seed.imagePrefix)01")
                                                 .resizable()
                                                 .scaledToFit()
                                                 .frame(width: 110, height: 110)
@@ -81,7 +80,7 @@ struct SeedSelectionView: View {
                                     }
                                     // 카드 탭 시 해당 씨앗을 선택
                                     .onTapGesture {
-                                        selectedSeed = seed
+                                        selectedSeed = Seed(name: seed.name, imagePrefix: seed.imagePrefix)
                                     }
                                 }
                             }
