@@ -47,7 +47,7 @@ struct RoutineListView: View {
                     ForEach(store.routines) { routine in
                         RoutineCardModernView(
                             routine: routine,
-                            progress: 0
+                            progress: store.progress(for: routine)
                         )
                         .onTapGesture{
                             path.append(Route.manualCreateDetails(routine))

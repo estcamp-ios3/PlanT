@@ -12,34 +12,36 @@ struct RoutineCardModernView: View {
     var progress: Double = 0
     
     var body: some View {
-        HStack(spacing: 16) {
-            ZStack {
+        HStack {
+            ZStack  {
                 Circle()
                     .fill(Color("BrandSecondary"))
-                    .frame(width: 70, height: 70)
+                    .frame(width: 90, height: 90)
                 
                 Image(routine.seedImage(for: progress))
-//                Image("seed_Apple01")
-
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 45, height: 45)
+                    .frame(width: 90, height: 90)
             }
+            Spacer(minLength: 12)
             VStack(alignment: .leading, spacing: 6) {
-                
-                Text(routine.title)
-                    .font(.headline)
-                
-                Text(routine.categoryTitleMapped)
-                    .font(.subheadline)
+                HStack {
+                    Text(routine.title)
+                        .font(.headline)
+                    Spacer()
+                    Text("카테고리: \(routine.categoryTitleMapped)")
+                        .font(.caption2)
+                }
+
                 HStack {
                     
                     Text("목표: \(routine.goal)")
                         .font(.subheadline)
-                    
-                    Text("주 \(routine.frequencyPerWeekId.replacingOccurrences(of: "x", with: ""))회 \(routine.duration)")
+                    Spacer()
+                    Text("주 \(routine.frequencyPerWeekId.replacingOccurrences(of: "x", with: ""))회       \(routine.duration)")
                         .font(.subheadline)
                 }
+
                 HStack {
                     Text("진행률")
                         .font(.caption)
@@ -64,6 +66,10 @@ struct RoutineCardModernView: View {
             RoundedRectangle(cornerRadius: 12)
                 .fill(Color("white"))
                 .shadow(color: .black.opacity(0.05), radius: 6, x:0, y: 3)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color.gray400,lineWidth: 1)
         )
         .onAppear {
             print("👉 seedName:", routine.seedName ?? "nil")

@@ -43,6 +43,12 @@ struct RoutineRegisterView: View {
     private var isDetailsMode: Bool {
         if case .details = currentMode { true } else { false }
     }
+    
+    private var routineFromMode: Routine? {
+        if case .details(let routine) = currentMode { return routine }
+        if case .edit(let routine) = currentMode { return routine }
+        return nil
+    }
 
     let alarms = [30, 15, 10, 5, 1]
 
@@ -67,6 +73,10 @@ struct RoutineRegisterView: View {
                 Divider()
                 alarmSection()
                     .padding(.bottom, 80)
+                if let routine = routineFromMode {
+                    SeedGrowthStatusView(routine: routine)
+                        .environmentObject(store)
+                }
             }
             .padding(.horizontal)
             .onAppear { setupMode() }
