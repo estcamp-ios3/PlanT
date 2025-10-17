@@ -7,9 +7,14 @@
 import SwiftUI
 
 struct RoutineCardModernView: View {
-    
+    @EnvironmentObject var store: RoutineStore
+
     let routine: Routine
     var progress: Double = 0
+    
+    private var totalCount: Int {
+        store.totalCount(for: routine)
+    }
     
     var body: some View {
         HStack {
@@ -18,7 +23,7 @@ struct RoutineCardModernView: View {
                     .fill(Color("BrandSecondary"))
                     .frame(width: 90, height: 90)
                 
-                Image(routine.seedImage(for: progress))
+                Image(routine.seedImage(for: progress, totalCount: totalCount))
                     .resizable()
                     .scaledToFit()
                     .frame(width: 90, height: 90)
@@ -73,7 +78,7 @@ struct RoutineCardModernView: View {
         )
         .onAppear {
             print("👉 seedName:", routine.seedName ?? "nil")
-            print("👉 최종 이미지 호출:", routine.seedImage(for: progress))
+            print("👉 최종 이미지 호출:", routine.seedImage(for: progress, totalCount: totalCount))
         }
     }
 }

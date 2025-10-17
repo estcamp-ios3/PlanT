@@ -13,6 +13,7 @@ struct Seed: Identifiable, Equatable {
     let imagePrefix: String
     let stages: Int = 5
     
+    
 }
     
     // 전체 씨앗 리스트 (Seed? 배열로 구성하여 빈 칸 표현 가능)
@@ -23,3 +24,24 @@ struct Seed: Identifiable, Equatable {
        
     ]
 
+extension Routine {
+    func seedImage(for progressPercent: Double, totalCount: Int) -> String {
+        guard totalCount > 0 else { return "\(imagePrefixMapped)01" }
+        let percentPerStage = 100.0 / Double(totalCount)
+        
+        var stage = Int(progressPercent / percentPerStage) + 1
+        stage = max(1, min(5, stage))
+  
+        return "\(imagePrefixMapped)\(String(format: "%02d", stage))"
+    }
+}
+extension Routine {
+    var imagePrefixMapped: String {
+        switch seedName {
+        case "사과", "Apple": return "seed_Apple"
+        case "복숭아", "Peach": return "seed_Peach"
+        case "해바라기", "Sunflower": return "seed_Sunflower"
+        default: return "seed_Apple"
+        }
+    }
+}

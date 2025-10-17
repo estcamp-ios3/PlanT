@@ -13,7 +13,6 @@ enum AlarmCycle: String, Codable {
     case every48Hours = "every48Hours"
     case off = "off"
 }
-
 var seedName: String?
 var seedPrefix: String?
 // MARK: - 루틴 모델
@@ -133,10 +132,4 @@ extension Routine {
     }
 }
 
-extension Routine {
-    func seedImage(for progressPercent: Double) -> String {
-        let stage = max(1, min(5, Int(progressPercent / 20) + 1))
-        let prefix = seedPrefix ?? "seed_Apple"
-        return "\(prefix)\(String(format: "%02d", stage))"
-    }
-}
+
