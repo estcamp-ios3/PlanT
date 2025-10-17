@@ -8,13 +8,31 @@
 import SwiftUI
 
 struct SettingView: View {
+    @EnvironmentObject var authStore: AuthStore
+
     var body: some View {
-        VStack {
-            Text("SettingView")
+        ScrollView {
+            VStack {
+            }
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        Task { await authStore.signOut() }
+                    } label: {
+                        Image(systemName: "door.left.hand.open")
+                            .foregroundColor(.red)
+                    }
+                }
+            }
         }
+        .navigationTitle("설정")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
 #Preview {
-    SettingView()
+    NavigationStack {
+        SettingView()
+            .environmentObject(AuthStore())
+    }
 }

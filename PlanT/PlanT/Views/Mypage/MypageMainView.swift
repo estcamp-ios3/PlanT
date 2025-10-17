@@ -17,20 +17,9 @@ struct MypageMainView: View {
                 MypageUserCardView(authStore: authStore)
 
                 MypageItemView()
-                MypagePlantsCardView()
+                MypagePlantsCardView(authStore: authStore)
             }
-            .padding()
-            .background(Color.white)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        Task { await authStore.signOut() }
-                    } label: {
-                        Image(systemName: "door.left.hand.open")
-                            .foregroundColor(.red)
-                    }
-                }
-            }
+            .padding(.horizontal)
         }
     }
 }
