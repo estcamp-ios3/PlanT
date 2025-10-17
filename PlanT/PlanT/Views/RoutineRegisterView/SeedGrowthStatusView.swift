@@ -9,7 +9,10 @@ import SwiftUI
 
 struct SeedGrowthStatusView: View {
     @EnvironmentObject var store: RoutineStore
-    let routine: Routine
+    @State private var localProgress: Double = 0
+    @State private var refresh = UUID()
+    @State var routine: Routine
+    let canCompleste: Bool
     
     private var totalCount: Int {
         store.totalCount(for: routine)
@@ -52,23 +55,39 @@ struct SeedGrowthStatusView: View {
             }
             ProgressView(value: progress / 100)
                 .progressViewStyle(.linear)
-                .tint(Color("Brandprimary"))
+                .tint(Color("BrandPrimary"))
                 .frame(height: 10)
                 .clipShape(Capsule())
+                .padding(.top, 6)
+
+            if canCompleste {
+                Button(" 루틴 1회 완료") {
+                    store.increaseProgress(for:routine)
+                    if let updatedRoutine = store.routines.first(where: { $0.id == routine.id }) {
+                        self.routine = updatedRoutine
+                        localProgress = store.progress(for: routine)
+                    }
+                }
+                .plantPrimaryButton()
+                .disabled(completedCount >= totalCount)
+
+            }
+        }
+        .onReceive(store.$refreshTrigger) { _ in
+            refresh = UUID()
         }
         .onAppear {
-                   print("✅ [SeedGrowthStatusView] 이미지 테스트 ----")
-                   print("👉 seedName(raw):", routine.seedName ?? "nil")
-                   print("👉 imagePrefix:", imagePrefix)
-                   print("👉 progress:", progress)
-                   print("👉 currentStage:", currentStage)
-                   print("👉 최종 이미지 호출:", "\(imagePrefix)\(String(format: "%02d", currentStage))")
-               }
+            localProgress = store.progress(for: routine)
+            print("👉 progress:", progress)
+            print("👉 currentStage:", currentStage)
+            print("✅ seedName:", routine.seedName ?? "nil")
+            print("✅ seedImagePath:", routine.seedImage(for: progress))
+        }
     }
     private var displayName: String {
         if imagePrefix.contains("Sunflower") { return "해바라기"}
         if imagePrefix.contains("Peach") {return "복숭아"}
         if imagePrefix.contains("Apple") { return "사과"}
-            return "작물"
+        return "작물"
     }
 }

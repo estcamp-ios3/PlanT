@@ -19,7 +19,7 @@ var seedPrefix: String?
 // MARK: - 루틴 모델
 // 개별 루틴 하나를 표현하는 데이터
 @Model
-final class Routine: Identifiable {
+final class Routine: Identifiable{
     var id = UUID()
     var title: String
     
@@ -35,6 +35,7 @@ final class Routine: Identifiable {
     
     var note: String?
     var isCompleted: Bool = false
+    var completedCount: Int = 0
     var createdAt: Date
     var modifiedAt: Date
 
@@ -53,6 +54,7 @@ final class Routine: Identifiable {
         
         note: String? = nil,
         isCompleted: Bool = false,
+        completedCount: Int = 0,
         createdAt: Date = Date(),
         modifiedAt: Date = Date()
     ) {
@@ -69,6 +71,7 @@ final class Routine: Identifiable {
         self.seedName = seedName
         self.note = note
         self.isCompleted = isCompleted
+        self.completedCount = completedCount
         self.createdAt = createdAt
         self.modifiedAt = modifiedAt
     }
@@ -81,6 +84,7 @@ struct RoutineDTO: Codable {
     var seedName: String?
     var note: String?
     var isCompleted: Bool
+    var completedCount: Int
     var duration: String
     var goal: String
     var alarm: String
@@ -101,6 +105,7 @@ struct RoutineDTO: Codable {
             case alarm
             case frequencyPerWeekId = "frequency_per_week_id"
             case frequencyPerWeekTitle = "frequency_per_week_title"
+            case completedCount = "completed_count"
             case createdAt = "created_at"
             case modifiedAt = "modified_at"
         }
@@ -116,6 +121,7 @@ extension Routine {
             seedName: seedName,
             note: note,
             isCompleted: isCompleted,
+            completedCount: completedCount,
             duration: duration,
             goal: goal,
             alarm: alarm.rawValue,
@@ -131,6 +137,6 @@ extension Routine {
     func seedImage(for progressPercent: Double) -> String {
         let stage = max(1, min(5, Int(progressPercent / 20) + 1))
         let prefix = seedPrefix ?? "seed_Apple"
-        return "\(prefix)0\(stage)"
+        return "\(prefix)\(String(format: "%02d", stage))"
     }
 }

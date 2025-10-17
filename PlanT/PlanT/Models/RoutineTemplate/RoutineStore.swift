@@ -8,11 +8,12 @@ import Foundation
 import SwiftData
 import Combine
 import Supabase
+import SwiftUI
 
 @MainActor
 final class RoutineStore: ObservableObject {
     @Published private(set) var routines: [Routine] = []
-    
+    @Published var refreshTrigger = UUID()
     private var context: ModelContext
     private let client = supabaseClient
     
@@ -88,7 +89,7 @@ final class RoutineStore: ObservableObject {
 
 extension RoutineStore {
     func completedCount(for routine: Routine) -> Int {
-        return 0
+        routine.completedCount
     }
     func totalCount(for routine: Routine) -> Int {
         Int(routine.frequencyPerWeekId.replacingOccurrences(of: "x", with: "")) ?? 0
@@ -98,5 +99,35 @@ extension RoutineStore {
         guard total > 0 else { return 0}
         let completed = completedCount(for: routine)
         return min(100, (Double(completed) / Double(total)) * 100)
+    }
+}
+
+extension RoutineStore {
+    func increaseProgress(for routine: Routine) {
+        routine.completedCount += 1
+        routine.modifiedAt = .now
+        
+        do {
+            try context.save()
+            print(" SwiftData 완료횟수 증가 저장됨(\(routine.completedCount)회")
+        } catch {
+            print(" SwiftData 저장 실패:", error)
+        }
+        Task {
+            do {
+                try await client
+                    .from("routines")
+                    .update(["completed_count": routine.completedCount])
+                    .eq("id", value: routine.id)
+                    .execute()
+                print("Supabase 완료횟수 업데이트 완료")
+            } catch {
+                print( "Supabase 완료횟수 업데이트 실패:", error.localizedDescription)
+            }
+        }
+        loadRoutines()
+        withAnimation(.spring()) {
+             refreshTrigger = UUID()
+        }
     }
 }

@@ -73,15 +73,16 @@ struct RoutineRegisterView: View {
                 Divider()
                 alarmSection()
                     .padding(.bottom, 80)
-                if let routine = routineFromMode {
-                    SeedGrowthStatusView(routine: routine)
-                        .environmentObject(store)
                 }
-            }
-            .padding(.horizontal)
-            .onAppear { setupMode() }
             .disabled(isDetailsMode)
+            
+            if let routine = routineFromMode {
+                SeedGrowthStatusView(routine: routine, canCompleste: isDetailsMode)
+                    .environmentObject(store)
+            }
         }
+        .padding(.horizontal)
+        .onAppear { setupMode() }
         .navigationTitle(modeTitle)
         .toolbar { toolbarContent() }
         .safeAreaInset(edge: .bottom) {
