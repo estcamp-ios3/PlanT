@@ -77,6 +77,7 @@ struct SeedGrowthStatusView: View {
         .onReceive(store.$refreshTrigger) { _ in
             refresh = UUID()
         }
+        
         .onAppear {
             localProgress = store.progress(for: routine)
             print("👉 progress:", progress)

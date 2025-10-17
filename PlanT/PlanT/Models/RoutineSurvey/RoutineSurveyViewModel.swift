@@ -270,7 +270,7 @@ extension RoutineSurveyViewModel {
             durationTitle: title(for: "duration", optionId: durationId),
             periodIsNoLimit: periodYes,
             reminderOn: reminderYes,
-            goal: "\(durationId)/ 일",
+            goal: "\(durationId)/일",
             isFavorite: false
         )
     }

@@ -18,7 +18,7 @@ struct RoutineRegisterView: View {
     @EnvironmentObject var store: RoutineStore
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
-
+    
     @State private var routineTitle: String = ""
     @StateObject private var viewModel = RoutineSurveyViewModel()
     @State private var selectedCategory = "선택하세요"
@@ -29,17 +29,17 @@ struct RoutineRegisterView: View {
     @State private var selectedAlarms: Set<Int> = [15]
     @State private var currentMode: RoutineRegisterMode
     @State private var goToseedStatus = false
-    @State private var goalDays: String = "3"
-    @State private var goalHours: String = "24"
-    @State private var goalTask: String = "5page"
+    @State private var goalDays: String = ""
+    @State private var goalHours: String = ""
+    @State private var goalTask: String = ""
     @State private var showAlarms: Bool = true
     @Binding var path: NavigationPath
-
+    
     private var isFormValid: Bool {
         selectedCategory != "카테고리 선택 ⌵" &&
         !routineTitle.trimmingCharacters(in: .whitespaces).isEmpty
     }
-
+    
     private var isDetailsMode: Bool {
         if case .details = currentMode { true } else { false }
     }
@@ -49,11 +49,11 @@ struct RoutineRegisterView: View {
         if case .edit(let routine) = currentMode { return routine }
         return nil
     }
-
+    
     let alarms = [30, 15, 10, 5, 1]
-
+    
     enum DateMode { case endDate, allDay }
-
+    
     init(mode: RoutineRegisterMode, categoryTitle: String? = nil, path: Binding<NavigationPath>) {
         _currentMode = State(initialValue: mode)
         if let categoryTitle = categoryTitle {
@@ -61,7 +61,7 @@ struct RoutineRegisterView: View {
         }
         self._path = path // ADD: path binding
     }
-
+    
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
@@ -73,7 +73,7 @@ struct RoutineRegisterView: View {
                 Divider()
                 alarmSection()
                     .padding(.bottom, 80)
-                }
+            }
             .disabled(isDetailsMode)
             
             if let routine = routineFromMode {
@@ -88,15 +88,15 @@ struct RoutineRegisterView: View {
         .safeAreaInset(edge: .bottom) {
             addButton()
         }
-            .navigationDestination(isPresented: $goToseedStatus) {
-                SeedStatusView(
-                    state: .notPlanted,
-                    draft: draft,
-                    path: $path
-                )
-            }
+        .navigationDestination(isPresented: $goToseedStatus) {
+            SeedStatusView(
+                state: .notPlanted,
+                draft: draft,
+                path: $path
+            )
         }
     }
+}
 
 
 extension RoutineRegisterView {
@@ -116,12 +116,22 @@ extension RoutineRegisterView {
             selectedCategory = "카테고리 선택 ⌵"
             useDate = true
             selectedAlarms = [15]
+            
         case .details(let routine),
-             .edit(let routine):
+                .edit(let routine):
             routineTitle = routine.title
             if selectedCategory == "선택하세요" {
                 selectedCategory = "알 수 없는 카테고리"
             }
+            
+            if routine.goal.contains("분") {
+                goalHours = routine.goal.replacingOccurrences(of: "분/일", with: "")
+            }
+            
+            goalDays = routine.frequencyPerWeekId.replacingOccurrences(of: "x", with: "")
+            
+            goalTask = routine.duration.replacingOccurrences(of: "일", with: "")
+            
             startDate = Date()
             endDate = Date()
             selectedAlarms = [15]
@@ -215,8 +225,8 @@ extension RoutineRegisterView {
                     .labelsHidden()
                     .toggleStyle(CustomToggleStyle())
             }
-       
-
+            
+            
             if useDate {
                 HStack(spacing: 16) {
                     RadioButton(
@@ -225,7 +235,7 @@ extension RoutineRegisterView {
                     ) {
                         dateMode = .endDate
                     }
-
+                    
                     RadioButton(
                         label: "종일",
                         isSelected: dateMode == .allDay
@@ -233,7 +243,7 @@ extension RoutineRegisterView {
                         dateMode = .allDay
                     }
                 }
-
+                
                 if dateMode == .endDate {
                     HStack {
                         Spacer()
@@ -280,25 +290,57 @@ extension RoutineRegisterView {
     @ViewBuilder
     private func goalSection() -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("목표")
-                .font(.subheadline).bold()
             HStack {
-                TextField("3", text: $goalDays)
-                    .frame(width: 40)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                Text("일 동안,  하루")
-                TextField("20", text: $goalHours)
-                    .frame(width: 50)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                Text("분")
-                TextField("", text: $goalTask)
-                    .frame(width: 80)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                Text("목표")
+                    .font(.headline).bold()
+                
+                if case .edit = currentMode {
+                    Spacer()
+                    Button {
+                        
+                    } label: {
+                        Image(systemName: "plus")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundColor(.black)
+                    }
+                }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            if case .details = currentMode {
+                HStack {
+                    Text("\(routineFromMode?.goal ?? "-")")
+                    Text("주 \(routineFromMode?.frequencyPerWeekId.replacingOccurrences(of: "x", with: "") ?? "0")회 \(routineFromMode?.duration ?? "-")")
+                    Spacer()
+                }
+                .font(.subheadline)
+                .padding(10)
+                .background(Color("Gray400"))
+                .cornerRadius(8)
+            }
+            if case .edit = currentMode {
+                HStack {
+                    TextField("30", text: $goalHours)
+                        .frame(width: 40)
+                        .multilineTextAlignment(.trailing)
+                        .textFieldStyle(.roundedBorder)
+                    Text("분/일")
+                    TextField("5", text: $goalDays)
+                        .frame(width: 40)
+                        .multilineTextAlignment(.trailing)
+                        .textFieldStyle(.roundedBorder)
+                    Text("회/주")
+                    
+                    TextField("21", text: $goalTask)
+                        .frame(width: 40)
+                        .multilineTextAlignment(.trailing)
+                        .textFieldStyle(.roundedBorder)
+                    Text("일 동안")
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
         }
     }
 }
+
 
 extension RoutineRegisterView {
     @ViewBuilder
@@ -307,35 +349,35 @@ extension RoutineRegisterView {
             HStack {
                 Text("알림")
                     .font(.subheadline).bold()
-            Spacer()
+                Spacer()
                 
-            Toggle("", isOn: $showAlarms)
+                Toggle("", isOn: $showAlarms)
                     .labelsHidden()
                     .toggleStyle(CustomToggleStyle())
             }
             if showAlarms {
                 
-            HStack {
-                ForEach(alarms, id: \.self) { minute in
-                    Button(action: {
-                        if selectedAlarms.contains(minute) {
-                            selectedAlarms.remove(minute)
-                        } else {
-                            selectedAlarms.insert(minute)
+                HStack {
+                    ForEach(alarms, id: \.self) { minute in
+                        Button(action: {
+                            if selectedAlarms.contains(minute) {
+                                selectedAlarms.remove(minute)
+                            } else {
+                                selectedAlarms.insert(minute)
+                            }
+                        }) {
+                            Text("\(minute)분 전")
+                                .font(.subheadline)
+                                .padding(.vertical, 8)
+                                .padding(.horizontal, 10)
+                                .background(selectedAlarms.contains(minute) ? Color.orange : Color.gray.opacity(0.2))
+                                .foregroundColor(.black)
+                                .cornerRadius(8)
                         }
-                    }) {
-                        Text("\(minute)분 전")
-                            .font(.subheadline)
-                            .padding(.vertical, 8)
-                            .padding(.horizontal, 10)
-                            .background(selectedAlarms.contains(minute) ? Color.orange : Color.gray.opacity(0.2))
-                            .foregroundColor(.black)
-                            .cornerRadius(8)
                     }
                 }
-            }
-            .transition(.opacity.combined(with: .move(edge: .top)))
-            .animation(.spring(), value: showAlarms)
+                .transition(.opacity.combined(with: .move(edge: .top)))
+                .animation(.spring(), value: showAlarms)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -366,7 +408,7 @@ extension RoutineRegisterView {
                             .frame(maxWidth: .infinity)
                     }
                     .plantSecondaryButton()
-
+                    
                     Button(action: saveRoutine) {
                         Text("수정 완료")
                             .frame(maxWidth: .infinity)
@@ -380,7 +422,7 @@ extension RoutineRegisterView {
         }
         .padding(.vertical, 12)
     }
-
+    
     @ToolbarContentBuilder
     private func toolbarContent() -> some ToolbarContent {
         switch currentMode {
@@ -396,17 +438,22 @@ extension RoutineRegisterView {
             }
         }
     }
-
+    
     private func saveRoutine() {
         switch currentMode {
         case .create:
             print("새 루틴 등록 로직 실행")
         case .edit(let routine):
             routine.title = routineTitle
+            routine.goal = "\(goalHours)분/일"
+            routine.frequencyPerWeekId = "\(goalDays)x"
+            routine.duration = "\(goalTask)일"
             routine.modifiedAt = Date()
+            
             do {
                 try context.save()
                 store.loadRoutines()
+                store.refreshTrigger = UUID()
                 print("루틴 수정 완료: \(routine.title)")
                 dismiss()
             } catch {
@@ -416,7 +463,7 @@ extension RoutineRegisterView {
             break
         }
     }
-
+    
     private func deleteRoutine() {
         switch currentMode {
         case .create:
@@ -435,7 +482,7 @@ struct RadioButton: View {
     let label: String
     let isSelected: Bool
     let action: () -> Void
-
+    
     var body: some View {
         Button(action: action) {
             HStack(spacing: 8) {
@@ -443,7 +490,7 @@ struct RadioButton: View {
                     Circle()
                         .stroke(Color.gray, lineWidth: 2)
                         .frame(width: 24, height: 24)
-
+                    
                     if isSelected {
                         Circle()
                             .fill(Color.blue)
