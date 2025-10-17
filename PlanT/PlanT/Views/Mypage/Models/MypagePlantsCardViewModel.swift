@@ -10,24 +10,25 @@ import Combine
 
 final class MypagePlantsCardViewModel: ObservableObject {
 
-    // 표시용 상태
-    @Published var sectionTitle: String = "성장중인 작물"
-    @Published var title: String = "러닝 루틴(할 일 제목)"
-    @Published var subtitle: String = "설정한 목표: 확신의 P가 한땀한땀 쌓아나가는 목표"
-    @Published var progress: Double = 0.6                  // 0.0 ~ 1.0
+    @Published var title: String = ""
+    @Published var subtitle: String = ""
+    @Published var progress: Double = 0.0
     @Published var plantImageName: String = "seed_Sunflower03"
     @Published var mateComment: String = "거의 다왔어요! 앞으로 2회만 더 힘내라골골!"
-
-    // AuthStore로부터 유도되는 값
     @Published private(set) var mateImageName: String = "MrPurr"
 
     private let authStore: AuthStore
-    private var cancellables = Set<AnyCancellable>()
 
-    init(authStore: AuthStore) {
+    init(authStore: AuthStore, routine: Routine, routineStore: RoutineStore) {
         self.authStore = authStore
 
-        // AuthStore가 ObservableObject이고 @Published var mate: String? 라고 가정
+        // 루틴 기반 표시값 세팅
+        self.title = routine.title
+        self.subtitle = !routine.goal.isEmpty ? routine.goal : (routine.note ?? "")
+        self.plantImageName = routine.seedName ?? "seed_Sunflower03" // 기본 이미지로 대체
+        self.progress = routineStore.progress(for: routine) / 100.0 // 0~100 → 0~1
+
+        // mate 이미지 동기화
         authStore.$mate
             .map { $0 ?? "MrPurr" }
             .removeDuplicates()
@@ -36,7 +37,8 @@ final class MypagePlantsCardViewModel: ObservableObject {
             .store(in: &cancellables)
     }
 
-    // 가공 값
+    private var cancellables = Set<AnyCancellable>()
+
     var progressPercentText: String {
         "\(Int(progress * 100))%"
     }

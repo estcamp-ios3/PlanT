@@ -11,31 +11,36 @@ import SwiftData
 @main
 struct PlanTApp: App {
     @StateObject private var authStore = AuthStore()
-    
-    // SwiftData용 컨테이너 정의
-    var sharedModelContainer: ModelContainer = {
-        //  스키마 등록
+    @StateObject private var routineStore: RoutineStore
+
+    let sharedModelContainer: ModelContainer
+
+    init() {
+        // SwiftData 컨테이너 구성
         let schema = Schema([Routine.self])
-        
-        //  설정 구성 (저장소 이름)
-        let configuration = ModelConfiguration(schema: schema, url: URL.documentsDirectory.appending(path: "Main.store"))
-        
-        //  ModelContainer 생성
-        return try! ModelContainer(for: schema, configurations: [configuration])
-    }()
-    
+        let configuration = ModelConfiguration(
+            schema: schema,
+            url: URL.documentsDirectory.appending(path: "Main.store")
+        )
+        let container = try! ModelContainer(for: schema, configurations: [configuration])
+
+        self.sharedModelContainer = container
+        // ✅ RoutineStore를 App 레벨에서 한 번만 생성
+        _routineStore = StateObject(wrappedValue: RoutineStore(context: container.mainContext))
+    }
+
     var body: some Scene {
         WindowGroup {
             if authStore.isAuthenticated {
                 ContentView()
                     .environmentObject(authStore)
-                    .environmentObject(RoutineStore(context: sharedModelContainer.mainContext))
+                    .environmentObject(routineStore) // ✅ 여기서 주입
             } else {
                 LoginView(authStore: authStore)
                     .environmentObject(authStore)
                     .task { await authStore.restoreSession() }
             }
         }
-        .modelContainer(sharedModelContainer)
+        .modelContainer(sharedModelContainer) // modelContext 전달
     }
 }
