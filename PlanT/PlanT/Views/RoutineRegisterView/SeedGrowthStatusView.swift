@@ -48,7 +48,7 @@ struct SeedGrowthStatusView: View {
                 .frame(maxWidth: .infinity, alignment: .center)
             
             HStack {
-                Text("\(completedCount)/\(totalCount) 회 완료")
+                Text("\(completedCount)/\(totalCount)(회) 완료")
                     .font(.subheadline)
                 Spacer()
                 Text("\(Int(progress))%")
