@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C6E216172EA21A1800B51906 /* AlanAI in Frameworks */ = {isa = PBXBuildFile; productRef = C6E216162EA21A1800B51906 /* AlanAI */; };
 		C6E2F6D32E9C96D300B51906 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = C6E2F6D22E9C96D300B51906 /* Supabase */; };
 /* End PBXBuildFile section */
 
@@ -56,6 +57,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C6E216172EA21A1800B51906 /* AlanAI in Frameworks */,
 				C6E2F6D32E9C96D300B51906 /* Supabase in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -118,6 +120,7 @@
 			name = PlanT;
 			packageProductDependencies = (
 				C6E2F6D22E9C96D300B51906 /* Supabase */,
+				C6E216162EA21A1800B51906 /* AlanAI */,
 			);
 			productName = PlanT;
 			productReference = 995B26F02E8A3D8F0069DE34 /* PlanT.app */;
@@ -203,6 +206,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				C6E2F6D12E9C96D300B51906 /* XCRemoteSwiftPackageReference "supabase-swift" */,
+				C6E216152EA21A1800B51906 /* XCRemoteSwiftPackageReference "alan-ios-sdk" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 995B26F12E8A3D8F0069DE34 /* Products */;
@@ -597,6 +601,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		C6E216152EA21A1800B51906 /* XCRemoteSwiftPackageReference "alan-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/estcamp-ios3/alan-ios-sdk";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
 		C6E2F6D12E9C96D300B51906 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/supabase-community/supabase-swift";
@@ -608,6 +620,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		C6E216162EA21A1800B51906 /* AlanAI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C6E216152EA21A1800B51906 /* XCRemoteSwiftPackageReference "alan-ios-sdk" */;
+			productName = AlanAI;
+		};
 		C6E2F6D22E9C96D300B51906 /* Supabase */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = C6E2F6D12E9C96D300B51906 /* XCRemoteSwiftPackageReference "supabase-swift" */;
