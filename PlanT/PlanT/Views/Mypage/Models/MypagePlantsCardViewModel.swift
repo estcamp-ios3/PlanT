@@ -15,7 +15,7 @@ final class MypagePlantsCardViewModel: ObservableObject {
     // MARK: - Published Properties
     @Published var title: String = ""
     @Published var subtitle: String = ""
-    @Published var progress: Double = 0.0            // 0.0 ~ 1.0
+    @Published var progress: Double = 0.0            // 0.0 ~ 1.0 (뷰에서 쓰는 비율)
     @Published var plantImageName: String = "seed_Sunflower03"
     @Published var mateComment: String = "거의 다왔어요! 앞으로 2회만 더 힘내라골골!"
     @Published private(set) var mateImageName: String = "MrPurr"
@@ -32,8 +32,10 @@ final class MypagePlantsCardViewModel: ObservableObject {
         self.routineStore = routineStore
         self.routine = routine
 
+        // 초기 세팅
         updateViewModelData()
 
+        // 메이트 이미지 자동 동기화
         authStore.$mate
             .map { $0 ?? "MrPurr" }
             .removeDuplicates()
@@ -41,7 +43,7 @@ final class MypagePlantsCardViewModel: ObservableObject {
             .assign(to: \.mateImageName, on: self)
             .store(in: &cancellables)
 
-        // 루틴 업데이트 감지 후 자동 갱신
+        // 루틴 변경 트리거 감지 → 자동 갱신
         routineStore.$refreshTrigger
             .sink { [weak self] _ in
                 guard let self = self else { return }
@@ -52,20 +54,24 @@ final class MypagePlantsCardViewModel: ObservableObject {
 
     // MARK: - ViewModel Data Update
     private func updateViewModelData() {
-        self.title = routine.title
-        self.subtitle = !routine.goal.isEmpty ? routine.goal : (routine.note ?? "")
+        // 텍스트들
+        title = routine.title
+        subtitle = !routine.goal.isEmpty ? routine.goal : (routine.note ?? "")
 
-        let progressPercent = routineStore.progress(for: routine)
-        self.progress = progressPercent / 100.0 // 0~100 → 0~1
+        // 진행률(%) 및 비율(0~1)
+        let progressPercent = routineStore.progress(for: routine)                  // 0~100
+        progress = progressPercent / 100.0                                         // 0.0~1.0
 
-        self.plantImageName = routine.seedImage(for: progressPercent)
+        // ✅ 총 횟수 계산 후, 새 시그니처로 이미지 이름 생성
+        let total = routineStore.totalCount(for: routine)                           // 예: x3 → 3
+        plantImageName = routine.seedImage(for: progressPercent, totalCount: total)
     }
 
     // MARK: - Store Refresh Handling
     private func refreshFromStore() {
-        // 최신 루틴 상태 찾기
-        if let updatedRoutine = routineStore.routines.first(where: { $0.id == routine.id }) {
-            self.routine = updatedRoutine
+        // 최신 Routine로 교체 후, 다시 계산
+        if let updated = routineStore.routines.first(where: { $0.id == routine.id }) {
+            routine = updated
             updateViewModelData()
         }
     }
