@@ -85,3 +85,18 @@ final class RoutineStore: ObservableObject {
         loadRoutines()
     }
 }
+
+extension RoutineStore {
+    func completedCount(for routine: Routine) -> Int {
+        return 0
+    }
+    func totalCount(for routine: Routine) -> Int {
+        Int(routine.frequencyPerWeekId.replacingOccurrences(of: "x", with: "")) ?? 0
+    }
+    func progress(for routine: Routine) -> Double {
+        let total = totalCount(for: routine)
+        guard total > 0 else { return 0}
+        let completed = completedCount(for: routine)
+        return min(100, (Double(completed) / Double(total)) * 100)
+    }
+}

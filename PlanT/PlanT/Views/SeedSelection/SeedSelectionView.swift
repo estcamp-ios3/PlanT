@@ -7,25 +7,18 @@
 
 import SwiftUI
 
-// 씨앗 데이터 모델 (이름 + 이미지 이름)
-struct Seed: Equatable {
-    let name: String
-    let imagePrefix: String
-}
 /// - 모든 씨앗을 그리드(Grid)로 보여주고,
 /// - 선택 시 선택 상태를 바인딩(@Binding)으로 부모에 전달,
 struct SeedSelectionView: View {
     @Environment(\.dismiss) private var dismiss  // 현재 뷰를 닫는 환경 변수
     @Binding var selectedSeed: Seed?            // 외부와 공유하는 선택된 씨앗
     
-    // 전체 씨앗 리스트 (Seed? 배열로 구성하여 빈 칸 표현 가능)
-    let allSeeds: [Seed?] = [
-        Seed(name: "사과", imagePrefix: "seed_Apple"),
-        Seed(name: "복숭아", imagePrefix: "seed_Peach"),
-        Seed(name: "해바라기", imagePrefix: "seed_Sunflower"),
-        nil, nil, nil,
-        nil, nil, nil,
-    ]
+    // allSeeds는 SeedType.swift에 정의된 글로벌 상수임
+    private var allSeedsForGrid: [Seed?] {
+        var list = allSeeds.map { Optional($0) }
+        while list.count < 9 { list.append(nil) }
+        return list
+    }
     
     var body: some View {
         ZStack(alignment: .topTrailing) {
@@ -44,8 +37,8 @@ struct SeedSelectionView: View {
                     
                     // 3열 그리드 레이아웃
                     LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 16) {
-                        ForEach(allSeeds.indices, id: \.self) { index in
-                            let seed = allSeeds[index]
+                        ForEach(allSeedsForGrid.indices, id: \.self) { index in
+                            let seed = allSeedsForGrid[index]
                             
                             ZStack {
                                 // 씨앗 카드 기본 틀
@@ -80,7 +73,7 @@ struct SeedSelectionView: View {
                                     }
                                     // 카드 탭 시 해당 씨앗을 선택
                                     .onTapGesture {
-                                        selectedSeed = Seed(name: seed.name, imagePrefix: seed.imagePrefix)
+                                        selectedSeed = seed
                                     }
                                 }
                             }
