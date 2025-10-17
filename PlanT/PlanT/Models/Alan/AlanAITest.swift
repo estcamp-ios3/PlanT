@@ -34,7 +34,7 @@ private func makePrompt() -> String {
     let json = (try? String(data: JSONEncoder().encode(routines), encoding: .utf8)) ?? "[]"
     return """
     다음 JSON 배열을 보고 각 항목마다 한국어로 한 줄 응원을 만들어줘.
-    형식: "~~만큼 했어요. 앞으로 n회면 목표 달성이에요!"
+    형식: "(목표 이름 제외)~~만큼 했어요. 앞으로 n회면 목표 달성이에요!"
     제약: 각 줄은 25자 이내, 총 \(routines.count)줄만.
 
     JSON:
