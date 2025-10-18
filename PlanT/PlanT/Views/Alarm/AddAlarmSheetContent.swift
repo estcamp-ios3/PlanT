@@ -10,6 +10,7 @@ struct AddAlarmSheetContent: View {
     @Binding var showAddAlarmSheet: Bool
     @EnvironmentObject var alarmStore: AlarmStore
     @State private var newAlarmInput = ""
+    @State private var showAlert = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -28,20 +29,26 @@ struct AddAlarmSheetContent: View {
             
             Button("추가") {
                 if let minute = Int(newAlarmInput), minute > 0 {
-                    Task {
-                        await alarmStore.addPreset(minute)
-                    }
-                    newAlarmInput = ""
-                    withAnimation {
-                        showAddAlarmSheet = false
+                    if alarmStore.canAddPreset(minute) {
+                        Task {
+                            await alarmStore.addPreset(minute)
+                        }
+                        newAlarmInput = ""
+                        withAnimation {
+                            showAddAlarmSheet = false
+                        }
+                    } else {
+                        showAlert = true
                     }
                 }
             }
             .frame(maxWidth: .infinity)
             .padding()
-            .background(Color("BrandSecondary"))
-            .foregroundStyle(Color(.white))
-            .cornerRadius(10)
+            .plantPrimaryButton()
+
+        }
+        .alert("이미 존재하거나 기본값은 추가할 수 없어요.", isPresented: $showAlert) {
+            Button("확인", role: .cancel) {}
         }
     }
 }

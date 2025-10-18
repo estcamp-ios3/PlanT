@@ -19,6 +19,7 @@ struct RoutineRegisterView: View {
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var alarmStore: AlarmStore
+    @EnvironmentObject var routineAlarmStore: RoutineAlarmStore
     
     @State private var routineTitle: String = ""
     @StateObject private var viewModel = RoutineSurveyViewModel()
@@ -37,6 +38,7 @@ struct RoutineRegisterView: View {
     @State private var newAlarmInput: String = ""
     @Binding var path: NavigationPath
     @Binding var showAddAlarmSheet: Bool
+    @State private var isDeleteMode: Bool = false
     
     private var isFormValid: Bool {
         selectedCategory != "카테고리 선택 ⌵" &&
@@ -106,8 +108,8 @@ struct RoutineRegisterView: View {
                     path: $path, showAddAlarmSheet: $showAddAlarmSheet
                 )
             }
-           
-            }
+            
+        }
     }
 }
 
@@ -132,9 +134,14 @@ extension RoutineRegisterView {
             
         case .details(let routine),
                 .edit(let routine):
+            
             routineTitle = routine.title
             if selectedCategory == "선택하세요" {
                 selectedCategory = "알 수 없는 카테고리"
+            }
+            let savedOffsets = routineAlarmStore.fetchOffsets(for: routine.id)
+            if !savedOffsets.isEmpty {
+                selectedAlarms = Set(savedOffsets)
             }
             
             if routine.goal.contains("분") {
@@ -147,7 +154,6 @@ extension RoutineRegisterView {
             
             startDate = Date()
             endDate = Date()
-            selectedAlarms = [15]
         }
     }
 }
@@ -364,6 +370,20 @@ extension RoutineRegisterView {
                     .font(.subheadline).bold()
                 Spacer()
                 
+                if isDeleteMode {
+                    Button("완료") { isDeleteMode = false }
+                        .font(.subheadline).bold()
+                        .foregroundColor(.red)
+                } else {
+                    Button(role: .destructive) {
+                        isDeleteMode = true
+                    } label: {
+                        Image(systemName: "minus")
+                            .font(.system(size: 20, weight: .bold))
+                            .padding(6)
+                    }
+                }
+                
                 Toggle("", isOn: $showAlarms)
                     .labelsHidden()
                     .toggleStyle(CustomToggleStyle())
@@ -373,12 +393,18 @@ extension RoutineRegisterView {
                     columns: [GridItem(.adaptive(minimum:70), spacing: 4)],
                     spacing: 10
                 ) {
-                    ForEach(alarmStore.alamPresets, id: \.self) { minute in
-                        Button(action: {
-                            if selectedAlarms.contains(minute) {
-                                selectedAlarms.remove(minute)
+                    ForEach(alarmStore.alamPresets.filter {!isDeleteMode || !alarmStore.defaultPresets.contains($0) }, id: \.self) { minute in
+                           Button(action: {
+                               if isDeleteMode {
+                                   if !alarmStore.defaultPresets.contains(minute) {
+                                       Task { await alarmStore.deletePreset(minute) }
+                                   }
                             } else {
-                                selectedAlarms.insert(minute)
+                                if selectedAlarms.contains(minute) {
+                                    selectedAlarms.remove(minute)
+                                } else {
+                                    selectedAlarms.insert(minute)
+                                }
                             }
                         }) {
                             Text("\(minute)분 전")
@@ -386,7 +412,10 @@ extension RoutineRegisterView {
                                 .padding(.vertical, 8)
                                 .padding(.horizontal, 10)
                                 .frame(maxWidth: .infinity)
-                                .background(selectedAlarms.contains(minute) ? Color.orange : Color.gray.opacity(0.2))
+                                .background(
+                                    isDeleteMode
+                                    ? Color.red.opacity(0.3)
+                                    : selectedAlarms.contains(minute) ? Color.orange : Color.gray.opacity(0.2))
                                 .foregroundColor(.black)
                                 .cornerRadius(8)
                         }
@@ -473,6 +502,21 @@ extension RoutineRegisterView {
         switch currentMode {
         case .create:
             print("새 루틴 등록 로직 실행")
+            if let routine = store.routines.last {
+                
+                routineAlarmStore.saveOffsets(
+                    for: routine.id,
+                    offsets: Array(selectedAlarms)
+                )
+                
+                NotificationManager.shared.scheduleNotification(
+                    for: routine.id,
+                    title: routine.title,
+                    baseDate: startDate,
+                    offsets: Array(selectedAlarms)
+                )
+            }
+            
         case .edit(let routine):
             routine.title = routineTitle
             routine.goal = "\(goalHours)분/일"
@@ -482,6 +526,18 @@ extension RoutineRegisterView {
             
             do {
                 try context.save()
+                
+                routineAlarmStore.saveOffsets(
+                    for: routine.id,
+                    offsets: Array(selectedAlarms)
+                )
+                
+                NotificationManager.shared.scheduleNotification(
+                    for: routine.id,
+                    title: routine.title,
+                    baseDate: startDate,
+                    offsets: Array(selectedAlarms)
+                )
                 store.loadRoutines()
                 store.refreshTrigger = UUID()
                 print("루틴 수정 완료: \(routine.title)")

@@ -63,4 +63,10 @@ final class AlarmStore: ObservableObject {
             print("X 알림 프리셋 삭제 실패:", error)
         }
     }
+    func canAddPreset(_ minute: Int) -> Bool {
+        let existsInDefaults = defaultPresets.contains(minute)
+        let existsInCustom = alamPresets.contains(minute)
+
+        return !(existsInDefaults || existsInCustom)
+    }
 }
