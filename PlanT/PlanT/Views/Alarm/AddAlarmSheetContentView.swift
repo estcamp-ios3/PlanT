@@ -1,12 +1,12 @@
 //
-//  AddAlarmSheetContent.swift
+//  AddAlarmSheetContentView.swift
 //  PlanT
 //
 //  Created by 박성관 on 10/18/25.
 //
 import SwiftUI
 
-struct AddAlarmSheetContent: View {
+struct AddAlarmSheetContentView: View {
     @Binding var showAddAlarmSheet: Bool
     @EnvironmentObject var alarmStore: AlarmStore
     @State private var newAlarmInput = ""

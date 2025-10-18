@@ -38,7 +38,7 @@ struct ContentView: View {
             }
             if showAddRoutineSheet {
                 BottomSheetView(isPresented: $showAddRoutineSheet) {
-                    AddAlarmSheetContent(showAddAlarmSheet: $showAddRoutineSheet)
+                    AddAlarmSheetContentView(showAddAlarmSheet: $showAddRoutineSheet)
                 }
                 .ignoresSafeArea(edges: .bottom)
                 .zIndex(999)

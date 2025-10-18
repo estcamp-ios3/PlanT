@@ -83,7 +83,7 @@ struct RoutineRegisterView: View {
                     goalSection()
                     Divider()
                     alarmSection()
-                        .padding(.bottom, 80)
+                    Divider()
                 }
                 .disabled(isDetailsMode)
                 
@@ -390,7 +390,7 @@ extension RoutineRegisterView {
             }
             if showAlarms {
                 LazyVGrid(
-                    columns: [GridItem(.adaptive(minimum:70), spacing: 4)],
+                    columns: [GridItem(.adaptive(minimum:60), spacing: 4)],
                     spacing: 10
                 ) {
                     ForEach(alarmStore.alamPresets.filter {!isDeleteMode || !alarmStore.defaultPresets.contains($0) }, id: \.self) { minute in
