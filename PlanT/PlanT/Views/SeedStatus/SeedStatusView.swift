@@ -16,6 +16,8 @@ struct SeedStatusView: View {
     let state: SeedStatus
     let draft: RoutineDraft
     @Binding var path: NavigationPath
+    @Binding var showAddAlarmSheet: Bool
+    
     @State private var showSeedSelection = false // 씨앗 선택 시트 표시 여부
     @State private var selectedSeed: Seed? = nil // 현재 선택된 씨앗 (nil이면 아직 선택되지 않은 상태)
     @State private var goToRoutineList = false   // 루틴 리스트 화면으로 내비게이션 여부
@@ -118,7 +120,7 @@ struct SeedStatusView: View {
         }
         // 내비게이션: goToRoutineList가 true가 되면 RoutineListView로 전환
         .navigationDestination(isPresented: $goToRoutineList) {
-            RoutineListView(path: $path)
+            RoutineListView(path: $path, showAddAlarmSheet: $showAddAlarmSheet)
         }
         // 씨앗 선택 시트: showSeedSelection이 true일 때 SeedSelectionView 표시
         .sheet(isPresented: $showSeedSelection) {

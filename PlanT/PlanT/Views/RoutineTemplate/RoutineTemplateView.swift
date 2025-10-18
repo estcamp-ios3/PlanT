@@ -13,14 +13,17 @@ import SwiftUI
 struct RoutineTemplateView: View {
     
     @Binding var path: NavigationPath
+    @Binding var showAddAlarmSheet: Bool
+
     let categories: [RoutineCategory] = routineTemplates     // 표시할 루틴 카테고리 목록
     @State private var selectedRoutineID: UUID? = nil // 현재 선택된 루틴 ID (없으면 nil)
     
     // 초기화 시점에 전달받은 categories가 없으면
     // DEBUG 빌드일 때는 sampleCategories를 기본값으로 사용
     // RELEASE 빌드일 때는 빈 배열 사용
-    init(path: Binding<NavigationPath>) {
+    init(path: Binding<NavigationPath>, showAddAlarmSheet: Binding<Bool>) {
         self._path = path
+        self._showAddAlarmSheet = showAddAlarmSheet
     }
     
     var body: some View {
@@ -84,7 +87,7 @@ struct RoutineTemplateView: View {
 
                 )
 
-                SeedStatusView(state: .planted(routine), draft: draft, path: $path)
+                SeedStatusView(state: .planted(routine), draft: draft, path: $path, showAddAlarmSheet: $showAddAlarmSheet)
             } else {
                 let fallbackDraft = RoutineDraft(
                     categoryId: "-",
@@ -101,7 +104,7 @@ struct RoutineTemplateView: View {
                     isFavorite: false
 
                 )
-                SeedStatusView(state: .notPlanted, draft: fallbackDraft, path: $path)
+                SeedStatusView(state: .notPlanted, draft: fallbackDraft, path: $path, showAddAlarmSheet: $showAddAlarmSheet)
             }
         }
     }

@@ -12,6 +12,7 @@ private let gray100 = Color("Gray100")
 
 struct RoutineListView: View {
     @Binding var path: NavigationPath
+    @Binding var showAddAlarmSheet: Bool
     @State private var showFabMenu = false
     @State private var refreshToken = UUID()
     @State private var selectedRoutineIDs: Set<UUID> = []
@@ -130,28 +131,28 @@ struct RoutineListView: View {
         .navigationDestination(for: Route.self) { route in
             switch route {
             case .plantAssistant:
-                RoutineSurveyView(path: $path)
+                RoutineSurveyView(path: $path, showAddAlarmSheet: $showAddAlarmSheet)
             case .recommendedTemplates:
-                RoutineTemplateView(path: $path)
+                RoutineTemplateView(path: $path, showAddAlarmSheet: $showAddAlarmSheet)
             case .manualCreate:
-                RoutineRegisterView(mode: .create, path: $path)
+                RoutineRegisterView(mode: .create, path: $path, showAddAlarmSheet: $showAddAlarmSheet)
                     .environmentObject(store)
             case .manualCreateDetails(let routine):
                 RoutineRegisterView(
                     mode: .details(routine),
                     categoryTitle: category(for: routine).categoryTitle,
-                    path: $path
+                    path: $path, showAddAlarmSheet: $showAddAlarmSheet
                 )
                 .environmentObject(store)
             case .manualCreateEdit(let routine):
                 RoutineRegisterView(
                     mode: .edit(routine),
                     categoryTitle: category(for: routine).categoryTitle,
-                    path: $path
+                    path: $path, showAddAlarmSheet: $showAddAlarmSheet
                 )
                 .environmentObject(store)
             case .goToList:
-                RoutineListView(path: $path)
+                RoutineListView(path: $path, showAddAlarmSheet: $showAddAlarmSheet)
             }
         }
     }

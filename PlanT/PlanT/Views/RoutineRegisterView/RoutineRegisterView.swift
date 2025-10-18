@@ -34,9 +34,9 @@ struct RoutineRegisterView: View {
     @State private var goalHours: String = ""
     @State private var goalTask: String = ""
     @State private var showAlarms: Bool = true
-    @State private var showAddAlarmSheet = false
     @State private var newAlarmInput: String = ""
     @Binding var path: NavigationPath
+    @Binding var showAddAlarmSheet: Bool
     
     private var isFormValid: Bool {
         selectedCategory != "카테고리 선택 ⌵" &&
@@ -56,48 +56,58 @@ struct RoutineRegisterView: View {
     
     enum DateMode { case endDate, allDay }
     
-    init(mode: RoutineRegisterMode, categoryTitle: String? = nil, path: Binding<NavigationPath>) {
+    init(mode: RoutineRegisterMode,
+         categoryTitle: String? = nil,
+         path: Binding<NavigationPath>,
+         showAddAlarmSheet: Binding<Bool>
+    ) {
         _currentMode = State(initialValue: mode)
+        
         if let categoryTitle = categoryTitle {
             _selectedCategory = State(initialValue: categoryTitle)
         }
-        self._path = path // ADD: path binding
+        self._path = path
+        self._showAddAlarmSheet = showAddAlarmSheet
     }
     
     var body: some View {
-        ScrollView {
-            VStack(spacing: 16) {
-                categorySection()
-                Divider()
-                dateSection()
-                Divider()
-                goalSection()
-                Divider()
-                alarmSection()
-                    .padding(.bottom, 80)
+        ZStack{
+            ScrollView {
+                VStack(spacing: 16) {
+                    categorySection()
+                    Divider()
+                    dateSection()
+                    Divider()
+                    goalSection()
+                    Divider()
+                    alarmSection()
+                        .padding(.bottom, 80)
+                }
+                .disabled(isDetailsMode)
+                
+                if let routine = routineFromMode {
+                    SeedGrowthStatusView(routine: routine, canCompleste: isDetailsMode)
+                        .environmentObject(store)
+                }
             }
-            .disabled(isDetailsMode)
-            
-            if let routine = routineFromMode {
-                SeedGrowthStatusView(routine: routine, canCompleste: isDetailsMode)
-                    .environmentObject(store)
+            .padding(.horizontal)
+            .onAppear { setupMode() }
+            .navigationTitle(modeTitle)
+            .toolbar { toolbarContent() }
+            .safeAreaInset(edge: .bottom) {
+                if !showAddAlarmSheet{
+                    addButton()
+                }
             }
-        }
-        .padding(.horizontal)
-        .onAppear { setupMode() }
-        .navigationTitle(modeTitle)
-        .toolbar { toolbarContent() }
-        .safeAreaInset(edge: .bottom) {
-            addButton()
-        }
-        .navigationDestination(isPresented: $goToseedStatus) {
-            SeedStatusView(
-                state: .notPlanted,
-                draft: draft,
-                path: $path
-            )
-        }
-        addAlarmBottomSheet()
+            .navigationDestination(isPresented: $goToseedStatus) {
+                SeedStatusView(
+                    state: .notPlanted,
+                    draft: draft,
+                    path: $path, showAddAlarmSheet: $showAddAlarmSheet
+                )
+            }
+           
+            }
     }
 }
 
@@ -359,8 +369,10 @@ extension RoutineRegisterView {
                     .toggleStyle(CustomToggleStyle())
             }
             if showAlarms {
-                
-                HStack {
+                LazyVGrid(
+                    columns: [GridItem(.adaptive(minimum:70), spacing: 4)],
+                    spacing: 10
+                ) {
                     ForEach(alarmStore.alamPresets, id: \.self) { minute in
                         Button(action: {
                             if selectedAlarms.contains(minute) {
@@ -373,12 +385,14 @@ extension RoutineRegisterView {
                                 .font(.subheadline)
                                 .padding(.vertical, 8)
                                 .padding(.horizontal, 10)
+                                .frame(maxWidth: .infinity)
                                 .background(selectedAlarms.contains(minute) ? Color.orange : Color.gray.opacity(0.2))
                                 .foregroundColor(.black)
                                 .cornerRadius(8)
                         }
                     }
-                    Button(action: {
+                    if alarmStore.alamPresets.count < 10 {
+                        Button(action: {
                             withAnimation {
                                 showAddAlarmSheet = true
                             }
@@ -386,9 +400,11 @@ extension RoutineRegisterView {
                             Image(systemName: "plus")
                                 .font(.subheadline)
                                 .padding(8)
+                                .frame(maxWidth: .infinity, minHeight: 36)
                                 .background(Color.gray.opacity(0.2))
                                 .clipShape(Circle())
                         }
+                    }
                 }
                 .transition(.opacity.combined(with: .move(edge: .top)))
                 .animation(.spring(), value: showAlarms)
@@ -523,34 +539,3 @@ struct RadioButton: View {
     }
 }
 
-extension RoutineRegisterView {
-    @ViewBuilder
-    private func addAlarmBottomSheet() -> some View {
-        BottomSheetView(isPresented: $showAddAlarmSheet) {
-            VStack(alignment: .leading, spacing: 16) {
-                Text("알림 시간 직접 추가")
-                    .font(.headline)
-                TextField("예: 25", text: $newAlarmInput)
-                    .keyboardType(.numberPad)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                
-                Button("저장하기") {
-                    if let minute = Int(newAlarmInput), minute > 0 {
-                        Task {
-                            await alarmStore.addPreset(minute)
-                        }
-                        newAlarmInput = ""
-                        withAnimation {
-                            showAddAlarmSheet = false
-                        }
-                    }
-                }
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(Color("BrandSecondary"))
-                .foregroundStyle(Color(.white))
-                .cornerRadius(10)
-            }
-        }
-    }
-}

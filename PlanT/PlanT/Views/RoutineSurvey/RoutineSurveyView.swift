@@ -13,6 +13,8 @@ extension Notification.Name {
 
 struct RoutineSurveyView: View {
     @Binding var path: NavigationPath
+    @Binding var showAddAlarmSheet: Bool
+
     @StateObject private var vm = RoutineSurveyViewModel()
     @Environment(\.dismiss) private var dismiss
 
@@ -69,7 +71,7 @@ struct RoutineSurveyView: View {
         .navigationDestination(for: Route.self) { route in
             switch route {
             case .seedStatus(let draft):
-                SeedStatusView(state: .notPlanted, draft: draft, path: $path)
+                SeedStatusView(state: .notPlanted, draft: draft, path: $path, showAddAlarmSheet: $showAddAlarmSheet)
             }
         }
     }
@@ -78,10 +80,5 @@ struct RoutineSurveyView: View {
 
 
 
-#Preview {
-    // Note: The preview must provide a NavigationPath binding
-    NavigationStack {
-        RoutineSurveyView(path: .constant(NavigationPath()))
-    }
-}
+
 

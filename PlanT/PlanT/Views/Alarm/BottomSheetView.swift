@@ -10,7 +10,6 @@ import SwiftUI
 struct BottomSheetView<Content: View>: View {
     @Binding var isPresented: Bool
     let content: Content
-    var title: String = ""
     var onDone: (() -> Void)? = nil
 
     init(
@@ -21,7 +20,6 @@ struct BottomSheetView<Content: View>: View {
     ) {
         self._isPresented = isPresented
         self.content = content()
-        self.title = title
         self.onDone = onDone
     }
 
@@ -39,8 +37,7 @@ struct BottomSheetView<Content: View>: View {
                     Spacer()
                     VStack(spacing: 16) {
                         HStack {
-                            Text(title)
-                                .font(.headline)
+                          
                             Spacer()
                             Button("완료") {
                                 onDone?()
@@ -48,11 +45,12 @@ struct BottomSheetView<Content: View>: View {
                                     isPresented = false
                                 }
                             }
-                            .font(.subheadline.bold())
+                            .font(.headline.bold())
+                            .padding(.trailing, 16)
+                            .padding(.bottom, 4)
                         }
                         .padding(.horizontal)
-                        
-                        Divider()
+                        .padding(.top, 10)
                         
                         content
                             .padding(.horizontal, 20)
