@@ -12,6 +12,7 @@ import SwiftData
 struct PlanTApp: App {
     @StateObject private var authStore = AuthStore()
     @StateObject private var routineStore: RoutineStore
+    @StateObject private var alarmStore = AlarmStore()
 
     let sharedModelContainer: ModelContainer
 
@@ -34,7 +35,8 @@ struct PlanTApp: App {
             if authStore.isAuthenticated {
                 ContentView()
                     .environmentObject(authStore)
-                    .environmentObject(routineStore) // ✅ 여기서 주입
+                    .environmentObject(routineStore)
+                    .environmentObject(alarmStore)
             } else {
                 LoginView(authStore: authStore)
                     .environmentObject(authStore)

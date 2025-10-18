@@ -18,6 +18,7 @@ struct RoutineRegisterView: View {
     @EnvironmentObject var store: RoutineStore
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject var alarmStore: AlarmStore
     
     @State private var routineTitle: String = ""
     @StateObject private var viewModel = RoutineSurveyViewModel()
@@ -33,6 +34,8 @@ struct RoutineRegisterView: View {
     @State private var goalHours: String = ""
     @State private var goalTask: String = ""
     @State private var showAlarms: Bool = true
+    @State private var showAddAlarmSheet = false
+    @State private var newAlarmInput: String = ""
     @Binding var path: NavigationPath
     
     private var isFormValid: Bool {
@@ -50,7 +53,6 @@ struct RoutineRegisterView: View {
         return nil
     }
     
-    let alarms = [30, 15, 10, 5, 1]
     
     enum DateMode { case endDate, allDay }
     
@@ -95,6 +97,7 @@ struct RoutineRegisterView: View {
                 path: $path
             )
         }
+        addAlarmBottomSheet()
     }
 }
 
@@ -358,7 +361,7 @@ extension RoutineRegisterView {
             if showAlarms {
                 
                 HStack {
-                    ForEach(alarms, id: \.self) { minute in
+                    ForEach(alarmStore.alamPresets, id: \.self) { minute in
                         Button(action: {
                             if selectedAlarms.contains(minute) {
                                 selectedAlarms.remove(minute)
@@ -375,6 +378,17 @@ extension RoutineRegisterView {
                                 .cornerRadius(8)
                         }
                     }
+                    Button(action: {
+                            withAnimation {
+                                showAddAlarmSheet = true
+                            }
+                        }) {
+                            Image(systemName: "plus")
+                                .font(.subheadline)
+                                .padding(8)
+                                .background(Color.gray.opacity(0.2))
+                                .clipShape(Circle())
+                        }
                 }
                 .transition(.opacity.combined(with: .move(edge: .top)))
                 .animation(.spring(), value: showAlarms)
@@ -506,5 +520,37 @@ struct RadioButton: View {
             }
         }
         .buttonStyle(.plain)
+    }
+}
+
+extension RoutineRegisterView {
+    @ViewBuilder
+    private func addAlarmBottomSheet() -> some View {
+        BottomSheetView(isPresented: $showAddAlarmSheet) {
+            VStack(alignment: .leading, spacing: 16) {
+                Text("알림 시간 직접 추가")
+                    .font(.headline)
+                TextField("예: 25", text: $newAlarmInput)
+                    .keyboardType(.numberPad)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                
+                Button("저장하기") {
+                    if let minute = Int(newAlarmInput), minute > 0 {
+                        Task {
+                            await alarmStore.addPreset(minute)
+                        }
+                        newAlarmInput = ""
+                        withAnimation {
+                            showAddAlarmSheet = false
+                        }
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color("BrandSecondary"))
+                .foregroundStyle(Color(.white))
+                .cornerRadius(10)
+            }
+        }
     }
 }
