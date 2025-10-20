@@ -34,6 +34,11 @@ final class MypagePlantsCardViewModel: ObservableObject {
 
         updateViewModelData()
 
+        // 🔹 앱 시작 시 저장된 코멘트가 있으면 즉시 표시
+        if let cached = routineStore.aiComments[routine.id], !cached.isEmpty {
+            self.mateComment = cached
+        }
+
         // 메이트 이미지 동기화
         authStore.$mate
             .map { $0 ?? "MrPurr" }
