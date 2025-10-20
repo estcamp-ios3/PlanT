@@ -12,12 +12,12 @@ import SwiftUI
 @MainActor
 final class MypagePlantsCardViewModel: ObservableObject {
 
-    // MARK: - Published Properties
+    // MARK: - Published
     @Published var title: String = ""
     @Published var subtitle: String = ""
-    @Published var progress: Double = 0.0            // 0.0 ~ 1.0 (뷰에서 쓰는 비율)
+    @Published var progress: Double = 0.0            // 0.0 ~ 1.0
     @Published var plantImageName: String = "seed_Sunflower03"
-    @Published var mateComment: String = "거의 다왔어요! 앞으로 2회만 더 힘내라골골!"
+    @Published var mateComment: String = "새로운 목표를 이루도록 제가 응원해 드릴께요!"
     @Published private(set) var mateImageName: String = "MrPurr"
 
     // MARK: - Dependencies
@@ -32,10 +32,14 @@ final class MypagePlantsCardViewModel: ObservableObject {
         self.routineStore = routineStore
         self.routine = routine
 
-        // 초기 세팅
         updateViewModelData()
 
-        // 메이트 이미지 자동 동기화
+        // 🔹 앱 시작 시 저장된 코멘트가 있으면 즉시 표시
+        if let cached = routineStore.aiComments[routine.id], !cached.isEmpty {
+            self.mateComment = cached
+        }
+
+        // 메이트 이미지 동기화
         authStore.$mate
             .map { $0 ?? "MrPurr" }
             .removeDuplicates()
@@ -43,41 +47,41 @@ final class MypagePlantsCardViewModel: ObservableObject {
             .assign(to: \.mateImageName, on: self)
             .store(in: &cancellables)
 
-        // 루틴 변경 트리거 감지 → 자동 갱신
-        routineStore.$refreshTrigger
-            .sink { [weak self] _ in
-                guard let self = self else { return }
-                self.refreshFromStore()
+        // ✅ AI 코멘트 구독: 이 카드의 routine.id 코멘트만 반영
+        routineStore.$aiComments
+            .compactMap { [weak self] dict -> String? in
+                guard let self else { return nil }
+                return dict[self.routine.id]
             }
+            .removeDuplicates()
+            .receive(on: RunLoop.main)
+            .assign(to: \.mateComment, on: self)
+            .store(in: &cancellables)
+
+        // 진행률 변화 트리거에 반응 → 타이틀/진행률/이미지 갱신
+        routineStore.$refreshTrigger
+            .sink { [weak self] _ in self?.refreshFromStore() }
             .store(in: &cancellables)
     }
 
-    // MARK: - ViewModel Data Update
+    // MARK: - Update
     private func updateViewModelData() {
-        // 텍스트들
         title = routine.title
         subtitle = !routine.goal.isEmpty ? routine.goal : (routine.note ?? "")
 
-        // 진행률(%) 및 비율(0~1)
-        let progressPercent = routineStore.progress(for: routine)                  // 0~100
-        progress = progressPercent / 100.0                                         // 0.0~1.0
+        let percent = routineStore.progress(for: routine)  // 0~100
+        progress = percent / 100.0
 
-        // ✅ 총 횟수 계산 후, 새 시그니처로 이미지 이름 생성
-        let total = routineStore.totalCount(for: routine)                           // 예: x3 → 3
-        plantImageName = routine.seedImage(for: progressPercent, totalCount: total)
+        let total = routineStore.totalCount(for: routine)
+        plantImageName = routine.seedImage(for: percent, totalCount: total)
     }
 
-    // MARK: - Store Refresh Handling
     private func refreshFromStore() {
-        // 최신 Routine로 교체 후, 다시 계산
         if let updated = routineStore.routines.first(where: { $0.id == routine.id }) {
             routine = updated
             updateViewModelData()
         }
     }
 
-    // MARK: - Computed
-    var progressPercentText: String {
-        "\(Int(progress * 100))%"
-    }
+    var progressPercentText: String { "\(Int(progress * 100))%" }
 }

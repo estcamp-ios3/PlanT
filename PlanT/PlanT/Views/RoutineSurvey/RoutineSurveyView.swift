@@ -12,17 +12,19 @@ extension Notification.Name {
 }
 
 struct RoutineSurveyView: View {
-    @StateObject var viewModel = RoutineSurveyViewModel()
+    @StateObject private var vm = RoutineSurveyViewModel()
     @State private var showInLineDatePicker: Bool = false
+    @State private var showInLineAlarmPicker: Bool = false
     @State private var isAllday = false
     @State private var hasEnd = true
     @State private var startDate = Date()
     @State private var endDate = Date()
+    @State private var selectedAlarm: Set<Int> = [15]
     
+    @EnvironmentObject var routineAlarmStore : RoutineAlarmStore
     @Binding var path: NavigationPath
     @Binding var showAddAlarmSheet: Bool
 
-    @StateObject private var vm = RoutineSurveyViewModel()
     @Environment(\.dismiss) private var dismiss
 
     enum Route: Hashable {
@@ -30,18 +32,18 @@ struct RoutineSurveyView: View {
     }
     
     var body: some View {
-        VStack() {
+        VStack {
             Group {
                 switch vm.currentStep.kind {
                 case .categoryGrid:
                     CategoryGridStepView(
                         vm: vm,
-                        step: vm.currentStep,
+                        step: vm.currentStep
                     )
                 default:
                     GenericStepView(
                         vm: vm,
-                        step: vm.currentStep,
+                        step: vm.currentStep
                     )
                 }
             }
@@ -55,6 +57,13 @@ struct RoutineSurveyView: View {
                     startDate: $startDate,
                     endDate: $endDate
                 )
+            }
+            if showInLineAlarmPicker {
+                AlarmPresetPicker(
+                    selectedAlarms: $selectedAlarm,
+                    showAddAlarmSheet: $showAddAlarmSheet
+                )
+                    .environmentObject(routineAlarmStore)
             }
         }
         .padding(16)
@@ -75,6 +84,9 @@ struct RoutineSurveyView: View {
                     if vm.isLast {
                         path.append(Route.seedStatus(draft: vm.draft))
                     } else {
+                        if vm.currentStep.id == "set_period" {
+                            showInLineDatePicker = false
+                        }
                         vm.next()
                     }
                 } label: {
@@ -87,11 +99,13 @@ struct RoutineSurveyView: View {
             .padding(.bottom, 12)
         }
         .onChange(of: vm.periodSelection) {
-            if vm.periodSelection?.first == "yes" {
-                showInLineDatePicker = true
-            } else {
-                showInLineDatePicker = false
-            }
+            updateInlineViews()
+        }
+        .onChange(of: vm.currentIndex) {
+            updateInlineViews()
+        }
+        .onChange(of: vm["set_reminder"]) {
+            updateInlineViews()
         }
         .navigationDestination(for: Route.self) { route in
             switch route {
@@ -100,6 +114,9 @@ struct RoutineSurveyView: View {
             }
         }
     }
-    
+    private func updateInlineViews() {
+        showInLineDatePicker = (vm.currentStep.id == "set_period") && (vm.periodSelection?.first == "no")
+        
+        showInLineAlarmPicker = (vm.currentStep.id == "set_reminder") && (vm["set_reminder"]?.first == "yes")
+    }
 }
-
