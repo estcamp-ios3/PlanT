@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		992710AE2EA60A8E009E4A7E /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = 992710AD2EA60A8E009E4A7E /* Lottie */; };
 		C6E216172EA21A1800B51906 /* AlanAI in Frameworks */ = {isa = PBXBuildFile; productRef = C6E216162EA21A1800B51906 /* AlanAI */; };
 		C6E2F6D32E9C96D300B51906 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = C6E2F6D22E9C96D300B51906 /* Supabase */; };
 /* End PBXBuildFile section */
@@ -27,6 +28,19 @@
 			remoteInfo = PlanT;
 		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		992710B22EA60ABE009E4A7E /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		995B26F02E8A3D8F0069DE34 /* PlanT.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PlanT.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -59,6 +73,7 @@
 			files = (
 				C6E216172EA21A1800B51906 /* AlanAI in Frameworks */,
 				C6E2F6D32E9C96D300B51906 /* Supabase in Frameworks */,
+				992710AE2EA60A8E009E4A7E /* Lottie in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -79,12 +94,20 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		992710AC2EA60A8E009E4A7E /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		995B26E72E8A3D8F0069DE34 = {
 			isa = PBXGroup;
 			children = (
 				995B26F22E8A3D8F0069DE34 /* PlanT */,
 				995B27002E8A3D910069DE34 /* PlanTTests */,
 				995B270A2E8A3D910069DE34 /* PlanTUITests */,
+				992710AC2EA60A8E009E4A7E /* Frameworks */,
 				995B26F12E8A3D8F0069DE34 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -109,6 +132,7 @@
 				995B26EC2E8A3D8F0069DE34 /* Sources */,
 				995B26ED2E8A3D8F0069DE34 /* Frameworks */,
 				995B26EE2E8A3D8F0069DE34 /* Resources */,
+				992710B22EA60ABE009E4A7E /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -121,6 +145,7 @@
 			packageProductDependencies = (
 				C6E2F6D22E9C96D300B51906 /* Supabase */,
 				C6E216162EA21A1800B51906 /* AlanAI */,
+				992710AD2EA60A8E009E4A7E /* Lottie */,
 			);
 			productName = PlanT;
 			productReference = 995B26F02E8A3D8F0069DE34 /* PlanT.app */;
@@ -207,6 +232,7 @@
 			packageReferences = (
 				C6E2F6D12E9C96D300B51906 /* XCRemoteSwiftPackageReference "supabase-swift" */,
 				C6E216152EA21A1800B51906 /* XCRemoteSwiftPackageReference "alan-ios-sdk" */,
+				992710A62EA5F9EF009E4A7E /* XCRemoteSwiftPackageReference "lottie-ios" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 995B26F12E8A3D8F0069DE34 /* Products */;
@@ -601,6 +627,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		992710A62EA5F9EF009E4A7E /* XCRemoteSwiftPackageReference "lottie-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/airbnb/lottie-ios";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.5.2;
+			};
+		};
 		C6E216152EA21A1800B51906 /* XCRemoteSwiftPackageReference "alan-ios-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/estcamp-ios3/alan-ios-sdk";
@@ -620,6 +654,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		992710AD2EA60A8E009E4A7E /* Lottie */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 992710A62EA5F9EF009E4A7E /* XCRemoteSwiftPackageReference "lottie-ios" */;
+			productName = Lottie;
+		};
 		C6E216162EA21A1800B51906 /* AlanAI */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = C6E216152EA21A1800B51906 /* XCRemoteSwiftPackageReference "alan-ios-sdk" */;
