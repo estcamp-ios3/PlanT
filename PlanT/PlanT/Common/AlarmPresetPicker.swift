@@ -15,7 +15,6 @@ struct AlarmPresetPicker: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
 
-            // ✅ 헤더 영역
             HStack {
                 Text("알림")
                     .font(.subheadline).bold()
@@ -36,56 +35,53 @@ struct AlarmPresetPicker: View {
                     }
                 }
 
-                // ✅ 프리셋 총 10개 미만일 때만 "+" 버튼 표시
-                if alarmStore.alamPresets.count < 10 {
-                    Button {
-                        withAnimation { showAddAlarmSheet = true }
-                    } label: {
-                        Image(systemName: "plus")
-                            .padding(8)
-                            .background(Color.gray.opacity(0.2))
-                            .clipShape(Circle())
-                    }
-                }
+           
             }
             .padding(.bottom, 4)
 
-            // ✅ 기본 프리셋은 선택모드에서는 보이고, 삭제모드일 때만 숨김
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 60), spacing: 4)], spacing: 10) {
-                ForEach(
-                    alarmStore.alamPresets.filter { preset in
-                        // ✅ 삭제 모드면 기본 프리셋 숨김, 아니라면 전부 보임
-                        return !isDeleteMode || !alarmStore.defaultPresets.contains(preset)
-                    },
-                    id: \.self
-                ) { minute in
-                    Button {
+            LazyVGrid(
+                columns: [GridItem(.adaptive(minimum:60), spacing: 4)],
+                spacing: 10
+            ) {
+                ForEach(alarmStore.alamPresets.filter { !isDeleteMode || !alarmStore.defaultPresets.contains($0) }, id: \.self) { minute in
+                    Button(action: {
                         if isDeleteMode {
-                            // ✅ 기본 프리셋은 이미 필터되어 있음 → 그대로 삭제 처리
                             if !alarmStore.defaultPresets.contains(minute) {
                                 Task { await alarmStore.deletePreset(minute) }
                             }
                         } else {
-                            // ✅ 선택/해제 모드
                             if selectedAlarms.contains(minute) {
                                 selectedAlarms.remove(minute)
                             } else {
                                 selectedAlarms.insert(minute)
                             }
                         }
-                    } label: {
+                    }) {
                         Text("\(minute)분 전")
                             .font(.subheadline)
                             .padding(.vertical, 8)
                             .padding(.horizontal, 10)
                             .frame(maxWidth: .infinity)
                             .background(
-                                isDeleteMode ?
-                                Color.red.opacity(0.3) :
-                                (selectedAlarms.contains(minute) ? Color.orange : Color.gray.opacity(0.2))
+                                isDeleteMode
+                                ? Color.red.opacity(0.3)
+                                : selectedAlarms.contains(minute) ? Color.orange : Color.gray.opacity(0.2)
                             )
                             .foregroundColor(.black)
                             .cornerRadius(8)
+                    }
+                }
+
+                if alarmStore.alamPresets.count < 10 {
+                    Button(action: {
+                        withAnimation { showAddAlarmSheet = true }
+                    }) {
+                        Image(systemName: "plus")
+                            .font(.subheadline)
+                            .padding(8)
+                            .frame(maxWidth: .infinity, minHeight: 36)
+                            .background(Color.gray.opacity(0.2))
+                            .clipShape(Circle())
                     }
                 }
             }

@@ -53,7 +53,6 @@ struct RoutineListView: View {
                         .onTapGesture{
                             path.append(Route.manualCreateDetails(routine))
                         }
-                        
                         .contextMenu {
                             Button(role: .destructive) {
                                 store.deleteRoutine(routine)
@@ -74,8 +73,7 @@ struct RoutineListView: View {
                     Color.black.opacity(0.001)
                         .ignoresSafeArea()
                         .onTapGesture {
-                            withAnimation(.spring(response: 0.25, dampingFraction: 0.9)) { showFabMenu = false
-                            }
+                            withAnimation(.spring(response: 0.25, dampingFraction: 0.9)) { showFabMenu = false }
                         }
                 }
                 
@@ -123,7 +121,6 @@ struct RoutineListView: View {
                 .ignoresSafeArea(.keyboard)
             }
         }
-        
         .onReceive(NotificationCenter.default.publisher(for: .routineCreated)) { _ in
             // TODO: 여기에 실제 네트워크/DB 갱신 호출(ex: store.reload()) 넣어도 됨
             refreshToken = UUID()
@@ -154,6 +151,9 @@ struct RoutineListView: View {
             case .goToList:
                 RoutineListView(path: $path, showAddAlarmSheet: $showAddAlarmSheet)
             }
+        }
+        .onAppear {
+            NotificationManager.shared.debugPendingNotifications()
         }
     }
 }

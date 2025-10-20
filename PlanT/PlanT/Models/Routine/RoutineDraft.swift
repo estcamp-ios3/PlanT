@@ -92,6 +92,10 @@ struct RoutineDraft: Codable, Hashable, Identifiable {
 
     /// [클라이언트 전용] 마지막 수정 시각 (서버 저장 안 함)
     var updatedAt: Date = Date()
+    
+    var reminderOffsets: Set<Int> = []
+    
+
 
     // MARK: - TODO: 서버 routines 테이블에 있지만 클라이언트 초안에 미포함된 필드 예시
     // var deleted_at: Date?    // 삭제 시각 (서버 관리용)

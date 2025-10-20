@@ -38,6 +38,9 @@ final class Routine: Identifiable{
     var createdAt: Date
     var modifiedAt: Date
 
+    var startDate: Date?
+    var endDate: Date?
+    
     init(
         id: UUID = UUID(),
         title: String,
@@ -55,7 +58,10 @@ final class Routine: Identifiable{
         isCompleted: Bool = false,
         completedCount: Int = 0,
         createdAt: Date = Date(),
-        modifiedAt: Date = Date()
+        modifiedAt: Date = Date(),
+        startDate: Date? = nil,
+        endDate: Date? = nil
+        
     ) {
         
         self.id = id
@@ -73,6 +79,8 @@ final class Routine: Identifiable{
         self.completedCount = completedCount
         self.createdAt = createdAt
         self.modifiedAt = modifiedAt
+        self.startDate = startDate
+        self.endDate = endDate
     }
 }
 
