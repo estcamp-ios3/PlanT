@@ -6,87 +6,63 @@
 //
 
 import SwiftUI
-import AlanAI
 
-// MARK: - AlanAI 클라이언트 (글로벌 재사용)
-private let clientId = "89a3432c-e591-4751-9b97-2d4fc2d9fa6a"
-private let alanAI = AlanAI(clientID: clientId)
-
-// MARK: - 데이터 모델 (토큰 절약용 JSON 구조)
-struct RoutineItem: Codable {
+// MARK: - 프롬프트 모델
+private struct RoutineItem: Codable {
     let title: String
-    let time: String
-    let amount: String
-    let unit: String
     let total: Int
     let done: Int
 }
 
-// 샘플 데이터
-private let routines: [RoutineItem] = [
-    .init(title: "물마시기", time: "06:00", amount: "500", unit: "ml",  total: 7, done: 6),
-    .init(title: "운동하기", time: "07:00", amount: "30",  unit: "min", total: 5, done: 2),
-    .init(title: "독서하기", time: "08:00", amount: "60",  unit: "min", total: 4, done: 2),
-]
+// MARK: - RoutineStore → 프롬프트 생성
+private func makePrompt(from store: RoutineStore) -> String {
+    let items: [RoutineItem] = store.routines.map { r in
+        RoutineItem(
+            title: r.title,
+            total: Int(r.frequencyPerWeekId.replacingOccurrences(of: "x", with: "")) ?? 0,
+            done: r.completedCount
+        )
+    }
 
-// MARK: - 프롬프트 (짧고 구조화)
-private func makePrompt() -> String {
-    let json = (try? String(data: JSONEncoder().encode(routines), encoding: .utf8)) ?? "[]"
+    guard !items.isEmpty else {
+        return "루틴이 없습니다. 빈 배열입니다: []"
+    }
+
+    let json = (try? String(data: JSONEncoder().encode(items), encoding: .utf8)) ?? "[]"
+
     return """
     다음 JSON 배열을 보고 각 항목마다 한국어로 한 줄 응원을 만들어줘.
     형식: "(목표 이름 제외)~~만큼 했어요. 앞으로 n회면 목표 달성이에요!"
-    제약: 각 줄은 25자 이내, 총 \(routines.count)줄만.
+    제약: 각 줄은 25자 이내, 총 \(items.count)줄만.
 
     JSON:
     \(json)
     """
 }
 
-// MARK: - 간단 캐시 (같은 질문이면 즉시 반환)
-actor AnswerCache {
-    private var map: [String: String] = [:]
-    func get(_ key: String) -> String? { map[key] }
-    func set(_ key: String, value: String) { map[key] = value }
-}
-private let cache = AnswerCache()
-
-// MARK: - 프리워밍 (앱/뷰 진입 시 한 번 호출 권장)
-private var didPrewarm = false
-@MainActor
-private func prewarmAlanIfNeeded() {
-    guard !didPrewarm else { return }
-    didPrewarm = true
-    Task.detached {
-        _ = try? await alanAI.question(query: "ping")
-    }
-}
-
-// MARK: - 네트워크 호출 (캐시 래핑)
-private func askAlanCached(question: String) async -> String {
-    let key = String(question.hashValue)
-    if let cached = await cache.get(key) { return cached }
-    let result = await askAlanNetwork(question: question)
-    await cache.set(key, value: result)
-    return result
-}
-
-private func askAlanNetwork(question: String) async -> String {
-    do {
-        let response: AlanResponse? = try await alanAI.question(query: question)
-        if let response {
-            return response.content ?? "N/A"
-        } else {
-            return "❌ AlanAI 응답이 비어 있습니다."
+// MARK: - 결과를 라인 배열로 정규화
+private func normalizedLines(from raw: String) -> [String] {
+    raw
+        .replacingOccurrences(of: "```json", with: "")
+        .replacingOccurrences(of: "```", with: "")
+        .components(separatedBy: .newlines)
+        .map { $0.trimmingCharacters(in: .whitespaces) }
+        .filter {
+            !$0.isEmpty &&
+            !$0.hasPrefix("{") &&
+            !$0.hasPrefix("}") &&
+            !$0.hasPrefix("[") &&
+            !$0.hasPrefix("]")
         }
-    } catch {
-        return "❌ 오류: \(error.localizedDescription)"
-    }
 }
 
 // MARK: - View
 struct AlanAITest: View {
+    @EnvironmentObject var routineStore: RoutineStore
     @State private var answer: String = ""
     @State private var isLoading = false
+
+    private let aiService = AlanAIService.shared
 
     var body: some View {
         VStack(spacing: 16) {
@@ -99,7 +75,7 @@ struct AlanAITest: View {
                 } else {
                     ScrollView {
                         Text(answer.isEmpty ? "버튼을 눌러 응답을 받아보세요." : answer)
-                            .frame(maxWidth: .infinity, alignment: .center)
+                            .frame(maxWidth: .infinity)
                             .multilineTextAlignment(.center)
                             .padding()
                     }
@@ -108,18 +84,7 @@ struct AlanAITest: View {
             .frame(maxWidth: .infinity, minHeight: 160)
 
             Button {
-                Task {
-                    await MainActor.run {
-                        isLoading = true
-                        answer = "🤖 응답 생성중..."
-                    }
-                    let prompt = makePrompt()
-                    let result = await askAlanCached(question: prompt)
-                    await MainActor.run {
-                        isLoading = false
-                        answer = result
-                    }
-                }
+                Task { await runAsk() }
             } label: {
                 Text(isLoading ? "요청 중..." : "Ask Alan")
                     .frame(maxWidth: .infinity)
@@ -128,10 +93,50 @@ struct AlanAITest: View {
             .disabled(isLoading)
         }
         .padding()
-        .task { prewarmAlanIfNeeded() } // 프리워밍
+        .task { await aiService.prewarmIfNeeded() }
+    }
+
+    private func runAsk() async {
+        await MainActor.run {
+            isLoading = true
+            answer = "🤖 응답 생성중..."
+        }
+
+        // ✅ RoutineStore → 프롬프트 생성
+        let prompt = makePrompt(from: routineStore)
+
+        // ✅ AlanAIService (디버그 API) 호출
+        let (rawAnswer, errorDesc, metaLog) = await aiService.askDebug(question: prompt)
+
+        // 🔎 콘솔 로그로 에러/메타 확인
+        print(metaLog)
+        if let errorDesc {
+            print("❌ AlanAI errorDescription:", errorDesc)
+        }
+
+        // ✅ 결과 정규화
+        let lines = normalizedLines(from: rawAnswer)
+
+        await MainActor.run {
+            isLoading = false
+            if let errorDesc, rawAnswer.isEmpty {
+                // 실패 시 사용자에게도 표시(선택)
+                answer = "❌ AI 오류: \(errorDesc)"
+            } else {
+                answer = lines.isEmpty ? (rawAnswer.isEmpty ? "응답이 비어 있습니다." : rawAnswer) : lines.joined(separator: "\n")
+            }
+
+            // 라인 → 루틴별 매핑(필요 시)
+            var mapped: [UUID: String] = [:]
+            for (idx, routine) in routineStore.routines.enumerated() {
+                guard idx < lines.count else { break }
+                mapped[routine.id] = lines[idx]
+            }
+            routineStore.aiComments = mapped
+        }
     }
 }
 
 #Preview {
-    AlanAITest()
+    Text("Preview에서는 RoutineStore 주입이 필요합니다.")
 }
