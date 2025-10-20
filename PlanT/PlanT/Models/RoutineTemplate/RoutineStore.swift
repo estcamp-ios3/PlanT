@@ -11,15 +11,12 @@ import Combine
 import Supabase
 import SwiftUI
 
-/// AlanAI 서비스 (싱글톤) — 같은 타겟에 AlanAIService.swift가 있어야 함
-/// AlanAIService.shared.prewarmIfNeeded()
-/// AlanAIService.shared.ask(question:)
 @MainActor
 final class RoutineStore: ObservableObject {
     @Published private(set) var routines: [Routine] = []
     @Published var refreshTrigger = UUID()
 
-    /// AI 코멘트 저장소: [루틴ID: 코멘트(두 줄 or 한 줄)]
+    /// AI 코멘트: [루틴ID: "첫줄\n둘째줄" 또는 완료시 "완료 한 줄"]
     @Published var aiComments: [UUID: String] = [:]
 
     /// AI 갱신 여부 확인용 서명(ex: "done/total")
@@ -28,23 +25,22 @@ final class RoutineStore: ObservableObject {
     private var context: ModelContext
     private let client = supabaseClient
 
-    // AlanAI 서비스
+    /// AlanAI 서비스
     private let ai = AlanAIService.shared
 
     init(context: ModelContext) {
         self.context = context
         loadRoutines()
-
-        // 앱 시작 시 AlanAI 프리워밍(선택)
         Task { await ai.prewarmIfNeeded() }
     }
 
+    // MARK: - Load/CRUD
     func loadRoutines() {
         let fetchDescriptor = FetchDescriptor<Routine>()
         do {
             routines = try context.fetch(fetchDescriptor)
         } catch {
-            print("X 루틴 불러오기 실패:", error)
+            print("❌ 루틴 불러오기 실패:", error)
         }
     }
 
@@ -54,7 +50,7 @@ final class RoutineStore: ObservableObject {
             categoryId: categoryId,
             seedName: seed.name,
             duration: routine.duration,
-            goal:  routine.goal,
+            goal: routine.goal,
             alarm: routine.alarm,
             frequencyPerWeekId: routine.frequencyPerWeekId,
             frequencyPerWeekTitle: routine.frequencyPerWeekTitle,
@@ -64,6 +60,7 @@ final class RoutineStore: ObservableObject {
             createdAt: Date(),
             modifiedAt: Date()
         )
+
         context.insert(newRoutine)
         do {
             try context.save()
@@ -106,8 +103,6 @@ final class RoutineStore: ObservableObject {
             } catch {
                 print("❌ Supabase 삭제 실패:", error.localizedDescription)
             }
-
-            // 삭제 시 AI 상태도 정리
             aiComments.removeValue(forKey: routine.id)
             aiSignatures.removeValue(forKey: routine.id)
         }
@@ -118,9 +113,7 @@ final class RoutineStore: ObservableObject {
 
 // MARK: - 진행률 계산
 extension RoutineStore {
-    func completedCount(for routine: Routine) -> Int {
-        routine.completedCount
-    }
+    func completedCount(for routine: Routine) -> Int { routine.completedCount }
 
     func totalCount(for routine: Routine) -> Int {
         Int(routine.frequencyPerWeekId.replacingOccurrences(of: "x", with: "")) ?? 0
@@ -158,7 +151,6 @@ extension RoutineStore {
             } catch {
                 print("❌ Supabase 완료횟수 업데이트 실패:", error.localizedDescription)
             }
-            // 진행 변경 → AI 코멘트 갱신 시도
             await regenerateAICommentsIfNeeded()
         }
 
@@ -169,11 +161,9 @@ extension RoutineStore {
     }
 }
 
-// MARK: - AlanAI 연동
+// MARK: - AlanAI 연동 (완료 루틴은 AI 호출 생략) – 개별 요청(두 줄 구성)
 extension RoutineStore {
-    /// 변화가 있는 루틴(또는 신규)만 선별해, 항목별로 AlanAI에 질문 → aiComments 업데이트
     func regenerateAICommentsIfNeeded() async {
-        // 1) 갱신이 필요한 루틴만 선별
         let targets: [Routine] = routines.filter { r in
             let sig = "\(r.completedCount)/\(totalCount(for: r))"
             return aiSignatures[r.id] != sig
@@ -183,41 +173,70 @@ extension RoutineStore {
             return
         }
 
-        // 2) 루틴별로 프롬프트 생성 & 호출(순차)
         var newComments = aiComments
         var newSignatures = aiSignatures
 
         for r in targets {
             let total = totalCount(for: r)
-            let done = r.completedCount
-            let prompt = makePerRoutinePrompt(title: r.title, total: total, done: done)
+            let done  = r.completedCount
+
+            if total > 0, done >= total {
+                // 완료는 즉시 한 줄
+                newComments[r.id]  = "축하합니다 루틴을 완료했어요!"
+                newSignatures[r.id] = "\(done)/\(total)"
+                print("🎉 루틴 완료 감지 — AI 호출 생략:", r.title)
+                continue
+            }
+
+            let firstLine = progressPhrase(total: total, done: done)
+            let remain = max(0, total - done)
+
+            let prompt = makePerRoutinePrompt(
+                title: r.title,
+                total: total,
+                done: done,
+                firstLine: firstLine,
+                remain: remain
+            )
 
             let raw = await ai.ask(question: prompt)
-            let cleaned = Self.sanitizeAIText(raw, total: total, done: done)
-            newComments[r.id] = cleaned
+            let secondOrDoneLine = Self.sanitizeAISecondLine(raw: raw)
+
+            let second = secondOrDoneLine.isEmpty ? "\(remain)회 남았어요!" : secondOrDoneLine
+            let final = firstLine + "\n" + second
+
+            newComments[r.id]  = final
             newSignatures[r.id] = "\(done)/\(total)"
         }
 
-        // 3) 상태 반영
         aiComments = newComments
         aiSignatures = newSignatures
-
         print("✅ AI 코멘트 갱신 완료(\(targets.count)건)")
     }
 
-    /// 각 루틴별 프롬프트 (완료 시 한 줄 메세지)
-    private func makePerRoutinePrompt(title: String, total: Int, done: Int) -> String {
-        return """
-        아래 JSON 데이터를 보고, 해당 루틴에 맞는 응원 문장을 만들어줘.
+    private func progressPhrase(total: Int, done: Int) -> String {
+        guard total > 0 else { return "목표 설정이 필요해요!" }
+        if done >= total { return "축하합니다 루틴을 완료했어요!" }
+        if done == 0 { return "첫걸음이 중요해요!" }
+        // 로컬 한 줄(첫 줄) 규칙을 더 간단히 유지하고 싶다면 여기만 조정
+        let ratio = Double(done) / Double(total)
+        switch ratio {
+        case ..<0.26: return "시작이 반이에요!"
+        case ..<0.61: return "벌써 반이나 했어요!"
+        case ..<1.0:  return "거의 다 했어요!"
+        default:      return "축하합니다 루틴을 완료했어요!"
+        }
+    }
+
+    private func makePerRoutinePrompt(title: String, total: Int, done: Int, firstLine: String, remain: Int) -> String {
+        """
+        아래 JSON 데이터를 참고하여, **두 번째 줄만** 만들어줘.
 
         출력 형식:
-        - 기본은 두 줄 문장
-          1줄: "~만큼 했어요!"
-          2줄: "(남은 횟수)회 남았어요!"  (남은 횟수 = total - done)
-        - 만약 done == total이면 한 줄만 출력:
-          "축하합니다 루틴을 완료했어요!"
+        - 나는 이미 첫 번째 줄을 정했어: "\(firstLine)"
+        - 너는 두 번째 줄만 출력해.
+          형식: "\(remain)회 남았어요!"
         - JSON, 설명, 불릿, 번호, 기타 기호 금지
-        - 제목(title)은 출력하지 마
         - 각 줄은 25자 이내
 
         입력 JSON:
@@ -225,45 +244,85 @@ extension RoutineStore {
         """
     }
 
-    /// AI 텍스트 정제: 코드블록/JSON 키 제거 + "완료" 케이스 처리 + 최대 2줄 유지
-    private static func sanitizeAIText(_ raw: String, total: Int, done: Int) -> String {
-        // done==total 이면 1줄 메시지만 남게 강제
-        if total > 0 && done >= total {
-            // “완료” 관련 라인만 우선적으로 추출
-            let normalized = raw
-                .replacingOccurrences(of: "```json", with: "")
-                .replacingOccurrences(of: "```", with: "")
-                .components(separatedBy: .newlines)
-                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-                .filter { !$0.isEmpty }
+    private static func sanitizeAISecondLine(raw: String) -> String {
+        let cleaned = raw
+            .replacingOccurrences(of: "```json", with: "")
+            .replacingOccurrences(of: "```", with: "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
 
-            if let completion = normalized.first(where: {
-                $0.contains("축하") || $0.contains("완료")
-            }) {
-                return completion
+        let patterns = [
+            #"\"message\"\s*:\s*\"([\s\S]*?)\""#,
+            #"\"comment\"\s*:\s*\"([\s\S]*?)\""#
+        ]
+        for pat in patterns {
+            if let regex = try? NSRegularExpression(pattern: pat, options: [.dotMatchesLineSeparators]) {
+                let range = NSRange(cleaned.startIndex..<cleaned.endIndex, in: cleaned)
+                let matches = regex.matches(in: cleaned, options: [], range: range)
+                if !matches.isEmpty {
+                    let msgs: [String] = matches.compactMap { m in
+                        guard m.numberOfRanges > 1,
+                              let r = Range(m.range(at: 1), in: cleaned) else { return nil }
+                        return String(cleaned[r])
+                            .replacingOccurrences(of: "\\n", with: "\n")
+                            .replacingOccurrences(of: "\\\"", with: "\"")
+                            .trimmingCharacters(in: .whitespacesAndNewlines)
+                    }
+                    return msgs.joined(separator: "\n").components(separatedBy: .newlines).first ?? ""
+                }
             }
         }
 
-        // 일반 케이스: 의미 라인만 2줄까지
         let bannedPrefixes = [
             "{", "}", "[", "]",
             "\"id\"", "\"title\"", "\"total\"", "\"done\"",
             "\"time\"", "\"amount\"", "\"unit\"",
             "\"message\"", "\"comment\""
         ]
-
-        let lines = raw
-            .replacingOccurrences(of: "```json", with: "")
-            .replacingOccurrences(of: "```", with: "")
+        let lines = cleaned
             .components(separatedBy: .newlines)
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .map { $0.trimmingCharacters(in: .whitespaces) }
             .filter { line in
-                !line.isEmpty && !bannedPrefixes.contains(where: { line.hasPrefix($0) })
+                !line.isEmpty && !bannedPrefixes.contains(where: { prefix in line.hasPrefix(prefix) })
             }
 
-        // 2줄로 축약
-        if lines.isEmpty { return "" }
-        if lines.count == 1 { return lines[0] }
-        return lines[0] + "\n" + lines[1]
+        if let completion = lines.first(where: { $0.contains("축하") || $0.contains("완료") }) {
+            return completion
+        }
+        if let remainLine = lines.first(where: { $0.contains("회 남았어요") }) {
+            return remainLine
+        }
+        return lines.first ?? ""
+    }
+}
+
+// MARK: - (선택) 배치 방식: 한 번에 한 줄 코멘트 생성해 매핑
+extension RoutineStore {
+    /// AlanAIService의 배치 API 사용: 각 루틴당 "한 줄" 응원만 필요한 경우
+    func regenerateOneLineCommentsBatch() async {
+        let items: [AlanAIService.OneLineItem] = routines.map { r in
+            .init(
+                title: r.title,
+                total: totalCount(for: r),
+                done: r.completedCount
+            )
+        }
+        let lines = await ai.generateOneLineComments(for: items)
+        guard !lines.isEmpty else {
+            print("ℹ️ 배치 생성 결과 없음")
+            return
+        }
+
+        var mapped: [UUID: String] = [:]
+        for (idx, r) in routines.enumerated() {
+            let total = totalCount(for: r)
+            let done  = r.completedCount
+            if total > 0, done >= total {
+                mapped[r.id] = "축하합니다 루틴을 완료했어요!" // 완료는 고정
+            } else if idx < lines.count {
+                mapped[r.id] = lines[idx]
+            }
+        }
+        aiComments = mapped
+        print("✅ 배치 한 줄 코멘트 갱신 완료(\(mapped.count)건)")
     }
 }
