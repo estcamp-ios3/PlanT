@@ -14,11 +14,14 @@ extension Notification.Name {
 struct RoutineSurveyView: View {
     @StateObject private var vm = RoutineSurveyViewModel()
     @State private var showInLineDatePicker: Bool = false
+    @State private var showInLineAlarmPicker: Bool = false
     @State private var isAllday = false
     @State private var hasEnd = true
     @State private var startDate = Date()
     @State private var endDate = Date()
+    @State private var selectedAlarm: Set<Int> = [15]
     
+    @EnvironmentObject var routineAlarmStore : RoutineAlarmStore
     @Binding var path: NavigationPath
     @Binding var showAddAlarmSheet: Bool
 
@@ -55,6 +58,13 @@ struct RoutineSurveyView: View {
                     endDate: $endDate
                 )
             }
+            if showInLineAlarmPicker {
+                AlarmPresetPicker(
+                    selectedAlarms: $selectedAlarm,
+                    showAddAlarmSheet: $showAddAlarmSheet
+                )
+                    .environmentObject(routineAlarmStore)
+            }
         }
         .padding(16)
         .frame(maxWidth: .infinity)
@@ -88,13 +98,14 @@ struct RoutineSurveyView: View {
             .padding(.horizontal, 16)
             .padding(.bottom, 12)
         }
-        .onChange(of: vm.periodSelection) { _, newValue in
-            let shouldShow = (vm.currentStep.id == "set_period") && (newValue?.first == "no")
-            showInLineDatePicker = shouldShow
-
+        .onChange(of: vm.periodSelection) {
+            updateInlineViews()
         }
-        .onChange(of: vm.currentIndex) { _, _ in
-            showInLineDatePicker = (vm.currentStep.id == "set_period") && (vm.periodSelection?.first == "no")
+        .onChange(of: vm.currentIndex) {
+            updateInlineViews()
+        }
+        .onChange(of: vm["set_reminder"]) {
+            updateInlineViews()
         }
         .navigationDestination(for: Route.self) { route in
             switch route {
@@ -102,5 +113,10 @@ struct RoutineSurveyView: View {
                 SeedStatusView(state: .notPlanted, draft: draft, path: $path, showAddAlarmSheet: $showAddAlarmSheet)
             }
         }
+    }
+    private func updateInlineViews() {
+        showInLineDatePicker = (vm.currentStep.id == "set_period") && (vm.periodSelection?.first == "no")
+        
+        showInLineAlarmPicker = (vm.currentStep.id == "set_reminder") && (vm["set_reminder"]?.first == "yes")
     }
 }
