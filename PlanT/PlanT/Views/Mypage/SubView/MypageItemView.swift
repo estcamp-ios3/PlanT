@@ -16,10 +16,10 @@ struct MypageItemView: View {
                 ItemColumn(imageName: "myIcon01", title: "도감보기")
             }
             Button(action: {}) {
-                ItemColumn(imageName: "myIcon02", title: "작물/아이템 창고")
+                ItemColumn(imageName: "myIcon03", title: "작물/아이템 창고")
             }
             Button(action: {}) {
-                ItemColumn(imageName: "myIcon03", title: "포인트 교환/내역")
+                ItemColumn(imageName: "myIcon02", title: "포인트 교환/내역")
             }
         }
         .frame(maxWidth: .infinity)
