@@ -286,4 +286,7 @@ extension RoutineSurveyViewModel {
             isFavorite: false
         )
     }
+    subscript(stepId: String) -> Set<String>? {
+        selections[stepId]
+    }
 }
