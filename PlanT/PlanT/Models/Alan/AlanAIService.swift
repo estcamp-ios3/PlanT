@@ -17,7 +17,7 @@ final class AlanAIService {
     private var didPrewarm = false
 
     private init() {
-        let clientId = "34a0ba9f-c677-4406-815a-47b88e791679" // Alan 키
+        let clientId = "0f6ae041-abee-44e8-b970-910cbaf08c28" // Alan 키
         self.client = AlanAI(clientID: clientId)
     }
 
@@ -73,41 +73,40 @@ final class AlanAIService {
         let done: Int
     }
 
-    /// 요구사항:
-    /// - 완료 루틴은 AI 호출하지 않고 고정 문구 반환("🎉 축하해요! 루틴을 완성했어요!")
-    /// - 그 외는 프롬프트로 1줄 응원 받고, 2줄 형식(응원 + 남은횟수)으로 최종 조립
+    /// 완료 루틴은 고정 문구, 미완료는 프롬프트에서 두 줄을 그대로 받아 사용
     func generateEncouragement(for items: [RoutineEncItem]) async -> [UUID: String] {
         guard !items.isEmpty else { return [:] }
 
         var result: [UUID: String] = [:]
 
         for item in items {
-            // 완료 루틴 즉시 처리
+            // ✅ 완료 루틴은 AI 호출 없이 즉시 리턴
             if item.total > 0 && item.done >= item.total {
                 result[item.id] = "🎉 축하해요! 루틴을 완성했어요!"
                 continue
             }
 
-            let remain = max(0, item.total - item.done)
-            let prompt = makePerRoutinePrompt(title: item.title, total: item.total, done: item.done)
+            // ✅ 프롬프트에서 '두 줄'을 만들게 하고, 그대로 사용
+            let raw = await ask(question: makePerRoutinePrompt(title: item.title, total: item.total, done: item.done))
+            let lines = Self.normalizeLines(from: raw)
 
-            // 네트워크 호출
-            let raw = await ask(question: prompt)
-
-            // "첫 줄"만 추출 (JSON/코드블록 제거 등)
-            let firstLine = Self.sanitizeAISecondLine(raw: raw)
-            let encouragement = firstLine.isEmpty ? "오늘도 한 걸음 나아가고 있어요!" : firstLine
-
-            // 최종 2줄(응원 + 남은횟수)
-            result[item.id] = encouragement + "\n" + "\(remain)회 남았어요!"
+            if lines.count >= 2 {
+                result[item.id] = lines[0] + "\n" + lines[1]
+            } else if lines.count == 1 {
+                // 한 줄만 오면 2줄 형식 보장 위해 남은 횟수는 로컬에서 보강
+                let remain = max(0, item.total - item.done)
+                result[item.id] = lines[0] + "\n" + "\(remain)회 남았어요!"
+            } else {
+                // 완전 빈 응답이면 최소한의 안전장치
+                let remain = max(0, item.total - item.done)
+                result[item.id] = "응원하고 있어요!\n\(remain)회 남았어요!"
+            }
         }
 
         return result
     }
 
-    // MARK: - (이전 RoutineStore에 있던) 프롬프트/정제 로직을 서비스로 이전
-
-    /// 자유 응원 프롬프트
+    // MARK: - 프롬프트 (그대로 유지하되, AI가 '두 줄'을 내도록 지시)
     private func makePerRoutinePrompt(title: String, total: Int, done: Int) -> String {
         return """
         아래 JSON 데이터를 참고해서 **자연스러운 한 줄 한국어 응원 메시지**를 만들어줘.
@@ -117,6 +116,8 @@ final class AlanAIService {
 
         규칙:
         - 문장은 25자 이내로 간결하게.
+        - **루틴 이름(title)의 단어나 문구는 절대 포함하지 마.**
+        - 제목(title) 언급 없이, 상황에 맞는 감정적 응원만 써.
         - 설명/따옴표/JSON/불릿 없이 결과만 출력.
         - 총 두 줄만 출력.
 
@@ -125,25 +126,30 @@ final class AlanAIService {
         """
     }
 
-    /// (이름 유지) AI 응답 정제 — 첫 줄만 추출해서 반환
-    static func sanitizeAISecondLine(raw: String) -> String {
-        let cleaned = raw
+    // MARK: - 정규화(코드펜스/따옴표/JSON 흔적 제거 → 라인 배열)
+    private static func normalizeLines(from raw: String) -> [String] {
+        raw
             .replacingOccurrences(of: "```json", with: "")
             .replacingOccurrences(of: "```", with: "")
             .replacingOccurrences(of: "\"", with: "")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-
-        let bannedPrefixes = ["{", "}", "[", "]", "message:", "comment:"]
-
-        let lines = cleaned
             .components(separatedBy: .newlines)
-            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
             .filter { line in
-                guard !line.isEmpty else { return false }
-                return !bannedPrefixes.contains(where: { prefix in line.hasPrefix(prefix) })
+                // JSON 키/괄호류는 제거
+                guard !line.hasPrefix("{"),
+                      !line.hasPrefix("}"),
+                      !line.hasPrefix("["),
+                      !line.hasPrefix("]"),
+                      !line.lowercased().hasPrefix("message:"),
+                      !line.lowercased().hasPrefix("comment:")
+                else { return false }
+                return true
             }
+    }
 
-        // 첫 줄만 사용 (AI가 두 줄을 주더라도 1줄만 취함)
-        return lines.first ?? cleaned
+    // (과거 호환용 — 지금은 사용 안 해도 됨)
+    static func sanitizeAISecondLine(raw: String) -> String {
+        normalizeLines(from: raw).first ?? ""
     }
 }
