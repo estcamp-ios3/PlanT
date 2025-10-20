@@ -12,6 +12,13 @@ extension Notification.Name {
 }
 
 struct RoutineSurveyView: View {
+    @StateObject var viewModel = RoutineSurveyViewModel()
+    @State private var showInLineDatePicker: Bool = false
+    @State private var isAllday = false
+    @State private var hasEnd = true
+    @State private var startDate = Date()
+    @State private var endDate = Date()
+    
     @Binding var path: NavigationPath
     @Binding var showAddAlarmSheet: Bool
 
@@ -37,7 +44,18 @@ struct RoutineSurveyView: View {
                         step: vm.currentStep,
                     )
                 }
-            }            
+            }
+            if showInLineDatePicker {
+                RoutineDateView(
+                    isEnabled: .constant(true),
+                    showDateHeader: .constant(false),
+                    useDate: .constant(true),
+                    isAllDay: $isAllday,
+                    hasEnd: $hasEnd,
+                    startDate: $startDate,
+                    endDate: $endDate
+                )
+            }
         }
         .padding(16)
         .frame(maxWidth: .infinity)
@@ -68,6 +86,13 @@ struct RoutineSurveyView: View {
             .padding(.horizontal, 16)
             .padding(.bottom, 12)
         }
+        .onChange(of: vm.periodSelection) {
+            if vm.periodSelection?.first == "yes" {
+                showInLineDatePicker = true
+            } else {
+                showInLineDatePicker = false
+            }
+        }
         .navigationDestination(for: Route.self) { route in
             switch route {
             case .seedStatus(let draft):
@@ -77,8 +102,4 @@ struct RoutineSurveyView: View {
     }
     
 }
-
-
-
-
 

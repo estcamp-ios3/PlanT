@@ -18,6 +18,10 @@ final class RoutineSurveyViewModel: ObservableObject {
         
         
     }
+    var periodSelection: Set<String>? {
+        selections["set_period"]
+    }
+    
     // 설문 단계 정의: 각 화면에서 보여줄 질문/옵션/선택 제한 등을 순서대로 나열합니다.
     @Published private(set) var steps: [SurveyStep] = [
         .init(id: "category", kind: .categoryGrid,
@@ -159,6 +163,14 @@ final class RoutineSurveyViewModel: ObservableObject {
     // 다음 단계로 이동 (검증 통과 시에만)
     func next() {
         guard canGoNext else { return }
+        
+        if currentStep.id == "set_period",
+           selections["set_period"]?.first == "no",
+           let summaryIndex = steps.firstIndex(where:  { $0.id == "summary" }) {
+            currentIndex = summaryIndex
+            return
+        }
+        
         if !isLast { currentIndex += 1 }
     }
     // 이전 단계로 이동

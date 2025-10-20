@@ -39,6 +39,14 @@ struct RoutineRegisterView: View {
     @Binding var path: NavigationPath
     @Binding var showAddAlarmSheet: Bool
     @State private var isDeleteMode: Bool = false
+    @State private var isAllDay: Bool = false {
+        didSet {
+            dateMode = isAllDay ? . allDay : .endDate
+        }
+    }
+    @State private var isEnabled: Bool = true
+    @State private var showDateHeader: Bool = true
+    @State private var hasEnd: Bool = true
     
     private var isFormValid: Bool {
         selectedCategory != "카테고리 선택 ⌵" &&
@@ -235,73 +243,83 @@ extension RoutineRegisterView {
 extension RoutineRegisterView {
     @ViewBuilder
     private func dateSection() -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text("날짜 사용")
-                    .font(.subheadline).bold()
-                Spacer()
-                Toggle("", isOn: $useDate)
-                    .labelsHidden()
-                    .toggleStyle(CustomToggleStyle())
-            }
-            
-            
-            if useDate {
-                HStack(spacing: 16) {
-                    RadioButton(
-                        label: "종료일",
-                        isSelected: dateMode == .endDate
-                    ) {
-                        dateMode = .endDate
-                    }
-                    
-                    RadioButton(
-                        label: "종일",
-                        isSelected: dateMode == .allDay
-                    ) {
-                        dateMode = .allDay
-                    }
-                }
-                
-                if dateMode == .endDate {
-                    HStack {
-                        Spacer()
-                        VStack(alignment: .leading, spacing: 12) {
-                            DatePicker("시작일", selection: $startDate, displayedComponents: .date)
-                                .datePickerStyle(.compact)
-                                .labelsHidden()
-                                .frame(height: 40)
-                            DatePicker("", selection: $startDate, displayedComponents: .hourAndMinute)
-                                .datePickerStyle(.compact)
-                                .labelsHidden()
-                                .frame(height: 40)
-                        }
-                        Image("greater_than_chevron_wide")
-                            .resizable()
-                            .frame(width: 20, height: 20)
-                        VStack(alignment: .leading, spacing: 12) {
-                            DatePicker("종료일", selection: $endDate, displayedComponents: .date)
-                                .datePickerStyle(.compact)
-                                .labelsHidden()
-                                .frame(height: 40)
-                            DatePicker("", selection: $endDate, displayedComponents: .hourAndMinute)
-                                .datePickerStyle(.compact)
-                                .labelsHidden()
-                                .frame(height: 40)
-                        }
-                        Spacer()
-                    }
-                } else {
-                    VStack(alignment: .leading, spacing: 12) {
-                        DatePicker("종일 날짜", selection: $endDate, displayedComponents: .date)
-                            .datePickerStyle(.compact)
-                            .labelsHidden()
-                            .frame(height: 40)
-                    }
-                    .padding(.top, 8)
-                }
-            }
-        }
+        RoutineDateView(
+            isEnabled: $isEnabled,
+            showDateHeader: $showDateHeader,
+            useDate: $useDate,
+            isAllDay: $isAllDay,
+            hasEnd: $hasEnd,
+            startDate: $startDate,
+            endDate: $endDate
+        )
+        
+//        VStack(alignment: .leading, spacing: 8) {
+//            HStack {
+//                Text("날짜 사용")
+//                    .font(.subheadline).bold()
+//                Spacer()
+//                Toggle("", isOn: $useDate)
+//                    .labelsHidden()
+//                    .toggleStyle(CustomToggleStyle())
+//            }
+//            
+//            
+//            if useDate {
+//                HStack(spacing: 16) {
+//                    RadioButton(
+//                        label: "종료일",
+//                        isSelected: dateMode == .endDate
+//                    ) {
+//                        dateMode = .endDate
+//                    }
+//                    
+//                    RadioButton(
+//                        label: "종일",
+//                        isSelected: dateMode == .allDay
+//                    ) {
+//                        dateMode = .allDay
+//                    }
+//                }
+//                
+//                if dateMode == .endDate {
+//                    HStack {
+//                        Spacer()
+//                        VStack(alignment: .leading, spacing: 12) {
+//                            DatePicker("시작일", selection: $startDate, displayedComponents: .date)
+//                                .datePickerStyle(.compact)
+//                                .labelsHidden()
+//                                .frame(height: 40)
+//                            DatePicker("", selection: $startDate, displayedComponents: .hourAndMinute)
+//                                .datePickerStyle(.compact)
+//                                .labelsHidden()
+//                                .frame(height: 40)
+//                        }
+//                        Image("greater_than_chevron_wide")
+//                            .resizable()
+//                            .frame(width: 20, height: 20)
+//                        VStack(alignment: .leading, spacing: 12) {
+//                            DatePicker("종료일", selection: $endDate, displayedComponents: .date)
+//                                .datePickerStyle(.compact)
+//                                .labelsHidden()
+//                                .frame(height: 40)
+//                            DatePicker("", selection: $endDate, displayedComponents: .hourAndMinute)
+//                                .datePickerStyle(.compact)
+//                                .labelsHidden()
+//                                .frame(height: 40)
+//                        }
+//                        Spacer()
+//                    }
+//                } else {
+//                    VStack(alignment: .leading, spacing: 12) {
+//                        DatePicker("종일 날짜", selection: $endDate, displayedComponents: .date)
+//                            .datePickerStyle(.compact)
+//                            .labelsHidden()
+//                            .frame(height: 40)
+//                    }
+//                    .padding(.top, 8)
+//                }
+//            }
+//        }
     }
 }
 
