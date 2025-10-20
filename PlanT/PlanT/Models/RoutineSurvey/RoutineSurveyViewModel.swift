@@ -168,13 +168,6 @@ final class RoutineSurveyViewModel: ObservableObject {
     func next() {
         guard canGoNext else { return }
         
-        if currentStep.id == "set_period",
-           selections["set_period"]?.first == "yes",
-           let summaryIndex = steps.firstIndex(where:  { $0.id == "summary" }) {
-            currentIndex = summaryIndex
-            return
-        }
-        
         if !isLast { currentIndex += 1 }
     }
     // 이전 단계로 이동
@@ -285,7 +278,11 @@ extension RoutineSurveyViewModel {
             durationId: durationId,
             durationTitle: title(for: "duration", optionId: durationId),
             periodIsNoLimit: periodYes,
+            startDate: periodYes ? nil : surveyStartDate,
+            endDate: periodYes ? nil : surveyEndDate,
             reminderOn: reminderYes,
+            reminderTime: nil,
+            reminderDays: nil,
             goal: "\(durationId)/일",
             isFavorite: false
         )

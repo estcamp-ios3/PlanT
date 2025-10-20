@@ -63,7 +63,13 @@ struct SeedStatusView: View {
                 Button("루틴 등록하기") {
                     // 기존: store.routines.insert(routine, at: 0) → 삭제
                     if case .planted(let routine) = state {
-                        store.addRoutine(from: seed, basedOn: routine, categoryId: draft.categoryId)
+                        store.addRoutine(
+                            from: seed,
+                            basedOn: routine,
+                            categoryId: draft.categoryId,
+                            draft: draft,
+                            reminderOffsets: draft.reminderOffsets
+                        )
                         path = NavigationPath()
                     } else {
                         // .notPlanted 상태에서는 draft와 seed로 Routine 생성 & 추가
@@ -81,7 +87,17 @@ struct SeedStatusView: View {
                             createdAt: Date(),
                             modifiedAt: Date()
                         )
-                        store.addRoutine(from: seed, basedOn: routine, categoryId: draft.categoryId )
+                        store.addRoutine(from: seed, basedOn: routine, categoryId: draft.categoryId, draft: draft, reminderOffsets: draft.reminderOffsets)
+                        
+                        NotificationManager.shared.scheduleNotification(
+                            for: routine.id,
+                            title: routine.title,
+                            baseDate: draft.startDate ?? Date(),
+                            offsets: Array(draft.reminderOffsets)
+                        )
+                        
+                        
+                        
                         path = NavigationPath()
                     }
                 }

@@ -48,23 +48,45 @@ final class RoutineStore: ObservableObject {
         }
     }
 
-    func addRoutine(from seed: Seed, basedOn routine: Routine, categoryId: String) {
+    func addRoutine(
+        from seed: Seed,
+        basedOn routine: Routine,
+        categoryId: String,
+        draft: RoutineDraft,
+        reminderOffsets: Set<Int>
+    ) {
         let newRoutine = Routine(
             title: routine.title,
             categoryId: categoryId,
             seedName: seed.name,
             duration: routine.duration,
             goal:  routine.goal,
-            alarm: routine.alarm,
+            alarm: draft.reminderOn ? .every24Hours : .off,
             frequencyPerWeekId: routine.frequencyPerWeekId,
             frequencyPerWeekTitle: routine.frequencyPerWeekTitle,
             note: routine.note,
             isCompleted: false,
             completedCount: 0,
             createdAt: Date(),
-            modifiedAt: Date()
+            modifiedAt: Date(),
+            startDate: draft.startDate,
+            endDate: draft.endDate
         )
+        
+        newRoutine.startDate = draft.startDate
+        newRoutine.endDate = draft.endDate
+        
+    
 
+        print("""
+            ✅ ROUTINE 저장됨:
+            • ID: \(newRoutine.id)
+            • TITLE: \(newRoutine.title)
+            • CATEGORY: \(newRoutine.categoryId)
+            • GOAL: \(newRoutine.goal)
+            • DURATION: \(newRoutine.duration)
+            • ALARM: \(newRoutine.alarm)
+        """)
         context.insert(newRoutine)
         do { try context.save() } catch {
             print("❌ SwiftData 저장 실패:", error)
@@ -77,6 +99,13 @@ final class RoutineStore: ObservableObject {
             } catch {
                 print("❌ Supabase 업로드 실패:", error.localizedDescription)
             }
+            
+            NotificationManager.shared.scheduleNotification(
+                for: newRoutine.id,
+                title: newRoutine.title,
+                baseDate: draft.startDate ?? Date(),
+                offsets: Array(reminderOffsets))
+            
             // ✅ 새 루틴 1건만 AI 호출
             await self.regenerateAIComment(for: newRoutine)
         }

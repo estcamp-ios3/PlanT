@@ -77,8 +77,13 @@ struct RoutineCardModernView: View {
                 .stroke(Color.gray400,lineWidth: 1)
         )
         .onAppear {
-            print("👉 seedName:", routine.seedName ?? "nil")
-            print("👉 최종 이미지 호출:", routine.seedImage(for: progress, totalCount: totalCount))
+            print("""
+                 ROUTINE CARD 렌더링
+                • Title: \(routine.title)
+                • Goal: \(routine.goal)
+                • Alarm 설정 여부: \(routine.alarm)
+                • Seed 이미지: \(routine.seedImage(for: progress, totalCount: totalCount))
+                """)
         }
     }
 }

@@ -51,6 +51,7 @@ func scheduleNotification(
         
         center.add(request)
         print("알림 예약됨: \(requestID)")
+        self.debugPendingNotifications()
     }
 }
     
@@ -64,5 +65,23 @@ func scheduleNotification(
             print(" 삭제된 알림 ID들:", idsToRemove)
         }
     }
-
+    func debugPendingNotifications() {
+        UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
+            print(" 현재 등록된 알림 수: \(requests.count)")
+            for request in requests {
+                if let trigger = request.trigger as? UNCalendarNotificationTrigger,
+                   let date = trigger.nextTriggerDate() {
+                    print("""
+                        ID: \(request.identifier)
+                        Title: \(request.content.title)
+                        Body: \(request.content.body)
+                        Next Trigger: \(date)
+                        """)
+                } else {
+                    print( "ID: \(request.identifier) - 트리거 정보 없음 또는 반복 알림")
+                }
+            }
+        }
+    }
 }
+
