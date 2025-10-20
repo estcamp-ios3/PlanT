@@ -30,12 +30,19 @@ private func makePrompt(from store: RoutineStore) -> String {
 
     let json = (try? String(data: JSONEncoder().encode(items), encoding: .utf8)) ?? "[]"
 
+    // ✅ 예시/조건 제거: AI가 상황을 보고 스스로 응원 문장을 선택
     return """
-    다음 JSON 배열을 보고 각 항목마다 한국어로 한 줄 응원을 만들어줘.
-    형식: "(목표 이름 제외)~~만큼 했어요. 앞으로 n회면 목표 달성이에요!"
-    제약: 각 줄은 25자 이내, 총 \(items.count)줄만.
+    아래 JSON 배열에는 각 루틴의 이름(title), 전체 목표 횟수(total), 현재까지 완료한 횟수(done)가 들어 있습니다.
+    각 루틴마다 현재 상황에 어울리는 짧은 한국어 응원 문장을 만들어주세요.
 
-    JSON:
+    요구사항:
+    - 루틴마다 정확히 한 줄만 출력하세요.
+    - 문장은 25자 이내로 간결하게 작성하세요.
+    - 제목(title)이나 숫자 나열은 피하고, 자연스러운 응원/격려/축하 메시지로만 구성하세요.
+    - 출력은 JSON/마크다운/설명 없이, 루틴 개수만큼 한 줄씩 나열하세요.
+    - 달성 상태라면 축하 뉘앙스, 아직 진행 중이라면 격려 뉘앙스로 자연스럽게 표현하세요.
+
+    JSON 데이터:
     \(json)
     """
 }
@@ -96,6 +103,7 @@ struct AlanAITest: View {
         .task { await aiService.prewarmIfNeeded() }
     }
 
+    // MARK: - AlanAI 호출 실행
     private func runAsk() async {
         await MainActor.run {
             isLoading = true
@@ -120,13 +128,14 @@ struct AlanAITest: View {
         await MainActor.run {
             isLoading = false
             if let errorDesc, rawAnswer.isEmpty {
-                // 실패 시 사용자에게도 표시(선택)
                 answer = "❌ AI 오류: \(errorDesc)"
             } else {
-                answer = lines.isEmpty ? (rawAnswer.isEmpty ? "응답이 비어 있습니다." : rawAnswer) : lines.joined(separator: "\n")
+                answer = lines.isEmpty
+                    ? (rawAnswer.isEmpty ? "응답이 비어 있습니다." : rawAnswer)
+                    : lines.joined(separator: "\n")
             }
 
-            // 라인 → 루틴별 매핑(필요 시)
+            // ✅ AI 응답을 RoutineStore에 매핑
             var mapped: [UUID: String] = [:]
             for (idx, routine) in routineStore.routines.enumerated() {
                 guard idx < lines.count else { break }
