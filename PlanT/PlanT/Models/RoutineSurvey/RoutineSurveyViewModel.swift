@@ -165,7 +165,7 @@ final class RoutineSurveyViewModel: ObservableObject {
         guard canGoNext else { return }
         
         if currentStep.id == "set_period",
-           selections["set_period"]?.first == "no",
+           selections["set_period"]?.first == "yes",
            let summaryIndex = steps.firstIndex(where:  { $0.id == "summary" }) {
             currentIndex = summaryIndex
             return

@@ -12,7 +12,7 @@ extension Notification.Name {
 }
 
 struct RoutineSurveyView: View {
-    @StateObject var viewModel = RoutineSurveyViewModel()
+    @StateObject private var vm = RoutineSurveyViewModel()
     @State private var showInLineDatePicker: Bool = false
     @State private var isAllday = false
     @State private var hasEnd = true
@@ -22,7 +22,6 @@ struct RoutineSurveyView: View {
     @Binding var path: NavigationPath
     @Binding var showAddAlarmSheet: Bool
 
-    @StateObject private var vm = RoutineSurveyViewModel()
     @Environment(\.dismiss) private var dismiss
 
     enum Route: Hashable {
@@ -30,18 +29,18 @@ struct RoutineSurveyView: View {
     }
     
     var body: some View {
-        VStack() {
+        VStack {
             Group {
                 switch vm.currentStep.kind {
                 case .categoryGrid:
                     CategoryGridStepView(
                         vm: vm,
-                        step: vm.currentStep,
+                        step: vm.currentStep
                     )
                 default:
                     GenericStepView(
                         vm: vm,
-                        step: vm.currentStep,
+                        step: vm.currentStep
                     )
                 }
             }
@@ -75,6 +74,9 @@ struct RoutineSurveyView: View {
                     if vm.isLast {
                         path.append(Route.seedStatus(draft: vm.draft))
                     } else {
+                        if vm.currentStep.id == "set_period" {
+                            showInLineDatePicker = false
+                        }
                         vm.next()
                     }
                 } label: {
@@ -86,12 +88,13 @@ struct RoutineSurveyView: View {
             .padding(.horizontal, 16)
             .padding(.bottom, 12)
         }
-        .onChange(of: vm.periodSelection) {
-            if vm.periodSelection?.first == "yes" {
-                showInLineDatePicker = true
-            } else {
-                showInLineDatePicker = false
-            }
+        .onChange(of: vm.periodSelection) { _, newValue in
+            let shouldShow = (vm.currentStep.id == "set_period") && (newValue?.first == "no")
+            showInLineDatePicker = shouldShow
+
+        }
+        .onChange(of: vm.currentIndex) { _, _ in
+            showInLineDatePicker = (vm.currentStep.id == "set_period") && (vm.periodSelection?.first == "no")
         }
         .navigationDestination(for: Route.self) { route in
             switch route {
@@ -100,6 +103,4 @@ struct RoutineSurveyView: View {
             }
         }
     }
-    
 }
-
