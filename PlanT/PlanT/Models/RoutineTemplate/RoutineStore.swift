@@ -197,14 +197,14 @@ extension RoutineStore {
     private func makePerRoutinePrompt(title: String, total: Int, done: Int) -> String {
         return """
         아래 JSON 데이터를 참고해서 **자연스러운 한 줄 한국어 응원 메시지**를 만들어줘.
+        이후 출력은 두 줄:
+        1줄: 네가 만든 응원 한 줄
+        2줄: "\(max(0, total - done))회 남았어요!"  // ✅ 직접 계산
 
         규칙:
-        - 루틴의 이름(title), 총 목표 횟수(total), 현재 진행(done)을 참고해서 응원 문장을 지어줘.
-        - 상황에 따라 격려, 조언, 칭찬, 축하 등 다양한 뉘앙스로 자연스럽게 표현해.
-        - 문장은 25자 이내로 간결하게 써줘.
-        - 진심 어린 한 줄 응원으로 작성해.
-        - 설명이나 따옴표, JSON, 불릿 없이 출력해.
-        - 두 번째 줄은 "(total- done)회 남았어요!" 식으로 출력해
+        - 문장은 25자 이내로 간결하게.
+        - 설명/따옴표/JSON/불릿 없이 결과만 출력.
+        - 총 두 줄만 출력.
 
         JSON:
         {"title":"\(title)","total":\(total),"done":\(done)}
