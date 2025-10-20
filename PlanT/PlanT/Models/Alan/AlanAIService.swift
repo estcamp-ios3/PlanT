@@ -44,6 +44,7 @@ final class AlanAIService {
         }
     }
 
+    /// 디버그 호출: (원문, 에러문구, 메타로그) 반환
     func askDebug(question: String) async -> (rawAnswer: String, errorDesc: String?, metaLog: String) {
         var meta = """
         ── AlanAI Debug ─────────────────
@@ -64,51 +65,85 @@ final class AlanAIService {
         }
     }
 
-    // MARK: - High-level: 여러 루틴 한 번에 한 줄 코멘트 생성
-    struct OneLineItem: Codable {
+    // MARK: - 여러 루틴 한 번에 고수준 API
+    struct RoutineEncItem: Codable {
+        let id: UUID
         let title: String
         let total: Int
         let done: Int
     }
 
-    /// 여러 루틴을 한 번에 한 줄 응원으로 생성
-    func generateOneLineComments(for items: [OneLineItem]) async -> [String] {
-        guard !items.isEmpty else { return [] }
+    /// 요구사항:
+    /// - 완료 루틴은 AI 호출하지 않고 고정 문구 반환("🎉 축하해요! 루틴을 완성했어요!")
+    /// - 그 외는 프롬프트로 1줄 응원 받고, 2줄 형식(응원 + 남은횟수)으로 최종 조립
+    func generateEncouragement(for items: [RoutineEncItem]) async -> [UUID: String] {
+        guard !items.isEmpty else { return [:] }
 
-        let json = (try? String(data: JSONEncoder().encode(items), encoding: .utf8)) ?? "[]"
+        var result: [UUID: String] = [:]
 
-        let prompt = """
-        아래 JSON 배열에는 각 루틴의 이름(title), 전체 목표 횟수(total), 현재까지 완료한 횟수(done)가 들어 있습니다.
-        각 루틴마다 현재 상황에 어울리는 짧은 한국어 응원 문장을 만들어주세요.
+        for item in items {
+            // 완료 루틴 즉시 처리
+            if item.total > 0 && item.done >= item.total {
+                result[item.id] = "🎉 축하해요! 루틴을 완성했어요!"
+                continue
+            }
 
-        요구사항:
-        - 루틴마다 정확히 한 줄만 출력하세요.
-        - 문장은 25자 이내로 간결하게 작성하세요.
-        - 제목(title)이나 숫자 나열은 피하고, 자연스러운 응원/격려/축하 메시지로만 구성하세요.
-        - 출력은 JSON/마크다운/설명 없이, 루틴 개수만큼 한 줄씩 나열하세요.
-        - 달성 상태라면 축하 뉘앙스, 아직 진행 중이라면 격려 뉘앙스로 자연스럽게 표현하세요.
+            let remain = max(0, item.total - item.done)
+            let prompt = makePerRoutinePrompt(title: item.title, total: item.total, done: item.done)
 
-        JSON 데이터:
-        \(json)
-        """
+            // 네트워크 호출
+            let raw = await ask(question: prompt)
 
-        let raw = await ask(question: prompt)
-        return normalizedLines(from: raw)
+            // "첫 줄"만 추출 (JSON/코드블록 제거 등)
+            let firstLine = Self.sanitizeAISecondLine(raw: raw)
+            let encouragement = firstLine.isEmpty ? "오늘도 한 걸음 나아가고 있어요!" : firstLine
+
+            // 최종 2줄(응원 + 남은횟수)
+            result[item.id] = encouragement + "\n" + "\(remain)회 남았어요!"
+        }
+
+        return result
     }
 
-    // MARK: - 정규화 유틸
-    private func normalizedLines(from raw: String) -> [String] {
-        raw
+    // MARK: - (이전 RoutineStore에 있던) 프롬프트/정제 로직을 서비스로 이전
+
+    /// 자유 응원 프롬프트
+    private func makePerRoutinePrompt(title: String, total: Int, done: Int) -> String {
+        return """
+        아래 JSON 데이터를 참고해서 **자연스러운 한 줄 한국어 응원 메시지**를 만들어줘.
+        이후 출력은 두 줄:
+        1줄: 네가 만든 응원 한 줄
+        2줄: "\(max(0, total - done))회 남았어요!"  // ✅ 직접 계산
+
+        규칙:
+        - 문장은 25자 이내로 간결하게.
+        - 설명/따옴표/JSON/불릿 없이 결과만 출력.
+        - 총 두 줄만 출력.
+
+        JSON:
+        {"title":"\(title)","total":\(total),"done":\(done)}
+        """
+    }
+
+    /// (이름 유지) AI 응답 정제 — 첫 줄만 추출해서 반환
+    static func sanitizeAISecondLine(raw: String) -> String {
+        let cleaned = raw
             .replacingOccurrences(of: "```json", with: "")
             .replacingOccurrences(of: "```", with: "")
+            .replacingOccurrences(of: "\"", with: "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        let bannedPrefixes = ["{", "}", "[", "]", "message:", "comment:"]
+
+        let lines = cleaned
             .components(separatedBy: .newlines)
             .map { $0.trimmingCharacters(in: .whitespaces) }
-            .filter {
-                !$0.isEmpty &&
-                !$0.hasPrefix("{") &&
-                !$0.hasPrefix("}") &&
-                !$0.hasPrefix("[") &&
-                !$0.hasPrefix("]")
+            .filter { line in
+                guard !line.isEmpty else { return false }
+                return !bannedPrefixes.contains(where: { prefix in line.hasPrefix(prefix) })
             }
+
+        // 첫 줄만 사용 (AI가 두 줄을 주더라도 1줄만 취함)
+        return lines.first ?? cleaned
     }
 }

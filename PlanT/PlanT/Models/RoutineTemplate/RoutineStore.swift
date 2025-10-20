@@ -148,83 +148,46 @@ extension RoutineStore {
     }
 }
 
-// MARK: - AlanAI 연동 (첫 줄/조건 없이 자유 응원 생성)
+// MARK: - AlanAI 연동 (완료 루틴은 AI 호출 생략)
 extension RoutineStore {
+    /// 변화가 있는 루틴만 선별 → AlanAIService에 위임 → aiComments 갱신
     func regenerateAICommentsIfNeeded() async {
+        // 1) 시그니처 비교로 대상 선별
         let targets: [Routine] = routines.filter { r in
             let sig = "\(r.completedCount)/\(totalCount(for: r))"
             return aiSignatures[r.id] != sig
         }
         guard !targets.isEmpty else {
-            print("ℹ️ AI 코멘트 재생성 불필요")
+            print("ℹ️ AI 코멘트 재생성 불필요(변화 없음)")
             return
         }
 
+        // 2) 서비스에 넘길 페이로드 구성
+        let items: [AlanAIService.RoutineEncItem] = targets.map { r in
+            .init(
+                id: r.id,
+                title: r.title,
+                total: totalCount(for: r),
+                done: r.completedCount
+            )
+        }
+
+        // 3) 서비스 호출(완료 루틴 처리 + 응원+남은횟수 2줄 생성 포함)
+        let generated: [UUID: String] = await ai.generateEncouragement(for: items)
+
+        // 4) 상태 반영
         var newComments = aiComments
-        var newSignatures = aiSignatures
+        var newSigs = aiSignatures
 
+        for (id, text) in generated {
+            newComments[id] = text
+        }
         for r in targets {
-            let total = totalCount(for: r)
-            let done = r.completedCount
-
-            // ✅ 완료 루틴 → AI 호출 생략, 고정 메시지
-            if total > 0 && done >= total {
-                newComments[r.id] = "🎉 축하해요! 루틴을 완성했어요!"
-                newSignatures[r.id] = "\(done)/\(total)"
-                continue
-            }
-
-            // ✅ AI에게 자유롭게 한 줄 생성 요청
-            let prompt = makePerRoutinePrompt(title: r.title, total: total, done: done)
-
-            let raw = await ai.ask(question: prompt)
-            let cleaned = Self.sanitizeAISecondLine(raw: raw)
-
-            let final = cleaned.isEmpty
-                ? "오늘도 한 걸음 나아가고 있어요!"
-                : cleaned
-
-            newComments[r.id] = final
-            newSignatures[r.id] = "\(done)/\(total)"
+            newSigs[r.id] = "\(r.completedCount)/\(totalCount(for: r))"
         }
 
         aiComments = newComments
-        aiSignatures = newSignatures
+        aiSignatures = newSigs
         print("✅ 자유 응원 코멘트 갱신 완료(\(targets.count)건)")
-    }
-
-    // MARK: - 자유 응원 프롬프트
-    private func makePerRoutinePrompt(title: String, total: Int, done: Int) -> String {
-        return """
-        아래 JSON 데이터를 참고해서 **자연스러운 한 줄 한국어 응원 메시지**를 만들어줘.
-        이후 출력은 두 줄:
-        1줄: 네가 만든 응원 한 줄
-        2줄: "\(max(0, total - done))회 남았어요!"  // ✅ 직접 계산
-
-        규칙:
-        - 문장은 25자 이내로 간결하게.
-        - 설명/따옴표/JSON/불릿 없이 결과만 출력.
-        - 총 두 줄만 출력.
-
-        JSON:
-        {"title":"\(title)","total":\(total),"done":\(done)}
-        """
-    }
-
-    // MARK: - AI 응답 정제 (불필요한 포맷 제거)
-    private static func sanitizeAISecondLine(raw: String) -> String {
-        let cleaned = raw
-            .replacingOccurrences(of: "```json", with: "")
-            .replacingOccurrences(of: "```", with: "")
-            .replacingOccurrences(of: "\"", with: "")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-
-        let bannedPrefixes = ["{", "}", "[", "]", "message:", "comment:"]
-        let lines = cleaned
-            .components(separatedBy: .newlines)
-            .map { $0.trimmingCharacters(in: .whitespaces) }
-            .filter { !$0.isEmpty && !bannedPrefixes.contains(where: { $0.hasPrefix($0) }) }
-
-        return lines.first ?? cleaned
     }
 }
