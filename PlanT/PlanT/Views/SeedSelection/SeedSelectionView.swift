@@ -110,11 +110,14 @@ struct SeedSelectionView: View {
             Button {
                 dismiss()
             } label: {
-                Text("닫기")
-                    .font(.title)
-                    .foregroundColor(.gray)
-                    .padding()
+                Image(systemName: "xmark")
+                    .font(.system(size: 30, weight: .bold))
+                    .foregroundColor(.red)
+                    .shadow(radius: 4, x: 0, y: 4)
             }
+            .padding(.trailing, 8)
+            .padding(.top, 8)
+
             .zIndex(1) // 스크롤 뷰 위에 항상 보이도록 zIndex 지정
         }
     }
