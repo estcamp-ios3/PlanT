@@ -66,7 +66,9 @@ final class RoutineStore: ObservableObject {
         )
 
         context.insert(newRoutine)
-        do { try context.save() } catch { print("❌ SwiftData 저장 실패:", error) }
+        do { try context.save() } catch {
+            print("❌ SwiftData 저장 실패:", error)
+        }
 
         Task {
             do {
@@ -75,7 +77,8 @@ final class RoutineStore: ObservableObject {
             } catch {
                 print("❌ Supabase 업로드 실패:", error.localizedDescription)
             }
-            await regenerateAICommentsIfNeeded()
+            // ✅ 새 루틴 1건만 AI 호출
+            await self.regenerateAIComment(for: newRoutine)
         }
 
         loadRoutines()
@@ -140,7 +143,8 @@ extension RoutineStore {
             } catch {
                 print("❌ Supabase 완료횟수 업데이트 실패:", error.localizedDescription)
             }
-            await regenerateAICommentsIfNeeded()
+            // ✅ 해당 루틴 1건만 AI 호출
+            await self.regenerateAIComment(for: routine)
         }
 
         loadRoutines()
@@ -148,21 +152,22 @@ extension RoutineStore {
     }
 }
 
-// MARK: - AlanAI 연동 (완료 루틴은 AI 호출 생략)
+// MARK: - AlanAI 연동 (여러/단일 루틴 처리)
 extension RoutineStore {
-    /// 변화가 있는 루틴만 선별 → AlanAIService에 위임 → aiComments 갱신
-    func regenerateAICommentsIfNeeded() async {
-        // 1) 시그니처 비교로 대상 선별
-        let targets: [Routine] = routines.filter { r in
+
+    /// 여러 루틴을 받아 AlanAI에 요청 → aiComments 갱신
+    func regenerateAIComments(for routinesToUpdate: [Routine]) async {
+        // 1) 시그니처 비교로 대상 선별(넘겨받은 배열 범위 내에서만)
+        let targets: [Routine] = routinesToUpdate.filter { r in
             let sig = "\(r.completedCount)/\(totalCount(for: r))"
             return aiSignatures[r.id] != sig
         }
         guard !targets.isEmpty else {
-            print("ℹ️ AI 코멘트 재생성 불필요(변화 없음)")
+            print("ℹ️ AI 코멘트 재생성 불필요(0건)")
             return
         }
 
-        // 2) 서비스에 넘길 페이로드 구성
+        // 2) 페이로드 구성
         let items: [AlanAIService.RoutineEncItem] = targets.map { r in
             .init(
                 id: r.id,
@@ -172,7 +177,7 @@ extension RoutineStore {
             )
         }
 
-        // 3) 서비스 호출(완료 루틴 처리 + 응원+남은횟수 2줄 생성 포함)
+        // 3) 서비스 호출(완료 루틴은 서비스 내부에서 고정 문구 처리됨)
         let generated: [UUID: String] = await ai.generateEncouragement(for: items)
 
         // 4) 상태 반영
@@ -189,5 +194,15 @@ extension RoutineStore {
         aiComments = newComments
         aiSignatures = newSigs
         print("✅ 자유 응원 코멘트 갱신 완료(\(targets.count)건)")
+    }
+
+    /// 단일 루틴만 AlanAI에 요청 → 내부적으로 다건 API를 1건 배열로 호출
+    func regenerateAIComment(for routine: Routine) async {
+        await regenerateAIComments(for: [routine])
+    }
+
+    /// (옵션) 기존: 전체 스캔해서 변경된 것만 갱신 — 초기 마이그레이션/백필용으로 남김
+    func regenerateAICommentsIfNeeded() async {
+        await regenerateAIComments(for: routines)
     }
 }
