@@ -10,6 +10,10 @@ import Combine
 
 @MainActor
 final class RoutineSurveyViewModel: ObservableObject {
+    @Published var reminderOffsets: Set<Int> = []
+    @Published var surveyStartDate: Date = Date()
+    @Published var surveyEndDate: Date = Date()
+    
     var categoryTitles: [String] {
         guard let categoryStep = steps.first(where: { $0.id == "category" }) else {
             return []

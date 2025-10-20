@@ -81,6 +81,8 @@ struct RoutineSurveyView: View {
                 }
                 
                 Button {
+                    print(" 선택된 알람: \(selectedAlarm)")
+                    print(" 선택된 날짜: 시작 \(startDate), 종료 \(endDate)")
                     if vm.isLast {
                         path.append(Route.seedStatus(draft: vm.draft))
                     } else {
@@ -100,12 +102,16 @@ struct RoutineSurveyView: View {
         }
         .onChange(of: vm.periodSelection) {
             updateInlineViews()
+            print(" 저장됨 - 알람 오프셋: \(vm.reminderOffsets)")
         }
         .onChange(of: vm.currentIndex) {
             updateInlineViews()
+            print(" 저장됨 - 시작일: \(vm.surveyStartDate)")
         }
         .onChange(of: vm["set_reminder"]) {
             updateInlineViews()
+            print("저장됨 - 종료일: \(vm.surveyEndDate)")
+            
         }
         .navigationDestination(for: Route.self) { route in
             switch route {
@@ -113,10 +119,18 @@ struct RoutineSurveyView: View {
                 SeedStatusView(state: .notPlanted, draft: draft, path: $path, showAddAlarmSheet: $showAddAlarmSheet)
             }
         }
+        .onAppear {
+            if !vm.reminderOffsets.isEmpty {
+                selectedAlarm = vm.reminderOffsets
+            }
+            startDate = vm.surveyStartDate
+            endDate = vm.surveyEndDate
+        }
     }
     private func updateInlineViews() {
         showInLineDatePicker = (vm.currentStep.id == "set_period") && (vm.periodSelection?.first == "no")
         
         showInLineAlarmPicker = (vm.currentStep.id == "set_reminder") && (vm["set_reminder"]?.first == "yes")
     }
+       
 }
