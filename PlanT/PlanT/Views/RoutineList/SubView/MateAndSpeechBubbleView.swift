@@ -1,8 +1,8 @@
 //
-//  SpeechBubbleView.swift
+//  MateAndSpeechBubbleView.swift
 //  PlanT
 //
-//  Created by 이지훈 on 10/20/25.
+//  Created by 이지훈 on 10/21/25.
 //
 
 import SwiftUI
@@ -28,9 +28,9 @@ struct SpeechBubbleView: View {
     
     var body: some View {
         ZStack {
-            // 말풍선 배경
+            // 말풍선
             BubbleShape()
-                .fill(Color.gray.opacity(0.25)) // 필요 시 Color("Gray400")로 변경 가능
+                .fill(Color.gray.opacity(0.25))
             
             // 텍스트
             Text(message.isEmpty ? " " : message)
@@ -47,11 +47,24 @@ struct SpeechBubbleView: View {
     }
 }
 
-// MARK: - Preview
-#Preview {
-    SpeechBubbleView(
-        message: "러닝 1회 20분씩 10회 루틴을 진행하시려는 군요! 매일 조금씩 하면 할 수 있어요!"
-    )
+
+// MARK: - 작은 서브뷰: mate 아바타 배지(원형 + 테두리)
+struct MateBadge: View {
+    let imageName: String
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .fill(Color.white)
+                .overlay(
+                    Circle().stroke(Color.gray.opacity(0.4), lineWidth: 2)
+                )
+            Image(imageName.isEmpty ? "MrPurr" : imageName)
+                .resizable()
+                .scaledToFit()
+                .padding(8)
+        }
+        .frame(width: 80, height: 80)
+        // .onTapGesture { /* TODO: 토스트 띄우기 or 화면 이동 */ }
+    }
 }
-
-
