@@ -31,9 +31,7 @@ final class NotificationManager {
         offsets: [Int],
         weekdays: [Weekday]? = nil   //  요일 기반 반복 알림 지원
     ) {
-        let center = UNUserNotificationCenter.current()
-        cancelNotifications(for: routineID)
-        
+        let center = UNUserNotificationCenter.current()        
         let calendar = Calendar.current
 
         //  요일 반복 알림이 지정된 경우
@@ -116,7 +114,7 @@ final class NotificationManager {
                         ID: \(request.identifier)
                         Title: \(request.content.title)
                         Body: \(request.content.body)
-                        Next Trigger: \(localString(date))
+                        Next Trigger: \(NotificationManager.localString(date))
                         """)
                 } else {
                 }
@@ -150,7 +148,7 @@ extension NotificationManager {
         
         let triggerDate = baseDate.addingTimeInterval(-Double(offset) * 60)
         
-        print(" 내일 9시 루틴 알림 예약됨 -> \(localString(triggerDate))")
+        print(" 내일 9시 루틴 알림 예약됨 -> \(NotificationManager.localString(triggerDate))")
         
         let content = UNMutableNotificationContent()
                 content.title = routine.title
@@ -171,12 +169,16 @@ extension NotificationManager {
                 UNUserNotificationCenter.current().add(request)
                 print(" 내일 루틴 알림 등록 완료 (\(routine.title))")
     }
+    static func localString(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "Ko_KR")
+        formatter.timeZone = .current
+        formatter.dateFormat = "yyyy년 MM월 dd일 (E) HH:mm:ss ZZZZ"
+        return formatter.string(from: date)
+    }
 }
 
-private func localString(_ date: Date) -> String {
-    let formatter = DateFormatter()
-    formatter.locale = Locale(identifier: "Ko_KR")
-    formatter.timeZone = .current
-    formatter.dateFormat = "yyyy년 MM월 dd일 (E) HH:mm:ss ZZZZ"
-    return formatter.string(from: date)
-}
+
+
+
+

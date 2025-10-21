@@ -28,7 +28,7 @@ struct RoutineRegisterView: View {
     @State private var dateMode: DateMode = .endDate
     @State private var startDate = Date()
     @State private var endDate = Date()
-    @State private var selectedAlarms: Set<Int> = [15]
+    @State fileprivate var selectedAlarms: Set<Int> = [15]
     @State private var currentMode: RoutineRegisterMode
     @State private var goToseedStatus = false
     @State private var goalDays: String = ""
@@ -405,8 +405,10 @@ extension RoutineRegisterView {
         VStack {
             if case .create = currentMode {
                 Button(action: {
-                    saveRoutine()
-                    goToseedStatus = true
+                    Task {
+                        await saveRoutine()
+                        goToseedStatus = true
+                    }
                 }) {
                     Text("다음")
                         .frame(maxWidth: .infinity)
@@ -424,7 +426,9 @@ extension RoutineRegisterView {
                     }
                     .plantSecondaryButton()
                     
-                    Button(action: saveRoutine) {
+                    Button(action: {
+                        Task { await saveRoutine() }
+                    }) {
                         Text("수정 완료")
                             .frame(maxWidth: .infinity)
                     }
@@ -454,7 +458,7 @@ extension RoutineRegisterView {
         }
     }
     
-    private func saveRoutine() {
+    private func saveRoutine() async {
         switch currentMode {
         case .create:
             print("새 루틴 등록 로직 실행")
@@ -496,24 +500,8 @@ extension RoutineRegisterView {
             do {
                 try context.save()
                 
-                NotificationManager.shared.cancelNotifications(for: routine.id)
-                    
-                routineAlarmStore.saveOffsets(
-                    for: routine.id,
-                    offsets: Array(selectedAlarms)
-                )
-                if useDate {
-                    NotificationManager.shared.scheduleNotification(
-                        for: routine.id,
-                        title: routine.title,
-                        baseDate: baseDate,
-                        offsets: Array(selectedAlarms)
-                    )
-                    print(" 지정 날짜 기반 알림 등록 완료")
-                } else  {
-                    NotificationManager.shared.scheduleTomorrow9AMNotification(for: routine)
-                        print(" 다음 루틴 오전 9시 알림 등록 완료")
-                }
+                await savePresetAndReschedule(for: routine)
+                
                 store.loadRoutines()
                 store.refreshTrigger = UUID()
                 print("루틴 수정 완료: \(routine.title)")
@@ -568,6 +556,48 @@ struct RadioButton: View {
             }
         }
         .buttonStyle(.plain)
+    }
+}
+
+extension RoutineRegisterView {
+    private func nextBaseDate() -> Date {
+        if useDate {
+            return startDate
+        } else {
+            let cal = Calendar.current
+            let today9 = cal.date(bySettingHour: 9, minute: 0, second: 0, of: Date())!
+            if today9 > Date() {
+                return today9
+            } else {
+                let tomorrow = cal.date(byAdding: .day, value: 1, to: Date())!
+                return cal.date(bySettingHour: 9, minute: 0, second: 0, of: tomorrow)!
+            }
+        }
+    }
+    private func savePresetAndReschedule(for routine:Routine) async {
+            let offsets = Array(selectedAlarms).sorted()
+            routineAlarmStore.saveOffsets(for: routine.id, offsets: offsets)
+            print(" 알림 프리셋 저장: \(offsets)")
+            
+            Task {
+                await MainActor.run {
+                    NotificationManager.shared.cancelNotifications(for: routine.id)
+                    
+                }
+                
+                
+                let base = routine.startDate ?? nextBaseDate()
+                NotificationManager.shared.scheduleNotification(
+                    for: routine.id,
+                    title: routine.title,
+                    baseDate: base,
+                    offsets: offsets
+                )
+                print(" 알림 재예약 완료 (base: \(NotificationManager.localString(base)), offsets: \(offsets))")
+            }
+            await MainActor.run {
+                NotificationManager.shared.debugPendingNotifications()
+            }
     }
 }
 

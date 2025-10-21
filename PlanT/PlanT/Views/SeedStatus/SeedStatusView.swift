@@ -62,7 +62,7 @@ struct SeedStatusView: View {
                 // 등록하기 버튼 → 루틴 리스트 화면으로 이동
                 Button("루틴 등록하기") {
                     // 기존: store.routines.insert(routine, at: 0) → 삭제
-                    if case .planted(let routine) = state {
+                    if case .planted(_) = state {
                         print("식물 심긴상태 추가")
                         let routine = Routine(
                             title: draft.routineTypeTitle.isEmpty ? "새 루틴" : draft.routineTypeTitle,
@@ -184,3 +184,4 @@ struct SeedStatusView: View {
         }
     }
 }
+
