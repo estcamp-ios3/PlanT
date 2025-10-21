@@ -125,7 +125,7 @@ struct RoutineListView: View {
             if let msg = (noti.userInfo?["message"] as? String)?
                 .trimmingCharacters(in: .whitespacesAndNewlines),
                !msg.isEmpty {
-                triggerMateToast(msg, duration: 4)
+                triggerMateToast(msg, duration: 10)
             }
         }
         
