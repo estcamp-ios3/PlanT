@@ -116,7 +116,11 @@ struct RoutineRegisterView: View {
                     path: $path, showAddAlarmSheet: $showAddAlarmSheet
                 )
             }
-            
+            .sheet(isPresented: $showAddAlarmSheet) {
+                AddAlarmSheetContentView(isPresented: $showAddAlarmSheet)
+                    .presentationDetents([.height(240)])
+                    .presentationDragIndicator(.visible)
+            }
         }
     }
 }
