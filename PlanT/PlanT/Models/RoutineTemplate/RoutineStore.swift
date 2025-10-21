@@ -72,11 +72,9 @@ final class RoutineStore: ObservableObject {
             startDate: draft.startDate,
             endDate: draft.endDate
         )
-        
+
         newRoutine.startDate = draft.startDate
         newRoutine.endDate = draft.endDate
-        
-    
 
         print("""
             ✅ ROUTINE 저장됨:
@@ -87,6 +85,7 @@ final class RoutineStore: ObservableObject {
             • DURATION: \(newRoutine.duration)
             • ALARM: \(newRoutine.alarm)
         """)
+
         context.insert(newRoutine)
         do { try context.save() } catch {
             print("❌ SwiftData 저장 실패:", error)
@@ -99,15 +98,28 @@ final class RoutineStore: ObservableObject {
             } catch {
                 print("❌ Supabase 업로드 실패:", error.localizedDescription)
             }
-            
+
             NotificationManager.shared.scheduleNotification(
                 for: newRoutine.id,
                 title: newRoutine.title,
                 baseDate: draft.startDate ?? Date(),
-                offsets: Array(reminderOffsets))
-            
-            // ✅ 새 루틴 1건만 AI 호출
-            await self.regenerateAIComment(for: newRoutine)
+                offsets: Array(reminderOffsets)
+            )
+
+
+            // ✅ AI 작업 '병렬' 실행 (코멘트 갱신은 기다리지 않음, 토스트만 먼저 받아서 띄움)
+            async let _ = self.regenerateAIComment(for: newRoutine) // 백그라운드 진행
+            async let toastMsg = self.ai.fetchNewRoutineToast(
+                title: newRoutine.title,
+                goalRaw: newRoutine.goal,
+                frequencyPerWeekTitle: newRoutine.frequencyPerWeekTitle
+            )
+
+            // 토스트만 먼저 받아서 표시
+            let toast = await toastMsg
+            DispatchQueue.main.async {
+                MateToastCenter.show(toast)  // Store에서만 토스트 발사
+            }
         }
 
         loadRoutines()
@@ -183,7 +195,6 @@ extension RoutineStore {
 
 // MARK: - AlanAI 연동 (여러/단일 루틴 처리)
 extension RoutineStore {
-
     /// 여러 루틴을 받아 AlanAI에 요청 → aiComments 갱신
     func regenerateAIComments(for routinesToUpdate: [Routine]) async {
         // 1) 시그니처 비교로 대상 선별(넘겨받은 배열 범위 내에서만)
