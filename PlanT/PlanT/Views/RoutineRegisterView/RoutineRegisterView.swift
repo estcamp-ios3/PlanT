@@ -485,18 +485,7 @@ extension RoutineRegisterView {
             routine.startDate = startDate
             routine.endDate = endDate
             routine.modifiedAt = Date()
-            
-            let baseDate: Date = {
-                if useDate {
-                    return startDate
-                } else {
-                    let calendar = Calendar.current
-                    let nineAM = calendar.date(bySettingHour: 9, minute: 0, second: 0, of: Date()) ?? Date()
-                    return nineAM
-                }
-            }()
-            
-            
+    
             do {
                 try context.save()
                 

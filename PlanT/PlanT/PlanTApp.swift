@@ -10,6 +10,8 @@ import SwiftData
 
 @main
 struct PlanTApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    
     @StateObject private var authStore = AuthStore()
     @StateObject private var routineStore: RoutineStore
     @StateObject private var alarmStore = AlarmStore()
