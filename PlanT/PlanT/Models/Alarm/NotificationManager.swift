@@ -69,7 +69,6 @@ final class NotificationManager {
             let triggerDate = baseDate.addingTimeInterval(TimeInterval(-offset * 60))
             
             if triggerDate <= Date() {
-                print(" \(offset)분 전 알림은 현재 시각보다 이전이므로 스킵됨.")
                 continue
             }
             
@@ -110,7 +109,6 @@ final class NotificationManager {
     // MARK: - 디버그용 로그
     func debugPendingNotifications() {
         UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
-            print(" 현재 등록된 알림 수: \(requests.count)")
             for request in requests {
                 if let trigger = request.trigger as? UNCalendarNotificationTrigger,
                    let date = trigger.nextTriggerDate() {
@@ -118,10 +116,9 @@ final class NotificationManager {
                         ID: \(request.identifier)
                         Title: \(request.content.title)
                         Body: \(request.content.body)
-                        Next Trigger: \(date)
+                        Next Trigger: \(localString(date))
                         """)
                 } else {
-                    print("ID: \(request.identifier) - 반복 알림 또는 트리거 없음")
                 }
             }
         }
@@ -153,7 +150,7 @@ extension NotificationManager {
         
         let triggerDate = baseDate.addingTimeInterval(-Double(offset) * 60)
         
-        print(" 내일 9시 루틴 알림 예약됨 -> \(triggerDate)")
+        print(" 내일 9시 루틴 알림 예약됨 -> \(localString(triggerDate))")
         
         let content = UNMutableNotificationContent()
                 content.title = routine.title
@@ -174,4 +171,12 @@ extension NotificationManager {
                 UNUserNotificationCenter.current().add(request)
                 print(" 내일 루틴 알림 등록 완료 (\(routine.title))")
     }
+}
+
+private func localString(_ date: Date) -> String {
+    let formatter = DateFormatter()
+    formatter.locale = Locale(identifier: "Ko_KR")
+    formatter.timeZone = .current
+    formatter.dateFormat = "yyyy년 MM월 dd일 (E) HH:mm:ss ZZZZ"
+    return formatter.string(from: date)
 }

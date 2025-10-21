@@ -80,10 +80,6 @@ struct SeedGrowthStatusView: View {
         
         .onAppear {
             localProgress = store.progress(for: routine)
-            print("👉 progress:", progress)
-            print("👉 currentStage:", currentStage)
-            print("✅ seedName:", routine.seedName ?? "nil")
-            print("✅ seedImagePath:", routine.seedImage(for: progress,totalCount: totalCount))
         }
     }
     private var displayName: String {

@@ -63,6 +63,23 @@ struct SeedStatusView: View {
                 Button("루틴 등록하기") {
                     // 기존: store.routines.insert(routine, at: 0) → 삭제
                     if case .planted(let routine) = state {
+                        print("식물 심긴상태 추가")
+                        let routine = Routine(
+                            title: draft.routineTypeTitle.isEmpty ? "새 루틴" : draft.routineTypeTitle,
+                            categoryId: draft.categoryId,
+                            seedName: seed.imagePrefix,
+                            duration: draft.durationTitle,
+                            goal: draft.goal,
+                            alarm: draft.reminderOn ? .every24Hours : .every48Hours,
+                            frequencyPerWeekId: draft.frequencyPerWeekId,
+                            frequencyPerWeekTitle: draft.frequencyPerWeekTitle,
+                            note: nil,
+                            isCompleted: false,
+                            createdAt: Date(),
+                            modifiedAt: Date()
+                        )
+
+                        
                         store.addRoutine(
                             from: seed,
                             basedOn: routine,
@@ -70,8 +87,25 @@ struct SeedStatusView: View {
                             draft: draft,
                             reminderOffsets: draft.reminderOffsets
                         )
+                        
+
+                            NotificationManager.shared.scheduleTomorrow9AMNotification(for: routine)
+                        print(" 알림 예약 시도 (내일 9시)")
+
+
+                            NotificationManager.shared.scheduleNotification(
+                                for: routine.id,
+                                title: routine.title,
+                                baseDate: draft.startDate ?? Date(),
+                                offsets: Array(draft.reminderOffsets)
+                            )
+                        print(" 일반 알림 예약 시도")
+
+                        
                         path = NavigationPath()
                     } else {
+                        print("식물 안심겼을때 새 루틴 생성 시작")
+
                         // .notPlanted 상태에서는 draft와 seed로 Routine 생성 & 추가
                         let routine = Routine(
                             title: draft.routineTypeTitle.isEmpty ? "새 루틴" : draft.routineTypeTitle,
@@ -87,11 +121,13 @@ struct SeedStatusView: View {
                             createdAt: Date(),
                             modifiedAt: Date()
                         )
+                        print("안 심긴 새 루틴 생성 완료: \(routine.title) / 완료상태: \(routine.isCompleted)")
+
                         store.addRoutine(from: seed, basedOn: routine, categoryId: draft.categoryId, draft: draft, reminderOffsets: draft.reminderOffsets)
-                        print("🔔 알림 예약 시도 (내일 9시)")
+                        print("안 심긴 알림 예약 시도 (내일 9시)")
 
                             NotificationManager.shared.scheduleTomorrow9AMNotification(for: routine)
-                        print("🔔 일반 알림 예약 시도")
+                        print("안 심긴 일반 알림 예약 시도")
 
                             NotificationManager.shared.scheduleNotification(
                                 for: routine.id,

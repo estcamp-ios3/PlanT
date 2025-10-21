@@ -69,7 +69,7 @@ struct RoutineCardModernView: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color("white"))
+                .fill(Color.white)
                 .shadow(color: .black.opacity(0.05), radius: 6, x:0, y: 3)
         )
         .overlay(
@@ -77,13 +77,7 @@ struct RoutineCardModernView: View {
                 .stroke(Color.gray400,lineWidth: 1)
         )
         .onAppear {
-            print("""
-                 ROUTINE CARD 렌더링
-                • Title: \(routine.title)
-                • Goal: \(routine.goal)
-                • Alarm 설정 여부: \(routine.alarm)
-                • Seed 이미지: \(routine.seedImage(for: progress, totalCount: totalCount))
-                """)
+         
         }
     }
 }

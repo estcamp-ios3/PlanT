@@ -496,21 +496,23 @@ extension RoutineRegisterView {
             do {
                 try context.save()
                 
+                NotificationManager.shared.cancelNotifications(for: routine.id)
+                    
                 routineAlarmStore.saveOffsets(
                     for: routine.id,
                     offsets: Array(selectedAlarms)
                 )
-                
-                if !routine.isCompleted {
-                    NotificationManager.shared.scheduleTomorrow9AMNotification(for: routine)
-                } else {
-                    
+                if useDate {
                     NotificationManager.shared.scheduleNotification(
                         for: routine.id,
                         title: routine.title,
                         baseDate: baseDate,
                         offsets: Array(selectedAlarms)
                     )
+                    print(" 지정 날짜 기반 알림 등록 완료")
+                } else  {
+                    NotificationManager.shared.scheduleTomorrow9AMNotification(for: routine)
+                        print(" 다음 루틴 오전 9시 알림 등록 완료")
                 }
                 store.loadRoutines()
                 store.refreshTrigger = UUID()
