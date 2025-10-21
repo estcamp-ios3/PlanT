@@ -88,13 +88,17 @@ struct SeedStatusView: View {
                             modifiedAt: Date()
                         )
                         store.addRoutine(from: seed, basedOn: routine, categoryId: draft.categoryId, draft: draft, reminderOffsets: draft.reminderOffsets)
-                        
-                        NotificationManager.shared.scheduleNotification(
-                            for: routine.id,
-                            title: routine.title,
-                            baseDate: draft.startDate ?? Date(),
-                            offsets: Array(draft.reminderOffsets)
-                        )
+                        print("🔔 알림 예약 시도 (내일 9시)")
+
+                            NotificationManager.shared.scheduleTomorrow9AMNotification(for: routine)
+                        print("🔔 일반 알림 예약 시도")
+
+                            NotificationManager.shared.scheduleNotification(
+                                for: routine.id,
+                                title: routine.title,
+                                baseDate: draft.startDate ?? Date(),
+                                offsets: Array(draft.reminderOffsets)
+                            )
                         
                         
                         

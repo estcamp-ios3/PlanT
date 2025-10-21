@@ -160,8 +160,8 @@ extension RoutineRegisterView {
             
             goalTask = routine.duration.replacingOccurrences(of: "일", with: "")
             
-            startDate = Date()
-            endDate = Date()
+            startDate = routine.startDate ?? Date()
+            endDate = routine.endDate ?? Date()
         }
     }
 }
@@ -252,74 +252,12 @@ extension RoutineRegisterView {
             startDate: $startDate,
             endDate: $endDate
         )
-        
-//        VStack(alignment: .leading, spacing: 8) {
-//            HStack {
-//                Text("날짜 사용")
-//                    .font(.subheadline).bold()
-//                Spacer()
-//                Toggle("", isOn: $useDate)
-//                    .labelsHidden()
-//                    .toggleStyle(CustomToggleStyle())
-//            }
-//            
-//            
-//            if useDate {
-//                HStack(spacing: 16) {
-//                    RadioButton(
-//                        label: "종료일",
-//                        isSelected: dateMode == .endDate
-//                    ) {
-//                        dateMode = .endDate
-//                    }
-//                    
-//                    RadioButton(
-//                        label: "종일",
-//                        isSelected: dateMode == .allDay
-//                    ) {
-//                        dateMode = .allDay
-//                    }
-//                }
-//                
-//                if dateMode == .endDate {
-//                    HStack {
-//                        Spacer()
-//                        VStack(alignment: .leading, spacing: 12) {
-//                            DatePicker("시작일", selection: $startDate, displayedComponents: .date)
-//                                .datePickerStyle(.compact)
-//                                .labelsHidden()
-//                                .frame(height: 40)
-//                            DatePicker("", selection: $startDate, displayedComponents: .hourAndMinute)
-//                                .datePickerStyle(.compact)
-//                                .labelsHidden()
-//                                .frame(height: 40)
-//                        }
-//                        Image("greater_than_chevron_wide")
-//                            .resizable()
-//                            .frame(width: 20, height: 20)
-//                        VStack(alignment: .leading, spacing: 12) {
-//                            DatePicker("종료일", selection: $endDate, displayedComponents: .date)
-//                                .datePickerStyle(.compact)
-//                                .labelsHidden()
-//                                .frame(height: 40)
-//                            DatePicker("", selection: $endDate, displayedComponents: .hourAndMinute)
-//                                .datePickerStyle(.compact)
-//                                .labelsHidden()
-//                                .frame(height: 40)
-//                        }
-//                        Spacer()
-//                    }
-//                } else {
-//                    VStack(alignment: .leading, spacing: 12) {
-//                        DatePicker("종일 날짜", selection: $endDate, displayedComponents: .date)
-//                            .datePickerStyle(.compact)
-//                            .labelsHidden()
-//                            .frame(height: 40)
-//                    }
-//                    .padding(.top, 8)
-//                }
-//            }
-//        }
+        if !useDate {
+            Text("알림기준: 다음루틴 오전 9시")
+                .font(.footnote)
+                .foregroundColor(.gray400)
+                .padding(.top, 4)
+        }
     }
 }
 
@@ -540,7 +478,20 @@ extension RoutineRegisterView {
             routine.goal = "\(goalHours)분/일"
             routine.frequencyPerWeekId = "\(goalDays)x"
             routine.duration = "\(goalTask)일"
+            routine.startDate = startDate
+            routine.endDate = endDate
             routine.modifiedAt = Date()
+            
+            let baseDate: Date = {
+                if useDate {
+                    return startDate
+                } else {
+                    let calendar = Calendar.current
+                    let nineAM = calendar.date(bySettingHour: 9, minute: 0, second: 0, of: Date()) ?? Date()
+                    return nineAM
+                }
+            }()
+            
             
             do {
                 try context.save()
@@ -550,12 +501,17 @@ extension RoutineRegisterView {
                     offsets: Array(selectedAlarms)
                 )
                 
-                NotificationManager.shared.scheduleNotification(
-                    for: routine.id,
-                    title: routine.title,
-                    baseDate: startDate,
-                    offsets: Array(selectedAlarms)
-                )
+                if !routine.isCompleted {
+                    NotificationManager.shared.scheduleTomorrow9AMNotification(for: routine)
+                } else {
+                    
+                    NotificationManager.shared.scheduleNotification(
+                        for: routine.id,
+                        title: routine.title,
+                        baseDate: baseDate,
+                        offsets: Array(selectedAlarms)
+                    )
+                }
                 store.loadRoutines()
                 store.refreshTrigger = UUID()
                 print("루틴 수정 완료: \(routine.title)")

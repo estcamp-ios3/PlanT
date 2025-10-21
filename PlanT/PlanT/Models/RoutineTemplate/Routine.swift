@@ -18,7 +18,7 @@ var seedPrefix: String?
 // MARK: - 루틴 모델
 // 개별 루틴 하나를 표현하는 데이터
 @Model
-final class Routine: Identifiable{
+final class Routine {
     var id = UUID()
     var title: String
     
