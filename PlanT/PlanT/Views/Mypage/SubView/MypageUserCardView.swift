@@ -16,9 +16,9 @@ struct MypageUserCardView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: vertical3) {
             // 상단: 아바타 + 닉네임 + 설정 버튼
-            HStack(alignment: .center, spacing: 12) {
+            HStack(alignment: .center, spacing: vertical3) {
                 Image(viewModel.model.mateName)
                     .resizable()
                     .scaledToFit()
@@ -27,7 +27,7 @@ struct MypageUserCardView: View {
                     .background(Circle().fill(Color.white))
 
                 Text(viewModel.model.nickName)
-                    .font(.system(size: 18, weight: .heavy))
+                    .font(.system(size: vertical5, weight: .heavy))
                     .foregroundColor(.black)
                     .lineSpacing(2)
 
@@ -37,7 +37,7 @@ struct MypageUserCardView: View {
                 Button("설정") {
                     viewModel.tapSettings()
                 }
-                .font(.system(size: 14, weight: .semibold))
+                .font(.system(size: 14, weight: .bold))
                 .foregroundColor(.gray)
                 .padding(6)
             }
@@ -45,22 +45,25 @@ struct MypageUserCardView: View {
             // 하단 통계 섹션
             HStack(spacing: 16) {
                 StatItem(
-                    icon: Image(systemName: "leaf.fill"),
+                    icon: Image("sprout"),
                     label: "성장중인 작물",
                     value: viewModel.model.growingCount,
-                    tint: Color.green
+                    tint: Color.green,
+                    iconSize: 170
                 )
                 StatItem(
-                    icon: Image(systemName: "globe"),
+                    icon: Image("pumpkin"),
                     label: "수확한 작물",
                     value: viewModel.model.harvestedCount,
-                    tint: Color.blue
+                    tint: Color.blue,
+                    iconSize: 170
                 )
                 StatItem(
-                    icon: Image(systemName: "circlebadge.fill"),
+                    icon: Image("point"),
                     label: "보유포인트",
                     value: viewModel.model.points,
-                    tint: Color.orange
+                    tint: Color.orange,
+                    iconSize: 170
                 )
             }
         }
@@ -82,15 +85,20 @@ private struct StatItem: View {
     let label: String
     let value: Int
     let tint: Color
+    var iconSize: CGFloat = 36
 
     var body: some View {
         HStack(spacing: vertical2) {
-            icon
-                .resizable()
-                .scaledToFit()
-                .frame(width: 28, height: 28)
-                .foregroundStyle(tint)
-                .shadow(color: .black.opacity(0.08), radius: 2, x: 0, y: 1)
+            ZStack {
+                icon
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: iconSize, height: iconSize)
+                    .foregroundStyle(tint)
+                    .shadow(color: .black.opacity(0.08), radius: 2, x: 0, y: 1)
+            }
+            .frame(width: 36, height: 36)
+            .offset(x: vertical1)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(label)
