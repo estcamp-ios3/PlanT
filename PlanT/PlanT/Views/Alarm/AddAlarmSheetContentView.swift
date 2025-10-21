@@ -11,6 +11,7 @@ struct AddAlarmSheetContentView: View {
     @EnvironmentObject var alarmStore: AlarmStore
     @State private var newAlarmInput = ""
     @State private var showAlert = false
+    @StateObject private var keyboard = KeyboardResponder()
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -47,6 +48,8 @@ struct AddAlarmSheetContentView: View {
             .plantPrimaryButton()
 
         }
+        .padding(.bottom, keyboard.keyboardHeight)
+        .animation(.easeOut(duration: 0.25), value: keyboard.keyboardHeight)
         .alert("이미 존재하거나 기본값은 추가할 수 없어요.", isPresented: $showAlert) {
             Button("확인", role: .cancel) {}
         }
