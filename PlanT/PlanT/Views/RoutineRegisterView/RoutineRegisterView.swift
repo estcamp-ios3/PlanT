@@ -406,7 +406,9 @@ extension RoutineRegisterView {
                 Button(action: {
                     Task {
                         await saveRoutine()
-                        goToseedStatus = true
+                        await MainActor.run {
+                            goToseedStatus = true
+                        }
                     }
                 }) {
                     Text("다음")
