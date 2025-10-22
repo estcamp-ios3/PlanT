@@ -53,7 +53,6 @@ struct MateBadge: View {
         ZStack {
             Circle()
                 .fill(Color.white)
-                .overlay(Circle().stroke(Color.gray.opacity(0.4), lineWidth: 2))
             Image(imageName.isEmpty ? "MrPurr" : imageName)
                 .resizable()
                 .scaledToFit()
