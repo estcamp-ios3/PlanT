@@ -51,8 +51,6 @@ struct MateBadge: View {
     let imageName: String
     var body: some View {
         ZStack {
-            Circle()
-                .fill(Color.white)
             Image(imageName.isEmpty ? "MrPurr" : imageName)
                 .resizable()
                 .scaledToFit()
@@ -79,8 +77,8 @@ private struct MateToastPreview: View {
             let avatarWidth: CGFloat = 80
             let leftPadding: CGFloat = 20
             let baseSpacing: CGFloat = 10
-            let overlapX: CGFloat = 24 // 좌우 위치
-            let overlapY: CGFloat = 50 // 상하 위치
+            let overlapX: CGFloat = 12 // 좌우값
+            let overlapY: CGFloat = 0 // 상하값
 
             ZStack(alignment: .bottomLeading) {
                 MateBadge(imageName: "MrPurr")
