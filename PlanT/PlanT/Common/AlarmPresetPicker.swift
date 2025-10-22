@@ -68,7 +68,7 @@ struct AlarmPresetPicker: View {
                                 : selectedAlarms.contains(minute) ? Color.orange : Color.gray.opacity(0.2)
                             )
                             .foregroundColor(.black)
-                            .cornerRadius(8)
+                            .cornerRadius(30)
                     }
                 }
 
