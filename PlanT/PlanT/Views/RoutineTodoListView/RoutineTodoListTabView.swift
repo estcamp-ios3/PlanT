@@ -30,13 +30,13 @@ struct RoutineTodoListTabView: View {
 
     var body: some View {
         VStack(spacing: 12) {
-            Picker("목록 유형", selection: $selected) {
-                ForEach(Segment.allCases) { seg in
-                    Text(seg.title).tag(seg)
-                }
-            }
-            .pickerStyle(.segmented)
-            .padding([.horizontal, .top])
+//            Picker("목록 유형", selection: $selected) {
+//                ForEach(Segment.allCases) { seg in
+//                    Text(seg.title).tag(seg)
+//                }
+//            }
+//            .pickerStyle(.segmented)
+//            .padding([.horizontal, .top])
 
             if selected == .routine {
                 RoutineListView(path: $path, showAddAlarmSheet: $showAddRoutineSheet)
