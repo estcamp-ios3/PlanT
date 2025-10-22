@@ -7,6 +7,7 @@
 
 import Foundation
 import Combine
+import SwiftUI
 
 @MainActor
 final class RoutineSurveyViewModel: ObservableObject {
@@ -172,7 +173,14 @@ final class RoutineSurveyViewModel: ObservableObject {
     }
     // 이전 단계로 이동
     func back() {
-        if !isFirst { currentIndex -= 1 }
+        if !isFirst {
+            currentIndex -= 1
+            let remainingSteps = steps.suffix(from: currentIndex + 1)
+            for step in remainingSteps {
+                selections.removeValue(forKey: step.id)
+            }
+            objectWillChange.send()
+        }
     }
     // 현재 선택된 카테고리 id를 slug로 변환
     private func normalizedSlug(from categoryKey: String) -> String? {
@@ -290,4 +298,41 @@ extension RoutineSurveyViewModel {
     subscript(stepId: String) -> Set<String>? {
         selections[stepId]
     }
+    
+    var progressiveSentence: AttributedString {
+        var result = AttributedString()
+        
+        if let freq = displayValue(for: "frequency_per_week") {
+            var part = AttributedString("\(freq) ")
+            part.foregroundColor = .orange
+            result.append(part)
+        }
+        if let duration = displayValue(for: "duration") {
+        var part = AttributedString(" / \(duration) 씩  ")
+            part.foregroundColor = .orange
+            result.append(part)
+        }
+        if let typeId = selections["health_type"]?.first {
+            let typeTitle = title(for: "health_type", optionId: typeId)
+            var part = AttributedString("\(typeTitle)(을)를 ")
+            part.foregroundColor = .orange
+            result.append(part)
+        }
+        if let period = displayValue(for: "set_period") {
+            let text = (period == "no") ? "기간 없이 " : " 기간을 설정하여 "
+            var part = AttributedString(text)
+            part.foregroundColor = .blue
+            result.append(part)
+        }
+        if let reminder = displayValue(for: "set_reminder") {
+            let text = (reminder == "yes")
+            ? "알림을 설정 합니다."
+            : "알림을 설정하지 않습니다."
+            var part = AttributedString(text)
+            part.foregroundColor = .gray
+            result.append(part)
+        }
+        return result
+    }
 }
+

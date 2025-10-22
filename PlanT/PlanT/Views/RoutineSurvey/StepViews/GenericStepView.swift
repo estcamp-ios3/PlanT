@@ -23,6 +23,17 @@ struct GenericStepView: View {
         
         return Group {
             VStack(alignment: .leading, spacing: vertical1) {
+                
+                if vm.currentIndex > 0 {
+                    Text(vm.progressiveSentence)
+                        .font(.title)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .transition(.opacity.combined(with: .move(edge: .bottom)))
+                        .animation(.easeInOut(duration: 0.4), value: vm.currentIndex)
+                        .padding(.bottom, 4)
+                        .bold()
+                }
+                
                 if step.id == "health_type", let catTitle = vm.selectedCategoryTitle {
                     // 선택된 카테고리 제목만 PlantPrimary 컬러 적용
                     (
@@ -40,31 +51,27 @@ struct GenericStepView: View {
                         .foregroundStyle(Color("Gray900"))
                         .bold()
                 }
-                
+               
                 Text(step.title)
                     .font(.title)
                     .bold()
                     .foregroundStyle(Color("Gray900"))
                 
-                let prev = vm.priorAnswers()
-                if !prev.isEmpty {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 8) {
-                            ForEach(Array(prev.enumerated()), id: \.offset) { _, item in
-                                HStack(spacing: 6) {
-                                    Text(item.answer)
-                                        .font(.subheadline).bold()
-                                        .foregroundStyle(Color("Gray900"))
-                                }
-                                .padding(.vertical, 6)
-                                .padding(.horizontal, 10)
-                                .background(Color("BrandSecondary"))
-                                .clipShape(Capsule())
-                                .accessibilityLabel(Text("이전 답변: \(item.question) — \(item.answer)"))
-                            }
-                        }
-                    }
-                }
+//                let prev = vm.priorAnswers()
+//                if !prev.isEmpty {
+//                   
+//                    let sentence = prev.map { $0.answer }.joined(separator: " → ")
+//                   
+//                    Text(sentence)
+//                        .font(.subheadline)
+//                        .foregroundColor(Color("Gray900"))
+//                        .padding(10)
+//                        .background(Color("BrandSecondary")).opacity(0.3)
+//                        .cornerRadius(12)
+//                        .frame(maxWidth: .infinity, alignment: .leading)
+//                        .transition(.opacity.combined(with: .move(edge: .bottom)))
+//                        .animation(.easeInOut(duration: 0.4), value: sentence)
+//                }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             
@@ -124,12 +131,13 @@ struct GenericStepView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
                 
             case .summary:
-                Text(vm.summaryText)
-                    .font(.callout)
-                    .padding()
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
-                    .frame(maxWidth: .infinity)
+                EmptyView()
+//                Text(vm.summaryText)
+//                    .font(.callout)
+//                    .padding()
+//                    .frame(maxWidth: .infinity, alignment: .leading)
+//                    .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
+//                    .frame(maxWidth: .infinity)
             default: EmptyView()
             }
             

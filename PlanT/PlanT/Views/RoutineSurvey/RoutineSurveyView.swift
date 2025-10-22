@@ -13,6 +13,7 @@ extension Notification.Name {
 
 struct RoutineSurveyView: View {
     @StateObject private var vm = RoutineSurveyViewModel()
+    @State private var refreshKey = UUID()
     @State private var showInLineDatePicker: Bool = false
     @State private var showInLineAlarmPicker: Bool = false
     @State private var isAllday = false
@@ -119,12 +120,15 @@ struct RoutineSurveyView: View {
                 SeedStatusView(state: .notPlanted, draft: draft, path: $path, showAddAlarmSheet: $showAddAlarmSheet)
             }
         }
+        .id(refreshKey)
         .onAppear {
+            refreshKey = UUID()
             if !vm.reminderOffsets.isEmpty {
                 selectedAlarm = vm.reminderOffsets
             }
             startDate = vm.surveyStartDate
             endDate = vm.surveyEndDate
+            
         }
     }
     private func updateInlineViews() {
