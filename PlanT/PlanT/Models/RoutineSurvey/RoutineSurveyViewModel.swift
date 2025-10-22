@@ -14,7 +14,7 @@ final class RoutineSurveyViewModel: ObservableObject {
     @Published var reminderOffsets: Set<Int> = []
     @Published var surveyStartDate: Date = Date()
     @Published var surveyEndDate: Date = Date()
-    
+    @Published var progressiveSentence: AttributedString = AttributedString()
     var categoryTitles: [String] {
         guard let categoryStep = steps.first(where: { $0.id == "category" }) else {
             return []
@@ -169,7 +169,9 @@ final class RoutineSurveyViewModel: ObservableObject {
     func next() {
         guard canGoNext else { return }
         
-        if !isLast { currentIndex += 1 }
+        if !isLast {
+            currentIndex += 1 }
+        updateProgressiveSentence()
     }
     // 이전 단계로 이동
     func back() {
@@ -298,41 +300,53 @@ extension RoutineSurveyViewModel {
     subscript(stepId: String) -> Set<String>? {
         selections[stepId]
     }
-    
-    var progressiveSentence: AttributedString {
-        var result = AttributedString()
-        
-        if let freq = displayValue(for: "frequency_per_week") {
-            var part = AttributedString("\(freq) ")
-            part.foregroundColor = .orange
-            result.append(part)
-        }
-        if let duration = displayValue(for: "duration") {
-        var part = AttributedString(" / \(duration) 씩  ")
-            part.foregroundColor = .orange
-            result.append(part)
-        }
-        if let typeId = selections["health_type"]?.first {
-            let typeTitle = title(for: "health_type", optionId: typeId)
-            var part = AttributedString("\(typeTitle)(을)를 ")
-            part.foregroundColor = .orange
-            result.append(part)
-        }
-        if let period = displayValue(for: "set_period") {
-            let text = (period == "no") ? "기간 없이 " : " 기간을 설정하여 "
-            var part = AttributedString(text)
-            part.foregroundColor = .blue
-            result.append(part)
-        }
-        if let reminder = displayValue(for: "set_reminder") {
-            let text = (reminder == "yes")
-            ? "알림을 설정 합니다."
-            : "알림을 설정하지 않습니다."
-            var part = AttributedString(text)
-            part.foregroundColor = .gray
-            result.append(part)
-        }
-        return result
+    func updateProgressiveSentence() {
+            var result = AttributedString()
+            
+            if let freq = displayValue(for: "frequency_per_week") {
+                var part = AttributedString("\(freq) ")
+                part.foregroundColor = .orange
+                result.append(part)
+            }
+            if let duration = displayValue(for: "duration") {
+                var part = AttributedString(" / \(duration) 씩  ")
+                part.foregroundColor = .orange
+                result.append(part)
+            }
+            if let typeId = selections["health_type"]?.first {
+                let typeTitle = title(for: "health_type", optionId: typeId)
+                var part = AttributedString("\(typeTitle)(을)를 ")
+                part.foregroundColor = .orange
+                result.append(part)
+            }
+            if let period = displayValue(for: "set_period") {
+                if period == "yes" {
+                    var part = AttributedString("기간 없이 ")
+                    part.foregroundColor = .blue
+                    result.append(part)
+                } else {
+                    let days = Calendar.current.dateComponents([.day], from: surveyStartDate, to: surveyEndDate).day ?? 0
+                    let durationText = days > 0 ? "\(days)일 동안" : "1일 동안"
+                    
+                    var part = AttributedString(durationText)
+                    part.foregroundColor = .blue
+                    result.append(part)
+                }
+            }
+            if let reminder = displayValue(for: "set_reminder") {
+                let text: String
+                if reminder == "예" {
+                    text = "매일 알람을 설정 합니다."
+                } else if reminder == "아니요" {
+                    text = "알림을 설정하지 않습니다."
+                } else {
+                    text = ""
+                }
+                var part = AttributedString(text)
+                part.foregroundColor = .gray
+                result.append(part)
+            }
+            progressiveSentence = result
     }
 }
 

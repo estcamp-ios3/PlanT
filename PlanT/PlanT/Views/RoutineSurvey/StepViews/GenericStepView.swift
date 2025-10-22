@@ -18,7 +18,6 @@ struct GenericStepView: View {
     
     
     var body: some View {
-        // Compute displayOptions outside of the ViewBuilder to avoid returning Void in a ViewBuilder context
         let displayOptions: [Option] = vm.options(for: step)
         
         return Group {
@@ -56,22 +55,6 @@ struct GenericStepView: View {
                     .font(.title)
                     .bold()
                     .foregroundStyle(Color("Gray900"))
-                
-//                let prev = vm.priorAnswers()
-//                if !prev.isEmpty {
-//                   
-//                    let sentence = prev.map { $0.answer }.joined(separator: " → ")
-//                   
-//                    Text(sentence)
-//                        .font(.subheadline)
-//                        .foregroundColor(Color("Gray900"))
-//                        .padding(10)
-//                        .background(Color("BrandSecondary")).opacity(0.3)
-//                        .cornerRadius(12)
-//                        .frame(maxWidth: .infinity, alignment: .leading)
-//                        .transition(.opacity.combined(with: .move(edge: .bottom)))
-//                        .animation(.easeInOut(duration: 0.4), value: sentence)
-//                }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             
@@ -132,17 +115,11 @@ struct GenericStepView: View {
                 
             case .summary:
                 EmptyView()
-//                Text(vm.summaryText)
-//                    .font(.callout)
-//                    .padding()
-//                    .frame(maxWidth: .infinity, alignment: .leading)
-//                    .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
-//                    .frame(maxWidth: .infinity)
+
             default: EmptyView()
             }
             
         }
-//        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .onChange(of: step.id) { oldValue, newValue in
             showCustomField = false
             customText = ""
