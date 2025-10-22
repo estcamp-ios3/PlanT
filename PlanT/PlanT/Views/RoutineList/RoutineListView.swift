@@ -94,33 +94,33 @@ struct RoutineListView: View {
             // 레이아웃 상수
             let avatarWidth: CGFloat = 80
             let leftPadding: CGFloat = 20
-            let baseSpacing: CGFloat = 10      // Mate ↔︎ 말풍선 기본 간격
-            let overlapX: CGFloat = 12         // 말풍성 좌우
-            let overlapY: CGFloat = 45          // 말풍선 상하
-            
+            let baseSpacing: CGFloat = 10
+            let overlapX: CGFloat = 12 // 좌우값
+            let overlapY: CGFloat = 0 // 상하값
+
             ZStack(alignment: .bottomLeading) {
-                // Mate 아바타 (Supabase에서 가져오는 값 사용)
-                MateBadge(imageName: authStore.mate ?? "MrPurr")
-                    .padding(.leading, leftPadding)
-                    .zIndex(5)
-                
-                // 말풍선 토스트 (보일 때만)
                 if isToastVisible {
+                    // ✅ Mate 아바타도 토스트와 함께 등장/퇴장
+                    MateBadge(imageName: authStore.mate ?? "MrPurr")
+                        .padding(.leading, leftPadding)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                        .zIndex(5)
+
+                    // ✅ 말풍선도 동일 타이밍으로 등장/퇴장
                     SpeechBubbleView(
                         message: toastMessage,
                         maxWidth: UIScreen.main.bounds.width * 0.7
                     )
-                    // 아바타 오른쪽에 기본 배치 후, 살짝 왼쪽/위로 당겨 겹치기
                     .padding(.leading, leftPadding + avatarWidth + baseSpacing)
                     .offset(x: -overlapX, y: -overlapY)
-                    .transition(.opacity)                   // 빠른 fade-in, 보통속도 fade-out은 트리거에서 처리
-                    .zIndex(10)                             // Mate 위로
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .zIndex(10)
                 }
+                
             }
             .padding(.bottom, 20)
         }
         
-        // ✅ 전역 토스트 트리거만 수신
         .onReceive(NotificationCenter.default.publisher(for: .showMateToast)) { noti in
             if let msg = (noti.userInfo?["message"] as? String)?
                 .trimmingCharacters(in: .whitespacesAndNewlines),
