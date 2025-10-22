@@ -152,7 +152,7 @@ extension NotificationManager {
         
         let content = UNMutableNotificationContent()
                 content.title = routine.title
-                content.body = "15분 후에 루틴을 시작할 시간이에요!"
+                content.body = "\(offset) 후에 루틴을 시작할 시간이에요!"
                 content.sound = .default
                 
                 let trigger = UNCalendarNotificationTrigger(
