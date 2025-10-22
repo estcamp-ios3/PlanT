@@ -55,14 +55,14 @@ final class RoutineSurveyViewModel: ObservableObject {
                   minSelection: 1, maxSelection: 1),
         
             .init(id: "duration", kind: .single,
-                  title: "한 번 할 때 몇 분 할까요?",
+                  title: "한 번에 몇 분 할까요?",
                   message: nil,
                   options: ["10분","20분","30분","40분"].map { .init(id: $0, title: $0) } + [.init(id: "custom_input", title: "직접 입력", icon: "square.and.pencil")],
                   minSelection: 1, maxSelection: 1),
         
             .init(id: "set_period", kind: .confirm,
-                  title: "기간 없이 진행할까요?",
-                  message: "나중에 언제든 변경할 수 있어요.",
+                  title: "(나중에 변경 할 수 있어요.)",
+                  message: " 루틴 만드는 기간을 정할까요?",
                   options: [.init(id: "yes", title: "예"), .init(id: "no", title: "아니요")],
                   minSelection: 1, maxSelection: 1),
         
@@ -309,13 +309,13 @@ extension RoutineSurveyViewModel {
                 result.append(part)
             }
             if let duration = displayValue(for: "duration") {
-                var part = AttributedString(" / \(duration) 씩  ")
+                var part = AttributedString(" / \(duration) 씩 \n ")
                 part.foregroundColor = .orange
                 result.append(part)
             }
             if let typeId = selections["health_type"]?.first {
                 let typeTitle = title(for: "health_type", optionId: typeId)
-                var part = AttributedString("\(typeTitle)(을)를 ")
+                var part = AttributedString("\(typeTitle)(을)를 할때  ")
                 part.foregroundColor = .orange
                 result.append(part)
             }

@@ -62,6 +62,11 @@ struct RoutineRegisterView: View {
         if case .edit(let routine) = currentMode { return routine }
         return nil
     }
+    private var isCreateOrEdit: Bool {
+        if case .create = currentMode { return true }
+        if case .edit = currentMode { return true }
+        return false
+    }
     
     
     enum DateMode { case endDate, allDay }
@@ -268,7 +273,7 @@ extension RoutineRegisterView {
                 Text("목표")
                     .font(.headline).bold()
                 
-                if case .edit = currentMode {
+                if isCreateOrEdit {
                     Spacer()
                     Button {
                         
@@ -333,7 +338,7 @@ extension RoutineRegisterView {
                     Button(role: .destructive) {
                         isDeleteMode = true
                     } label: {
-                        Image(systemName: "minus")
+                        Image(systemName: "pencil.tip.crop.circle.badge.minus")
                             .font(.system(size: 20, weight: .bold))
                             .padding(6)
                     }

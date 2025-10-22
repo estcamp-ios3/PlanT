@@ -40,6 +40,7 @@ final class Routine {
 
     var startDate: Date?
     var endDate: Date?
+    var goalsJSON: String?
     
     init(
         id: UUID = UUID(),
@@ -137,6 +138,15 @@ extension Routine {
             createdAt: createdAt,
             modifiedAt: modifiedAt
         )
+    }
+}
+
+extension Routine {
+    func decodedGoals() -> [[String: String]] {
+        guard let data = goalsJSON?.data(using: .utf8) else {
+            return []
+        }
+        return (try? JSONSerialization.jsonObject(with: data)) as? [[String: String]] ?? []
     }
 }
 

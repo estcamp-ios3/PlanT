@@ -132,7 +132,7 @@ struct RoutineSurveyView: View {
         }
     }
     private func updateInlineViews() {
-        showInLineDatePicker = (vm.currentStep.id == "set_period") && (vm.periodSelection?.first == "no")
+        showInLineDatePicker = (vm.currentStep.id == "set_period") && (vm.periodSelection?.first == "yes")
         
         showInLineAlarmPicker = (vm.currentStep.id == "set_reminder") && (vm["set_reminder"]?.first == "yes")
     }
