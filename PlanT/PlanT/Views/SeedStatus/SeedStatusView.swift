@@ -143,13 +143,14 @@ struct SeedStatusView: View {
                 }
                 .plantPrimaryButton()
                 .padding(.horizontal, 20)
-                
+                .padding(.bottom, vertical3)
+
                 
             } else {
                 // 씨앗 미선택 상태 ----------------------
                 
                 // 안내 텍스트
-                Text("아직 심은 씨앗이 없어요!\n새로운 씨앗을 심어볼까요?")
+                Text("루틴과 함께 성장할 씨앗을 \n 심어주세요. \n \n 성장하는 식물을 통해 \n 더 나은 하루를 만들어보세요.")
                     .font(.title)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 16)
@@ -172,6 +173,7 @@ struct SeedStatusView: View {
                 }
                 .plantPrimaryButton()
                 .padding(.horizontal, 20)
+                .padding(.bottom, vertical3)
             }
         }
         // 내비게이션: goToRoutineList가 true가 되면 RoutineListView로 전환

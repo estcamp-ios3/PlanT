@@ -43,10 +43,11 @@ struct RoutineCardView: View {
                     // 왼쪽 영역: 카테고리 + 목표
                     VStack(alignment: .leading, spacing: 4) {
                         Text("카테고리: \(category.categoryTitle)")
-                        
+                            .font(.subheadline)
                         // 목표가 비어있지 않으면 보여줌
                         if !routine.goal.isEmpty {
                             Text("목표: \(routine.frequencyPerWeekTitle), \(routine.goal)")
+                                .font(.caption)
                         }
                     }
                     
@@ -55,8 +56,10 @@ struct RoutineCardView: View {
                     // 오른쪽 영역: 기간 + 알림설정
                     VStack(alignment: .leading, spacing: 4) {
                         Text("기간: \(routine.duration)") // 루틴 기간
-                        
+                            .font(.caption)
+
                         Text("알림설정: \(routine.alarm.rawValue)") // 알림 설정 값
+                            .font(.caption)
                     }
                 }
             }

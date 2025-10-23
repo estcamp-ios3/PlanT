@@ -345,16 +345,19 @@ extension RoutineRegisterView {
                 HStack {
                     TextField("30", text: $goalHours)
                         .frame(width: 40)
+                        .keyboardType(.numberPad)
                         .multilineTextAlignment(.trailing)
                         .textFieldStyle(.roundedBorder)
                     Text("분/일")
                     TextField("5", text: $goalDays)
+                        .keyboardType(.numberPad)
                         .frame(width: 40)
                         .multilineTextAlignment(.trailing)
                         .textFieldStyle(.roundedBorder)
                     Text("회/주")
                     
                     TextField("21", text: $goalTask)
+                        .keyboardType(.numberPad)
                         .frame(width: 40)
                         .multilineTextAlignment(.trailing)
                         .textFieldStyle(.roundedBorder)
@@ -375,7 +378,10 @@ extension RoutineRegisterView {
                 Text("알림")
                     .font(.subheadline).bold()
                 Spacer()
-                
+                Text("맞춤 알림 생성,삭제")
+                    .font(.footnote).bold()
+                    .foregroundColor(.gray.opacity(0.6))
+
                 if isDeleteMode {
                     Button("완료") { isDeleteMode = false }
                         .font(.subheadline).bold()
