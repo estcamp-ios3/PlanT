@@ -7,18 +7,16 @@
 
 import SwiftUI
 
-/// 설정 화면에서 쓰는 유저 카드 (레이아웃만 다름)
 struct SettingUserCardView: View {
     @EnvironmentObject var authStore: AuthStore
     @StateObject private var viewModel: MypageUserCardViewModel
 
-    /// ✅ AuthStore를 주입받아 내부에서 ViewModel 생성
+    // AuthStore 주입, 내부에서 ViewModel 생성
     init(authStore: AuthStore) {
         _viewModel = StateObject(wrappedValue: MypageUserCardViewModel(authStore: authStore))
     }
 
     var body: some View {
-        // ✅ 회색 배경이 가득 차고 내부 내용은 왼쪽 정렬
         VStack(alignment: .leading, spacing: vertical3) {
             Image(viewModel.model.mateName)
                 .resizable()
@@ -37,13 +35,13 @@ struct SettingUserCardView: View {
                 profileInfo(label: "이메일", value: authStore.userEmail)
             }
         }
-        .padding(.leading, vertical3) // ✅ 왼쪽에 살짝 여백
+        .padding(.leading, vertical3)
         .padding(.vertical, vertical3)
-        .frame(maxWidth: .infinity, alignment: .leading) // ✅ 왼쪽 정렬 유지
+        .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: 20, style: .continuous)
                 .fill(Color(UIColor.systemGray6))
-                .ignoresSafeArea(edges: .horizontal) // ✅ 가로 전체 채움
+                .ignoresSafeArea(edges: .horizontal)
         )
     }
 }
