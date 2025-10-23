@@ -343,9 +343,9 @@ extension RoutineSurveyViewModel {
             if let reminder = displayValue(for: "set_reminder") {
                 let text: String
                 if reminder == "예" {
-                    text = "매일 알람을 설정 합니다."
+                    text = "\n매일 알람을 설정 합니다."
                 } else if reminder == "아니요" {
-                    text = "알림을 설정하지 않습니다."
+                    text = "\n알림을 설정하지 않습니다."
                 } else {
                     text = ""
                 }
