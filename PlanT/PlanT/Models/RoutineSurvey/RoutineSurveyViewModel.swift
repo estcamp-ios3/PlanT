@@ -26,6 +26,11 @@ final class RoutineSurveyViewModel: ObservableObject {
     var periodSelection: Set<String>? {
         selections["set_period"]
     }
+    // MARK: - 계산된 루틴 기간 (일 단위)
+    var routinePeriodDays: Int {
+        let diff = Calendar.current.dateComponents([.day], from: surveyStartDate, to: surveyEndDate).day ?? 0
+        return max(diff, 0)
+    }
     
     // 설문 단계 정의: 각 화면에서 보여줄 질문/옵션/선택 제한 등을 순서대로 나열합니다.
     @Published private(set) var steps: [SurveyStep] = [
@@ -294,7 +299,9 @@ extension RoutineSurveyViewModel {
             reminderTime: nil,
             reminderDays: nil,
             goal: "\(durationId)/일",
-            isFavorite: false
+            isFavorite: false,
+            totalDays: routinePeriodDays,
+            routinePeriodDays: routinePeriodDays
         )
     }
     subscript(stepId: String) -> Set<String>? {
@@ -309,7 +316,7 @@ extension RoutineSurveyViewModel {
                 result.append(part)
             }
             if let duration = displayValue(for: "duration") {
-                var part = AttributedString(" / \(duration) 씩 \n ")
+                var part = AttributedString(" / \(duration) 씩 \n")
                 part.foregroundColor = .orange
                 result.append(part)
             }
@@ -326,7 +333,7 @@ extension RoutineSurveyViewModel {
                     result.append(part)
                 } else {
                     let days = Calendar.current.dateComponents([.day], from: surveyStartDate, to: surveyEndDate).day ?? 0
-                    let durationText = days > 0 ? "\(days)일 동안" : "1일 동안"
+                    let durationText = days > 0 ? "\(days)일 동안" : "1일 동안 \n"
                     
                     var part = AttributedString(durationText)
                     part.foregroundColor = .blue
@@ -348,5 +355,6 @@ extension RoutineSurveyViewModel {
             }
             progressiveSentence = result
     }
+    
 }
 

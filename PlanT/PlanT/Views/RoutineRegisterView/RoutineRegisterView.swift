@@ -184,7 +184,10 @@ extension RoutineRegisterView {
             periodIsNoLimit: !useDate,
             reminderOn: !selectedAlarms.isEmpty,
             goal: "\(goalHours)분 /일",
-            isFavorite:  false
+            isFavorite:  false,
+            totalDays: Int(goalTask) ?? 0,
+            routinePeriodDays: Int(goalTask) ?? 0
+           
         )
     }
 }

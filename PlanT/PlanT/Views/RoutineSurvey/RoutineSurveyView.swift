@@ -114,6 +114,12 @@ struct RoutineSurveyView: View {
             print("저장됨 - 종료일: \(vm.surveyEndDate)")
             
         }
+        .onChange(of: startDate) { _, newValue in
+                 vm.surveyStartDate = newValue
+             }
+             .onChange(of: endDate) { _, newValue in
+                 vm.surveyEndDate = newValue
+             }
         .navigationDestination(for: Route.self) { route in
             switch route {
             case .seedStatus(let draft):

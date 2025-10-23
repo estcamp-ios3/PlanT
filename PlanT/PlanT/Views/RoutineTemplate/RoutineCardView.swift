@@ -35,7 +35,7 @@ struct RoutineCardView: View {
                 
                 // 루틴 제목 표시 (가장 위에 큰 글씨)
                 Text(routine.title)
-                    .font(.headline)
+                    .font(.title3)
                 
                 // 제목 밑에 나오는 상세 정보 (카테고리, 목표, 기간, 알림설정)
                 HStack {

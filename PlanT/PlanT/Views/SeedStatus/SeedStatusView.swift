@@ -111,7 +111,7 @@ struct SeedStatusView: View {
                             title: draft.routineTypeTitle.isEmpty ? "새 루틴" : draft.routineTypeTitle,
                             categoryId: draft.categoryId,
                             seedName: seed.imagePrefix,
-                            duration: draft.durationTitle,
+                            duration: "\(draft.routinePeriodDays)일",
                             goal: draft.goal,
                             alarm: draft.reminderOn ? .every24Hours : .every48Hours,
                             frequencyPerWeekId: draft.frequencyPerWeekId,
