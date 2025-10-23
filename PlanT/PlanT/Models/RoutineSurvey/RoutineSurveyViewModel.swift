@@ -315,7 +315,7 @@ extension RoutineSurveyViewModel {
             }
             if let typeId = selections["health_type"]?.first {
                 let typeTitle = title(for: "health_type", optionId: typeId)
-                var part = AttributedString("\(typeTitle)(을)를 할때  ")
+                var part = AttributedString("\(typeTitle)(을)를 할때\n")
                 part.foregroundColor = .orange
                 result.append(part)
             }

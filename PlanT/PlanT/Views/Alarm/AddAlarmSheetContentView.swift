@@ -27,6 +27,7 @@ struct AddAlarmSheetContentView: View {
             TextField("예: 25", text: $newAlarmInput)
                 .keyboardType(.numberPad)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
+                .cornerRadius(30)
             
             Button("추가") {
                 if let minute = Int(newAlarmInput), minute > 0 {

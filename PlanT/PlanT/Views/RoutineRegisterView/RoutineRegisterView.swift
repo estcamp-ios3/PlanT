@@ -201,7 +201,7 @@ extension RoutineRegisterView {
                         .padding(.horizontal, 12)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .background(Color("F2F0CE"))
-                        .cornerRadius(8)
+                        .cornerRadius(30)
                 default:
                     Menu {
                         ForEach(viewModel.categoryTitles, id: \.self) { title in
@@ -225,7 +225,7 @@ extension RoutineRegisterView {
                         .padding(.vertical, 12)
                         .padding(.horizontal, 12)
                         .background(Color("F2F0CE"))
-                        .cornerRadius(8)
+                        .cornerRadius(30)
                     }
                 }
             }
@@ -235,10 +235,11 @@ extension RoutineRegisterView {
                     .padding(.horizontal, 12)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(Color("Gray400"))
-                    .cornerRadius(8)
+                    .cornerRadius(30)
             } else {
                 TextField("루틴 제목을 입력하세요", text: $routineTitle)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .cornerRadius(30)
             }
         }
     }
@@ -272,7 +273,6 @@ extension RoutineRegisterView {
             HStack {
                 Text("목표")
                     .font(.headline).bold()
-                
                 if isCreateOrEdit {
                     Spacer()
                     Button {
@@ -293,7 +293,7 @@ extension RoutineRegisterView {
                 .font(.subheadline)
                 .padding(10)
                 .background(Color("Gray400"))
-                .cornerRadius(8)
+                .cornerRadius(30)
             }
             if case .edit = currentMode {
                 HStack {
@@ -374,10 +374,10 @@ extension RoutineRegisterView {
                                 .frame(maxWidth: .infinity)
                                 .background(
                                     isDeleteMode
-                                    ? Color.red.opacity(0.3)
-                                    : selectedAlarms.contains(minute) ? Color.orange : Color.gray.opacity(0.2))
+                                    ? Color("BrandSecondary")
+                                    : selectedAlarms.contains(minute) ? Color("BrandAccent") : Color("BrandSecondary"))
                                 .foregroundColor(.black)
-                                .cornerRadius(8)
+                                .cornerRadius(30)
                         }
                     }
                     if alarmStore.alamPresets.count < 10 {

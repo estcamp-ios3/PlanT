@@ -68,12 +68,12 @@ struct RoutineCardModernView: View {
         }
         .padding()
         .background(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: 30)
                 .fill(Color.white)
                 .shadow(color: .black.opacity(0.05), radius: 6, x:0, y: 3)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: 18)
                 .stroke(Color.gray400,lineWidth: 1)
         )
         .onAppear {
