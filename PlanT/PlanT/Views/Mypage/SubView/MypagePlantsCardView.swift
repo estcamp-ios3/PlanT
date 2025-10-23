@@ -55,12 +55,22 @@ struct MypagePlantsCardView: View {
                         .resizable()
                         .scaledToFit()
                         .frame(width: 40, height: 40)
+                        .padding(.top, 4)
 
-                    Text(viewModel.mateComment)
-                        .font(.system(size: vertical4, weight: .semibold))
-                        .foregroundColor(.gray)
-                        .lineLimit(2)
-                        .fixedSize(horizontal: false, vertical: true)
+                    VStack(alignment: .leading, spacing: 0) {
+                        Spacer(minLength: 0)
+                        Text(viewModel.mateComment)
+                            .font(.system(size: vertical4, weight: .semibold))
+                            .foregroundColor(.gray)
+                            .lineLimit(2)
+                            .multilineTextAlignment(.leading)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Spacer(minLength: 0)
+                    }
+                    .frame(maxWidth: .infinity,
+                           minHeight: vertical4 * 2.8,
+                           alignment: .leading)
                 }
                 .padding(.top, vertical1)
             }
