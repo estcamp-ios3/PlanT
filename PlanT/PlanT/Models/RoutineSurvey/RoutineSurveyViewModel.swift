@@ -180,15 +180,34 @@ final class RoutineSurveyViewModel: ObservableObject {
     }
     // 이전 단계로 이동
     func back() {
-        if !isFirst {
-            currentIndex -= 1
-            let remainingSteps = steps.suffix(from: currentIndex + 1)
-            for step in remainingSteps {
-                selections.removeValue(forKey: step.id)
-            }
+        guard !isFirst else { return }
+
+        //  현재 단계의 ID (되돌아오기 전 단계)
+        let currentStepId = steps[currentIndex].id
+
+        //  한 단계 이전으로 이동
+        currentIndex -= 1
+
+        //  방금 이전 단계(지금 화면에서 보여줄 단계)의 선택을 삭제
+        let stepToClearId = currentStepId
+        selections.removeValue(forKey: stepToClearId)
+
+        //  카테고리(category)는 항상 유지
+        if steps[currentIndex].id == "category" {
+            progressiveSentence = AttributedString()
             objectWillChange.send()
+            return
         }
+
+        // 5️⃣ 문장 초기화 및 재계산
+        progressiveSentence = AttributedString()
+        updateProgressiveSentence()
+
+        // 6️⃣ 뷰 갱신
+        objectWillChange.send()
     }
+
+
     // 현재 선택된 카테고리 id를 slug로 변환
     private func normalizedSlug(from categoryKey: String) -> String? {
         switch categoryKey {
