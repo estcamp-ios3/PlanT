@@ -14,8 +14,11 @@ struct SettingView: View {
     var body: some View {
         ScrollView {
             VStack {
-                Text("설정 화면")
+                HStack {
+                    SettingUserCardView(authStore: authStore)
+                }
             }
+            .padding(.horizontal, vertical4)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
