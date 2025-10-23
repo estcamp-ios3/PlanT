@@ -74,6 +74,18 @@ struct MypageMainView: View {
             .frame(height: 500) // GeometryReader 고정 높이
             .padding(.top, -30)
         }
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                NavigationLink {
+                    SettingView()
+                } label: {
+                    // 텍스트 사용
+                    Text("설정")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(.gray900)
+                }
+            }
+        }
     }
 }
 

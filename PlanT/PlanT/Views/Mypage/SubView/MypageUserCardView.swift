@@ -33,14 +33,6 @@ struct MypageUserCardView: View {
 
                 Spacer()
             }
-            .overlay(alignment: .topTrailing) {
-                Button("설정") {
-                    viewModel.tapSettings()
-                }
-                .font(.system(size: 14, weight: .bold))
-                .foregroundColor(.gray)
-                .padding(6)
-            }
 
             // 하단 통계 섹션
             HStack(spacing: 16) {
