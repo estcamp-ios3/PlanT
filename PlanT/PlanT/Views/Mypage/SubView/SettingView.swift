@@ -12,21 +12,21 @@ struct SettingView: View {
     @State private var showSignOutAlert = false
 
     var body: some View {
-        ScrollView {
-            VStack {
-                HStack {
-                    SettingUserCardView(authStore: authStore)
-                }
+        VStack {
+            HStack {
+                SettingUserCardView(authStore: authStore)
             }
-            .padding(.horizontal, vertical4)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        showSignOutAlert = true
-                    } label: {
-                        Image(systemName: "door.left.hand.open")
-                            .foregroundColor(.red)
-                    }
+            ScrollView {
+            }
+        }
+        .padding(.horizontal, vertical4)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button {
+                    showSignOutAlert = true
+                } label: {
+                    Image(systemName: "door.left.hand.open")
+                        .foregroundColor(.red)
                 }
             }
         }
