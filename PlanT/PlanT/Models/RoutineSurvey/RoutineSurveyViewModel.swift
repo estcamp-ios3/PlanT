@@ -300,6 +300,7 @@ extension RoutineSurveyViewModel {
             reminderDays: nil,
             goal: "\(durationId)/일",
             isFavorite: false,
+            reminderOffsets: reminderOffsets,
             totalDays: routinePeriodDays,
             routinePeriodDays: routinePeriodDays
         )

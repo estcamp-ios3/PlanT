@@ -36,6 +36,7 @@ struct RoutineRegisterView: View {
     @State private var goalTask: String = ""
     @State private var showAlarms: Bool = true
     @State private var newAlarmInput: String = ""
+    @State private var showDeleteAlert: Bool = false
     @Binding var path: NavigationPath
     @Binding var showAddAlarmSheet: Bool
     @State private var isDeleteMode: Bool = false
@@ -481,12 +482,22 @@ extension RoutineRegisterView {
             }
             else if case .edit = currentMode {
                 HStack(spacing: 16) {
-                    Button(action: deleteRoutine) {
+                    Button {
+                        showDeleteAlert = true
+                    } label: {
                         Text("삭제")
                             .frame(maxWidth: .infinity)
                     }
                     .plantSecondaryButton()
-                    
+                    .alert("루틴을 삭제합니다.",
+                           isPresented: $showDeleteAlert) {
+                        Button("삭제", role: .destructive) {
+                            deleteRoutine()
+                        }
+                        Button("취소", role: .cancel) {}
+                    } message: {
+
+                    }
                     Button(action: {
                         Task { await saveRoutine() }
                     }) {
