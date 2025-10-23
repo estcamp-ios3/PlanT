@@ -27,7 +27,7 @@ struct MypageMainView: View {
                     .padding(.top, vertical2)
                     .padding(.horizontal, 30)
             }
-            .padding(.horizontal)
+            .padding(.horizontal, vertical4)
             GeometryReader { geo in
                 // 레이아웃 파라미터
                 let sideInset: CGFloat = 0 // ScrollView 내부 좌우 패딩(아이템 HStack 앞뒤)
@@ -76,7 +76,7 @@ struct MypageMainView: View {
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button("설정") { showSettings = true }
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(.system(size: 12, weight: .bold))
                     .foregroundColor(.gray900)
             }
         }
