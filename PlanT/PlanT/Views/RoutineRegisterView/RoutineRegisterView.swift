@@ -116,7 +116,7 @@ struct RoutineRegisterView: View {
                         .environmentObject(store)
                 }
             }
-            .padding(.horizontal)
+            .padding(.horizontal, vertical4)
             .onAppear { setupMode() }      // 화면 진입 시 데이터 세팅
             .navigationTitle(modeTitle)    // 네비바 타이틀
             .toolbar { toolbarContent() }  // 우측 상단 툴바 (편집/비우기)
@@ -675,8 +675,4 @@ extension RoutineRegisterView {
     }
 }
 
-// 전체적으로
-// - 각 입력 필드와 모드별 화면/기능(등록, 수정, 삭제, 상세)을 분리해서 관리
-// - 알림, 기간, 목표 등 다양한 상태를 실시간으로 입력/저장/수정/삭제
-// - SwiftUI의 ViewBuilder, @State, @Binding, @Environment 등 현대적 패턴을 폭넓게 사용해
-//   초보자도 "상태와 뷰가 어떻게 연결되는지"를 쉽게 익힐 수 있는 예제입니다.
+
