@@ -130,7 +130,7 @@ extension RoutineRegisterView {
     private var modeTitle: String {
         switch currentMode {
         case .create:
-            return "새 할 일 등록하기"
+            return "루틴 직접 등록하기"
         case .details:
             return "루틴 자세히 보기"
         case .edit:
@@ -284,6 +284,52 @@ extension RoutineRegisterView {
                     }
                 }
             }
+            if case .create = currentMode {
+                            VStack(spacing: 12) {
+                                HStack {
+                                    Text("하루 목표 시간")
+                                        .font(.subheadline)
+                                        .frame(width: 100, alignment: .leading)
+                                    TextField("30", text: $goalHours)
+                                        .keyboardType(.numberPad)
+                                        .frame(width: 50)
+                                        .multilineTextAlignment(.trailing)
+                                        .textFieldStyle(.roundedBorder)
+                                    Text("분/일")
+                                        .font(.subheadline)
+                                    Spacer()
+                                }
+                                HStack {
+                                    Text("주 실행 빈도")
+                                        .font(.subheadline)
+                                        .frame(width: 100, alignment: .leading)
+                                    TextField("5", text: $goalDays)
+                                        .keyboardType(.numberPad)
+                                        .frame(width: 50)
+                                        .multilineTextAlignment(.trailing)
+                                        .textFieldStyle(.roundedBorder)
+                                    Text("회/주")
+                                        .font(.subheadline)
+                                    Spacer()
+                                }
+                                HStack {
+                                    Text("총 실행 기간")
+                                        .font(.subheadline)
+                                        .frame(width: 100, alignment: .leading)
+                                    TextField("21", text: $goalTask)
+                                        .keyboardType(.numberPad)
+                                        .frame(width: 50)
+                                        .multilineTextAlignment(.trailing)
+                                        .textFieldStyle(.roundedBorder)
+                                    Text("일 동안")
+                                        .font(.subheadline)
+                                    Spacer()
+                                }
+                            }
+                            .padding(12)
+                            .background(Color("BrandSecondary"))
+                            .cornerRadius(30)
+                        }
             if case .details = currentMode {
                 HStack {
                     Text("\(routineFromMode?.goal ?? "-")")
