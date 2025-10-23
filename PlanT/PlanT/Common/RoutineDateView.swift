@@ -74,7 +74,6 @@ struct RoutineDateView: View {
                     }
                     .transition(.opacity.combined(with: .move(edge: .top)))
                 }
-                Divider()
             }
         }
         .animation(.easeInOut, value: useDate)
@@ -87,20 +86,6 @@ struct RoutineDateView: View {
     @ViewBuilder
     private func dateBlock(title: String, date: Binding<Date>, showTime: Bool) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-//            Text(title)
-//                .font(.subheadline)
-//                .foregroundStyle(.secondary)
-//         
-//            // 날짜 (캘린더 or 콤팩트)
-//            DatePicker("YYYY-MM-DD", selection: date, displayedComponents: .date)
-//                .labelsHidden()
-//                .disabled(!isEnabled)
-//                .datePickerStyle(.graphical)
-//                .frame(maxWidth: .infinity, alignment: .leading)
-//                .contentShape(RoundedRectangle(cornerRadius: cornerRadius3))
-//                .background(!isEnabled ? Color.white : Color("Gray100"))
-////                .background(Color("Gray100"))
-//            
             Button {
                     showPicker = true
                 } label: {
@@ -128,9 +113,6 @@ struct RoutineDateView: View {
             if showTime || !isAllDay {
                 TimePickerField(date: date, isEnabled: $isEnabled) // ← 탭 시트로 휠 표시
             }
-//            else {
-//                TimePickerField(date: date, isEnabled: .constant(false)) // ← 종일일 때 비활성 표기
-//            }
         }
         .frame(maxWidth: .infinity)
     }
