@@ -70,6 +70,8 @@ struct SeedSelectionView: View {
                                         // 씨앗 이름
                                         Text(seed.name)
                                             .font(.title2)
+                                            .padding(.bottom, vertical2) 
+
                                     }
                                     // 카드 탭 시 해당 씨앗을 선택
                                     .onTapGesture {
