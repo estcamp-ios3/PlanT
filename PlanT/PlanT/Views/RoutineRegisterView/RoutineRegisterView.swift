@@ -580,8 +580,11 @@ extension RoutineRegisterView {
         case .create:
             print("아직 생성되지 않은 루틴은 삭제할 수 없습니다.")
         case .edit(let routine):
+            NotificationManager.shared.cancelNotifications(for: routine.id)
+            routineAlarmStore.deleteOffsets(for: routine.id)
             store.deleteRoutine(routine)
-            print("루틴 삭제 완료: \(routine.title)")
+            print(" 루틴 삭제 및 알림 제거 완료: \(routine.title)")
+            dismiss()
             dismiss()
         case .details:
             break
@@ -657,8 +660,21 @@ extension RoutineRegisterView {
                 print(" 알림 재예약 완료 (base: \(NotificationManager.localString(base)), offsets: \(offsets))")
             }
             await MainActor.run {
-                NotificationManager.shared.debugPendingNotifications()
+//                NotificationManager.shared.debugPendingNotifications()
             }
+    }
+    private func completeRoutineAndClearAlarms(_ routine: Routine) {
+        NotificationManager.shared.cancelNotifications(for: routine.id)
+        routineAlarmStore.deleteOffsets(for: routine.id)
+        routine.isCompleted = true
+        routine.modifiedAt = Date()
+        
+        do {
+            try context.save()
+            print(" 루틴 완료 + 알림 삭제 완료 (\(routine.title)")
+        } catch {
+            print(" 루틴 완료 저장 실패:", error)
+        }
     }
 }
 
