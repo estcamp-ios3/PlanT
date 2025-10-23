@@ -21,7 +21,7 @@ final class MypageUserCardViewModel: ObservableObject {
 
         self.model = MypageUserCardModel(
             mateName: authStore.mate ?? "MrPurr",
-            nickName: "닉네임: \(authStore.nickName ?? "불러오는 중...")",
+            nickName: "\(authStore.nickName ?? "불러오는 중...")",
             growingCount: 12,
             harvestedCount: 1032,
             points: 1200
@@ -37,7 +37,7 @@ final class MypageUserCardViewModel: ObservableObject {
             .map { nick, mate in
                 MypageUserCardModel(
                     mateName: mate ?? "MrPurr",
-                    nickName: "닉네임: \(nick ?? "불러오는 중...")",
+                    nickName: "\(nick ?? "불러오는 중...")",
                     growingCount: 12,
                     harvestedCount: 1032,
                     points: 1200

@@ -11,9 +11,8 @@ import SwiftData // 미리보기용 데이터연결용(삭제예정)
 struct MypageMainView: View {
     @EnvironmentObject var authStore: AuthStore
     @EnvironmentObject var routineStore: RoutineStore
-
-    // 현재 중앙에 스냅된 카드의 ID
     @State private var currentRoutineID: UUID?
+    @State private var showSettings = false
 
     var body: some View {
         ScrollView {
@@ -28,7 +27,7 @@ struct MypageMainView: View {
                     .padding(.top, vertical2)
                     .padding(.horizontal, 30)
             }
-            .padding(.horizontal)
+            .padding(.horizontal, vertical4)
             GeometryReader { geo in
                 // 레이아웃 파라미터
                 let sideInset: CGFloat = 0 // ScrollView 내부 좌우 패딩(아이템 HStack 앞뒤)
@@ -76,15 +75,13 @@ struct MypageMainView: View {
         }
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                NavigationLink {
-                    SettingView()
-                } label: {
-                    // 텍스트 사용
-                    Text("설정")
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundColor(.gray900)
-                }
+                Button("설정") { showSettings = true }
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(.gray900)
             }
+        }
+        .navigationDestination(isPresented: $showSettings) {
+            SettingView()
         }
     }
 }

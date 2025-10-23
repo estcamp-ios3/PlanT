@@ -27,21 +27,21 @@ final class AuthStore: ObservableObject {
     @Published var userName: String?
     @Published var nickName: String?
     @Published var mate: String?
-
+    
     // MARK: - 의존성
     private let supabaseManager = SupabaseManager()
-
+    
     // MARK: - 로그인
     func signIn(email: String, password: String) async throws {
         let user = try await supabaseManager.signIn(email: email, password: password)
-
+        
         isAuthenticated = true
         userEmail = user.email
         applyUserdata(user)
         await loadProfileFallback()
         logCurrentUser()
     }
-
+    
     // MARK: - 회원가입
     func signUp(user: UserAuthModel) async throws {
         do {
@@ -52,7 +52,7 @@ final class AuthStore: ObservableObject {
             throw error
         }
     }
-
+    
     // MARK: - 로그아웃
     func signOut() async {
         do {
@@ -63,7 +63,26 @@ final class AuthStore: ObservableObject {
             print("❌ 로그아웃 실패:", error.localizedDescription)
         }
     }
-
+    
+    // MARK: - 프로필 업데이트
+    func updateProfile(userName: String, nickName: String) async throws {
+        guard let session = try? await supabaseManager.restoreSession() else { return }
+        let uid = session.user.id.uuidString
+        
+        try await supabaseClient
+            .from("profiles")
+            .update([
+                "userName": userName,
+                "nickName": nickName
+            ])
+            .eq("id", value: uid)
+            .execute()
+        
+        // 로컬 상태 즉시 반영
+        self.userName = userName
+        self.nickName = nickName
+    }
+    
     // MARK: - 세션 복원
     func restoreSession() async {
         do {
@@ -83,36 +102,36 @@ final class AuthStore: ObservableObject {
             print("❌ 세션 복원 실패:", error.localizedDescription)
         }
     }
-
+    
     // MARK: - Private Helpers
-
+    
     private func applyMetadata(_ meta: [String: AnyJSON]) {
         if let v = meta["userName"]?.stringValue { userName = v }
         if let v = meta["nickName"]?.stringValue { nickName = v }
         if let v = meta["mate"]?.stringValue     { mate     = v }
     }
-
+    
     private func applyUserdata(_ user: User) {
         userName = user.userName
         nickName = user.nickName
         mate     = user.mate
     }
-
+    
     private func loadProfileFallback() async {
         do {
             if let session = try await supabaseManager.restoreSession() {
                 let uid = session.user.id.uuidString
                 let profile = try await supabaseManager.loadProfileFallback(for: uid)
-
-                if userName == nil { userName = profile.userName }
-                if nickName == nil { nickName = profile.nickName }
-                if mate     == nil { mate     = profile.mate }
+                
+                userName = profile.userName
+                nickName = profile.nickName
+                mate = profile.mate
             }
         } catch {
             print("ℹ️ profiles 보완 로드 실패:", error.localizedDescription)
         }
     }
-
+    
     private func clearState() {
         isAuthenticated = false
         userEmail = nil
@@ -120,7 +139,7 @@ final class AuthStore: ObservableObject {
         nickName = nil
         mate = nil
     }
-
+    
     private func logCurrentUser() {
         print("✅ 현재 사용자: \(userEmail ?? "(없음)")")
         print("👤 userName: \(userName ?? "(없음)")")
