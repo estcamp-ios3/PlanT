@@ -67,6 +67,7 @@ struct RoutineDateView: View {
                                     if newValue < startDate { endDate = startDate }
                                 }
                                 .onChange(of: startDate) { oldValue, newValue in
+                               print(startDate)
                                     if endDate < newValue { endDate = newValue }
                                 }
                         }
