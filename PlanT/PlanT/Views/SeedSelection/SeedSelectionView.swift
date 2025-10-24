@@ -11,7 +11,7 @@ struct SeedSelectionView: View {
     @Environment(\.dismiss) private var dismiss
     @Binding var selectedSeed: Seed?
 
-    // 🌱 인트로 문구 표시 여부
+    //  인트로 문구 표시 여부
     @State private var showIntro = true
 
     private var allSeedsForGrid: [Seed?] {
@@ -66,7 +66,7 @@ struct SeedSelectionView: View {
                                     }
                                     .onTapGesture {
                                         selectedSeed = seed
-                                        // 🌱 씨앗을 선택하면 문구 즉시 사라지게
+                                        // 씨앗을 선택하면 문구 즉시 사라지게
                                         withAnimation {
                                             showIntro = false
                                         }
@@ -118,8 +118,8 @@ struct SeedSelectionView: View {
                 VStack {
                     Spacer()
                     VStack(spacing: 8) {
-                        Text("식물마다 자라나는 열매가 다릅니다.")
-                        Text("또 식물마다 자라는 모습이 다릅니다.")
+                        Text("식물마다 자라나는 열매가 다르고,")
+                        Text("성장하는 모습이 다릅니다.")
                         Text("나만의 식물을 기르며 예쁜 과수원을 만들어보세요.")
                     }
                     .multilineTextAlignment(.center)
