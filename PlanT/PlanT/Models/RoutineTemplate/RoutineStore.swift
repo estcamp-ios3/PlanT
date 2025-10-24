@@ -91,40 +91,41 @@ final class RoutineStore: ObservableObject {
             print("❌ SwiftData 저장 실패:", error)
         }
 
-        // ✅ 네트워크/AI 작업은 View 생명주기와 무관하게 돌도록 분리
-        Task.detached { [client, weak self] in
+        // ✅ MainActor 컨텍스트에서 비동기 작업
+        Task { [client, weak self] in
             guard let self else { return }
 
             // Supabase 업로드
             do {
-                try await client.from("routines").insert(newRoutine.dto).execute()
+                try await client
+                    .from("routines")
+                    .insert(newRoutine.dto)
+                    .execute()
                 print("✅ Supabase 업로드 완료:", newRoutine.title)
             } catch {
                 print("❌ Supabase 업로드 실패:", error.localizedDescription)
             }
 
-            // 알림 예약(메인에서)
-            await MainActor.run {
-                NotificationManager.shared.scheduleNotification(
-                    for: newRoutine.id,
-                    title: newRoutine.title,
-                    baseDate: draft.startDate ?? Date(),
-                    offsets: Array(reminderOffsets)
-                )
-            }
+            // 알림 예약 (여기서는 이미 MainActor)
+            NotificationManager.shared.scheduleNotification(
+                for: newRoutine.id,
+                title: newRoutine.title,
+                baseDate: draft.startDate ?? Date(),
+                offsets: Array(reminderOffsets)
+            )
 
-            // ✅ AI 작업 '병렬' 실행 (코멘트 갱신은 기다리지 않음, 토스트만 먼저 받아서 띄움)
-            async let _ = self.regenerateAIComment(for: newRoutine) // 백그라운드 진행
-            async let toastMsg = self.ai.fetchNewRoutineToast(
+            // ✅ 토스트는 기다렸다가 즉시 표시
+            let toast = await self.ai.fetchNewRoutineToast(
                 title: newRoutine.title,
                 goalRaw: newRoutine.goal,
                 frequencyPerWeekTitle: newRoutine.frequencyPerWeekTitle
             )
+            MateToastCenter.show(toast)
 
-            // 토스트만 먼저 받아서 표시 (메인)
-            let toast = await toastMsg
-            await MainActor.run {
-                MateToastCenter.show(toast)
+            // ✅ AI 코멘트 갱신은 스코프와 분리된 태스크로 실행(취소 영향 제거)
+            Task.detached { [weak self] in
+                guard let self else { return }
+                await self.regenerateAIComment(for: newRoutine)
             }
         }
 
@@ -135,7 +136,8 @@ final class RoutineStore: ObservableObject {
         context.delete(routine)
         do { try context.save() } catch { }
 
-        Task.detached { [client, weak self] in
+        // ✅ MainActor에서 비동기 호출
+        Task { [client, weak self] in
             guard let self else { return }
             do {
                 try await client
@@ -148,11 +150,9 @@ final class RoutineStore: ObservableObject {
                 print("❌ Supabase 삭제 실패:", error.localizedDescription)
             }
 
-            // AI 상태 정리 (메인)
-            await MainActor.run {
-                self.aiComments.removeValue(forKey: routine.id)
-                self.aiSignatures.removeValue(forKey: routine.id)
-            }
+            // AI 상태 정리
+            self.aiComments.removeValue(forKey: routine.id)
+            self.aiSignatures.removeValue(forKey: routine.id)
         }
 
         loadRoutines()
@@ -183,7 +183,8 @@ extension RoutineStore {
 
         do { try context.save() } catch { print("❌ SwiftData 저장 실패:", error) }
 
-        Task.detached { [client, weak self] in
+        // ✅ MainActor에서 비동기 호출
+        Task { [client, weak self] in
             guard let self else { return }
             do {
                 try await client
@@ -194,8 +195,12 @@ extension RoutineStore {
             } catch {
                 print("❌ Supabase 완료횟수 업데이트 실패:", error.localizedDescription)
             }
-            // ✅ 해당 루틴 1건만 AI 호출 (detached)
-            await self.regenerateAIComment(for: routine)
+
+            // 코멘트 갱신은 분리하여 취소 영향 줄이기 (여기서는 await 해도 OK)
+            Task.detached { [weak self] in
+                guard let self else { return }
+                await self.regenerateAIComment(for: routine)
+            }
         }
 
         loadRoutines()
@@ -230,22 +235,20 @@ extension RoutineStore {
         // 3) 서비스 호출(완료 루틴은 서비스 내부에서 고정 문구 처리됨)
         let generated: [UUID: String] = await ai.generateEncouragement(for: items)
 
-        // 4) 상태 반영 (메인)
-        await MainActor.run {
-            var newComments = aiComments
-            var newSigs = aiSignatures
+        // 4) 상태 반영
+        var newComments = aiComments
+        var newSigs = aiSignatures
 
-            for (id, text) in generated {
-                newComments[id] = text
-            }
-            for r in targets {
-                newSigs[r.id] = "\(r.completedCount)/\(totalCount(for: r))"
-            }
-
-            aiComments = newComments
-            aiSignatures = newSigs
-            print("✅ 자유 응원 코멘트 갱신 완료(\(targets.count)건)")
+        for (id, text) in generated {
+            newComments[id] = text
         }
+        for r in targets {
+            newSigs[r.id] = "\(r.completedCount)/\(totalCount(for: r))"
+        }
+
+        aiComments = newComments
+        aiSignatures = newSigs
+        print("✅ 자유 응원 코멘트 갱신 완료(\(targets.count)건)")
     }
 
     /// 단일 루틴만 AlanAI에 요청 → 내부적으로 다건 API를 1건 배열로 호출
@@ -253,7 +256,7 @@ extension RoutineStore {
         await regenerateAIComments(for: [routine])
     }
 
-    /// (옵션) 기존: 전체 스캔해서 변경된 것만 갱신 — 초기 마이그레이션/백필용으로 남김
+    /// (옵션) 기존: 전체 스캔해서 변경된 것만 갱신
     func regenerateAICommentsIfNeeded() async {
         await regenerateAIComments(for: routines)
     }
