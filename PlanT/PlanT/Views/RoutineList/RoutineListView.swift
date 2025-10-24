@@ -201,7 +201,7 @@ struct RoutineListView: View {
                 // 첫 번째 튜토리얼 (플러스 버튼 → 오른쪽 위)
                 PlanTTutorialStep(
                     id: "intro",
-                    message: "안녕하세요! 저는 Mr.Grrr, \n당신의 성장 메이트예요.\n작은 루틴으로\n 씨앗을 심고, 실천하면서 \n 당신만의 루틴식물을 키워봐요",
+                    message: "안녕하세요! 저는 Mr.Grrr, \n당신의 성장 메이트예요.\n작은 루틴으로\n 씨앗을 심고, 실천하면서 \n 당신만의 루틴식물을 키워보세요",
                     showNextButton: true,
                     verticalOffset: 0,     // 위로 올림
                     horizontalOffset: 0    // 오른쪽으로 이동
