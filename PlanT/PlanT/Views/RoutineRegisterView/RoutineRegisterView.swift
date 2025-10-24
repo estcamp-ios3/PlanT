@@ -108,6 +108,8 @@ struct RoutineRegisterView: View {
                     alarmSection()     // 알림 선택 및 관리
                     Divider()
                 }
+                            .padding(.horizontal, vertical4)
+
                 .disabled(isDetailsMode)   // 상세보기 모드면 전체 입력 비활성화
 
                 // 상세/수정 모드에서는 씨앗 성장상태 뷰 하단에 노출
@@ -116,7 +118,6 @@ struct RoutineRegisterView: View {
                         .environmentObject(store)
                 }
             }
-            .padding(.horizontal, vertical4)
             .onAppear { setupMode() }      // 화면 진입 시 데이터 세팅
             .navigationTitle(modeTitle)    // 네비바 타이틀
             .toolbar { toolbarContent() }  // 우측 상단 툴바 (편집/비우기)
@@ -250,7 +251,7 @@ extension RoutineRegisterView {
                     .padding(.vertical, 12)
                     .padding(.horizontal, 12)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Color("Gray400"))
+                    .background(Color("Gray100"))
                     .cornerRadius(30)
             } else {
                 // 신규/수정 모드에서는 제목을 텍스트필드로 입력
@@ -361,7 +362,7 @@ extension RoutineRegisterView {
                 }
                 .font(.subheadline)
                 .padding(10)
-                .background(Color("Gray400"))
+                .background(Color("Gray100"))
                 .cornerRadius(30)
             }
             // 수정 모드: 목표 입력필드(수정 가능)

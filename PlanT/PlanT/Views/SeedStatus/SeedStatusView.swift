@@ -21,6 +21,7 @@ struct SeedStatusView: View {
     @State private var showSeedSelection = false // 씨앗 선택 시트 표시 여부
     @State private var selectedSeed: Seed? = nil // 현재 선택된 씨앗 (nil이면 아직 선택되지 않은 상태)
     @State private var goToRoutineList = false   // 루틴 리스트 화면으로 내비게이션 여부
+    @State private var isLoding: Bool = false
     @EnvironmentObject var store: RoutineStore
     var body: some View {
         VStack {
@@ -61,6 +62,8 @@ struct SeedStatusView: View {
                 
                 // 등록하기 버튼 → 루틴 리스트 화면으로 이동
                 Button("루틴 등록하기") {
+                    isLoding = true
+                    Task {
                     // 기존: store.routines.insert(routine, at: 0) → 삭제
                     if case .planted(_) = state {
                         print("식물 심긴상태 추가")
@@ -107,7 +110,7 @@ struct SeedStatusView: View {
                         path = NavigationPath()
                     } else {
                         print("식물 안심겼을때 새 루틴 생성 시작")
-
+                        
                         // .notPlanted 상태에서는 draft와 seed로 Routine 생성 & 추가
                         let routine = Routine(
                             title: draft.routineTypeTitle.isEmpty ? "새 루틴" : draft.routineTypeTitle,
@@ -125,22 +128,24 @@ struct SeedStatusView: View {
                             
                         )
                         print("안 심긴 새 루틴 생성 완료: \(routine.title) / 완료상태: \(routine.isCompleted)")
-
+                        
                         store.addRoutine(from: seed, basedOn: routine, categoryId: draft.categoryId, draft: draft, reminderOffsets: draft.reminderOffsets)
                         print("안 심긴 알림 예약 시도 (내일 9시)")
-
-                            NotificationManager.shared.scheduleTomorrow9AMNotification(for: routine)
+                        
+                        NotificationManager.shared.scheduleTomorrow9AMNotification(for: routine)
                         print("안 심긴 일반 알림 예약 시도")
-
-                            NotificationManager.shared.scheduleNotification(
-                                for: routine.id,
-                                title: routine.title,
-                                baseDate: draft.startDate ?? Date(),
-                                offsets: Array(draft.reminderOffsets)
-                            )
                         
-                        
-                        
+                        NotificationManager.shared.scheduleNotification(
+                            for: routine.id,
+                            title: routine.title,
+                            baseDate: draft.startDate ?? Date(),
+                            offsets: Array(draft.reminderOffsets)
+                        )
+                    }
+                        try? await Task.sleep(nanoseconds: 5_000_000_000)
+                        await MainActor.run {
+                            isLoding  = false
+                        }
                         path = NavigationPath()
                     }
                 }
@@ -186,6 +191,17 @@ struct SeedStatusView: View {
         // 씨앗 선택 시트: showSeedSelection이 true일 때 SeedSelectionView 표시
         .sheet(isPresented: $showSeedSelection) {
             SeedSelectionView(selectedSeed: $selectedSeed)
+        }
+        .onAppear { isLoding = false }
+        .overlay {
+            if isLoding {
+                Color.white.ignoresSafeArea()
+                ZStack {
+                    LoadingScreenView()
+                }
+                .transition(.opacity)
+                .animation(.easeInOut, value: isLoding)
+            }
         }
     }
 }

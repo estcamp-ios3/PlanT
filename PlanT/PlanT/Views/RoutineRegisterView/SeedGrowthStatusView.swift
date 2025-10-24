@@ -81,6 +81,8 @@ struct SeedGrowthStatusView: View {
                 
             }
         }
+        .padding(.horizontal, vertical4)
+
         .onReceive(store.$refreshTrigger) { _ in
             refresh = UUID()
         }
