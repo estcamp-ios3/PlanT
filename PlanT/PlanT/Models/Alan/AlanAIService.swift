@@ -67,9 +67,8 @@ final class AlanAIService {
         }
     }
 
-    // MARK: - Low-level ask (타임아웃 + 1회 재시도) → String만 반환해 Sendable 충족
+    // MARK: - Low-level ask (타임아웃 + 1회 재시도)
     func ask(question: String, timeout: TimeInterval = 8) async -> String {
-        // 프롬프트 길이가 길면 타임아웃 살짝 늘림
         let effectiveTimeout = max(timeout, question.count > 180 ? 10 : timeout)
 
         // 1차 시도
@@ -80,25 +79,29 @@ final class AlanAIService {
             }
             return content
         } catch {
-            // 타임아웃/취소/기타 에러 로깅
+            // 타임아웃/취소/기타 에러 처리
             if let urlErr = error as? URLError, urlErr.code == .timedOut {
                 print("⏳ AlanAI timed out after \(effectiveTimeout)s (len=\(question.count))")
             } else if error is CancellationError {
-                print("⛔️ AlanAI request canceled by parent task")
+                // ✅ 정상적인 내부 취소 케이스: 로그 남기지 않음
+                return ""
             } else {
                 print("❌ AlanAI ask error:", error.localizedDescription)
             }
 
-            // 2차 재시도 (짧게)
+            // 2차 재시도(짧게)
             do {
-                try await Task.sleep(nanoseconds: 400_000_000) // 0.4초 대기
+                try await Task.sleep(nanoseconds: 400_000_000)
                 let content: String = try await withTimeout(min(6, effectiveTimeout)) { [clientBox] in
                     let res = try await clientBox.question(question)
                     return res?.content ?? ""
                 }
                 return content
             } catch {
-                print("❌ AlanAI retry failed:", error.localizedDescription)
+                // 재시도도 실패 → 타임아웃만 소소하게 로깅
+                if let urlErr = error as? URLError, urlErr.code == .timedOut {
+                    print("⏳ AlanAI retry timed out (len=\(question.count))")
+                }
                 return ""
             }
         }
@@ -133,7 +136,7 @@ final class AlanAIService {
         let done: Int
     }
 
-    /// 병렬 처리 + 타임아웃 + 즉시 fallback
+    /// 병렬 처리 + 타임아웃 + 즉시 fallback + 동시성 제한
     func generateEncouragement(for items: [RoutineEncItem]) async -> [UUID: String] {
         guard !items.isEmpty else { return [:] }
         await prewarmIfNeeded()
@@ -147,34 +150,55 @@ final class AlanAIService {
             result[item.id] = "🎉 축하해요! 루틴을 완성했어요!"
         }
 
-        // 미완료 루틴 병렬 호출
-        await withTaskGroup(of: (UUID, String).self) { group in
-            for item in pending {
-                group.addTask { [weak self] in
-                    guard let self else {
-                        let remain = max(0, item.total - item.done)
-                        return (item.id, "응원하고 있어요!\n\(remain)회 남았어요!")
+        // 기본 문구를 먼저 넣어 사용자 체감 빠르게
+        var needFetch: [RoutineEncItem] = []
+        for item in pending {
+            let remain = max(0, item.total - item.done)
+            result[item.id] = "응원하고 있어요!\n\(remain)회 남았어요!" // 즉시 폴백
+            needFetch.append(item)
+        }
+
+        guard !needFetch.isEmpty else { return result }
+
+        // ✅ 동시 호출 제한: 2개
+        let maxConcurrent = 2
+        var index = 0
+        while index < needFetch.count {
+            let slice = needFetch[index..<min(index + maxConcurrent, needFetch.count)]
+
+            await withTaskGroup(of: (UUID, String).self) { group in
+                for item in slice {
+                    group.addTask { [weak self] in
+                        guard let self else {
+                            let remain = max(0, item.total - item.done)
+                            return (item.id, "응원하고 있어요!\n\(remain)회 남았어요!")
+                        }
+                        let raw = await self.ask(
+                            question: self.makePerRoutinePrompt(title: item.title, total: item.total, done: item.done),
+                            timeout: 8 // 살짝 늘림
+                        )
+                        let lines = Self.normalizeLines(from: raw)
+                        let value: String
+                        if lines.count >= 2 {
+                            value = lines[0] + "\n" + lines[1]
+                        } else if lines.count == 1 {
+                            let remain = max(0, item.total - item.done)
+                            value = lines[0] + "\n" + "\(remain)회 남았어요!"
+                        } else {
+                            let remain = max(0, item.total - item.done)
+                            value = "응원하고 있어요!\n\(remain)회 남았어요!"
+                        }
+                        return (item.id, value)
                     }
-                    let raw = await self.ask(
-                        question: self.makePerRoutinePrompt(title: item.title, total: item.total, done: item.done),
-                        timeout: 10
-                    )
-                    let lines = Self.normalizeLines(from: raw)
-                    if lines.count >= 2 {
-                        return (item.id, lines[0] + "\n" + lines[1])
-                    } else if lines.count == 1 {
-                        let remain = max(0, item.total - item.done)
-                        return (item.id, lines[0] + "\n" + "\(remain)회 남았어요!")
-                    } else {
-                        let remain = max(0, item.total - item.done)
-                        return (item.id, "응원하고 있어요!\n\(remain)회 남았어요!")
-                    }
+                }
+
+                // 뒤늦게라도 결과 오면 덮어쓰기
+                for await (id, text) in group {
+                    result[id] = text
                 }
             }
 
-            for await (id, text) in group {
-                result[id] = text
-            }
+            index += maxConcurrent
         }
 
         return result
