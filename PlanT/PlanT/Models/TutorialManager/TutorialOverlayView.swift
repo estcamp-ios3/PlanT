@@ -1,10 +1,3 @@
-//
-//  TutorialOverlayView.swift
-//  PlanT
-//
-//  Created by 박성관 on 10/23/25.
-//
-
 import SwiftUI
 
 struct TutorialOverlayView: View {
@@ -16,76 +9,94 @@ struct TutorialOverlayView: View {
         guard let step = manager.currentStep else {
             return AnyView(EmptyView())
         }
+
+        // ✅ 일반 target (튜토리얼 앵커 프레임)
         let target = frames[step.id] ?? .zero
 
         return AnyView(
             ZStack {
-                // ✅ 반투명 배경 (밑 UI 터치 허용)
-                Color.black.opacity(0.6)
+                Color(.systemBackground)
                     .ignoresSafeArea()
                     .allowsHitTesting(false)
 
-                // ✅ 하이라이트 구멍
-                if !target.isEmpty {
-                    ZStack {
-                        Color.black.opacity(0.6)
-                            .blendMode(.darken)
-                            .ignoresSafeArea()
-
-                        RoundedRectangle(cornerRadius: 20)
-                            .frame(width: target.width + 8, height: target.height + 8)
-                            .position(x: target.midX, y: target.midY)
-                            .blendMode(.destinationOut)
-                            .shadow(color: .white.opacity(0.6), radius: 8)
-                    }
-                    .compositingGroup()
-                    .allowsHitTesting(false)
-                }
-
-                // ✅ 문구 + 화살표
-                VStack {
-                    Spacer()
-                        .frame(height: target.isEmpty ? 250 : target.maxY + 40)
-                    HStack {
+                // ✅ intro 단계일 경우 별도 디자인
+                if step.id == "intro" {
+                    VStack(spacing: 24) {
                         Spacer()
-                            .frame(width: target.isEmpty ? 24 : max(0, target.midX - 80))
+                        Image("MrGrrr") // ← 프로젝트 asset에 추가된 캐릭터 이름
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 180, height: 180)
+                            .shadow(radius: 10)
 
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text(step.message)
-                                .foregroundColor(.white)
-                                .font(.headline)
-                                .padding(14)
-                                .background(.black.opacity(0.6))
-                                .cornerRadius(12)
+                        Text(step.message)
+                            .multilineTextAlignment(.center)
+                            .foregroundColor(Color("BrandPrimary"))
+                            .font(.title3.bold())
+                            .padding(20)
+                            .background(Color("BG_F2F2F2"))
+                            .cornerRadius(16)
+                            .padding(.horizontal, 30)
 
-                            if !target.isEmpty {
-                                Image(systemName: "arrow.up")
-                                    .font(.system(size: 36, weight: .bold))
-                                    .foregroundColor(.yellow)
-                                    .padding(.leading, 16)
-                            }
+                        Button(action: {
+                            manager.next()
+                        }) {
+                            Text("시작하기")
+                        }
+                        .plantPrimaryButton()
+                        .padding(.horizontal, 30)
+                        Spacer()
+                    }
+                    .transition(.opacity)
+                } else {
+                    // ✅ 나머지 단계 (기존 방식 유지)
+                    VStack {
+                        Spacer()
+                            .frame(height:
+                                target.isEmpty
+                                ? 250 + step.verticalOffset
+                                : target.maxY - 80 + step.verticalOffset
+                            )
+                        HStack {
+                            Spacer()
+                                .frame(width:
+                                    target.isEmpty
+                                    ? 24 + step.horizontalOffset
+                                    : max(0, target.midX - 100 + step.horizontalOffset)
+                                )
 
-                            if step.showNextButton {
-                                Button(action: {
-                                    manager.next()
-                                }) {
-                                    Text("다음")
-                                        .font(.system(size: 15, weight: .bold))
-                                        .padding(.vertical, 10)
-                                        .padding(.horizontal, 20)
-                                        .background(Color("BrandPrimary"))
-                                        .foregroundColor(.black)
-                                        .cornerRadius(30)
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text(step.message)
+                                    .foregroundColor(Color("BrandPrimary"))
+                                    .font(.headline)
+                                    .background(Color("BG_F2F2F2"))
+                                    .padding(14)
+                                    .cornerRadius(12)
+
+                                if !target.isEmpty {
+                                    Image(systemName: "arrow.up")
+                                        .font(.system(size: 36, weight: .bold))
+                                        .foregroundColor(Color("BrandAccent"))
+                                        .padding(.leading, 16)
                                 }
+
+                                if step.showNextButton {
+                                    Button(action: {
+                                        manager.next()
+                                    }) {
+                                        Text("다음")
+                                          
+                                    }
+                                    .plantPrimaryButton()
+                                    .frame(width: 80)                                }
                             }
+                            Spacer()
                         }
                         Spacer()
                     }
-                    Spacer()
                 }
             }
             .animation(.easeInOut(duration: 0.3), value: manager.currentIndex)
         )
     }
 }
-

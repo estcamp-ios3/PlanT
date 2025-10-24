@@ -7,88 +7,81 @@
 
 import SwiftUI
 
-/// - 모든 씨앗을 그리드(Grid)로 보여주고,
-/// - 선택 시 선택 상태를 바인딩(@Binding)으로 부모에 전달,
 struct SeedSelectionView: View {
-    @Environment(\.dismiss) private var dismiss  // 현재 뷰를 닫는 환경 변수
-    @Binding var selectedSeed: Seed?            // 외부와 공유하는 선택된 씨앗
-    
-    // allSeeds는 SeedType.swift에 정의된 글로벌 상수임
+    @Environment(\.dismiss) private var dismiss
+    @Binding var selectedSeed: Seed?
+
+    // 🌱 인트로 문구 표시 여부
+    @State private var showIntro = true
+
     private var allSeedsForGrid: [Seed?] {
         var list = allSeeds.map { Optional($0) }
         while list.count < 9 { list.append(nil) }
         return list
     }
-    
+
     var body: some View {
         ZStack(alignment: .topTrailing) {
             ScrollView {
                 VStack(spacing: 16) {
-                    // 상단 드래그 캡슐 모양 (시트 형태 느낌)
                     Capsule()
                         .frame(width: 40, height: 3)
                         .foregroundColor(.gray.opacity(0.3))
                         .padding(.top, 10)
-                    
-                    // 제목
+
                     Text("씨앗을 선택해 주세요")
                         .font(.title)
                         .padding(.top, 8)
-                    
-                    // 3열 그리드 레이아웃
+
                     LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 16) {
                         ForEach(allSeedsForGrid.indices, id: \.self) { index in
                             let seed = allSeedsForGrid[index]
-                            
+
                             ZStack {
-                                // 씨앗 카드 기본 틀
                                 RoundedRectangle(cornerRadius: 10)
                                     .stroke(Color.gray.opacity(0.3), lineWidth: 1)
                                     .background(Color.white)
                                     .frame(height: 150)
-                                
-                                // 실제 씨앗 데이터가 있을 때만 표시
+
                                 if let seed = seed {
                                     VStack(spacing: 4) {
                                         Spacer().frame(height: 4)
                                         ZStack {
-                                            // 씨앗 이미지
                                             Image("\(seed.imagePrefix)01")
                                                 .resizable()
                                                 .scaledToFit()
                                                 .frame(width: 110, height: 110)
-                                            
-                                            // 현재 선택된 씨앗이면 체크마크 표시
+
                                             if selectedSeed == seed {
                                                 Image(systemName: "checkmark.circle.fill")
                                                     .resizable()
                                                     .foregroundColor(.blue)
                                                     .frame(width: 24, height: 24)
-                                                    .offset(x: -25, y: -25) // 좌측 상단에 배치
+                                                    .offset(x: -25, y: -25)
                                             }
                                         }
-                                        // 씨앗 이름
                                         Text(seed.name)
                                             .font(.title2)
-                                            .padding(.bottom, vertical2) 
-
+                                            .padding(.bottom, vertical2)
                                     }
-                                    // 카드 탭 시 해당 씨앗을 선택
                                     .onTapGesture {
                                         selectedSeed = seed
+                                        // 🌱 씨앗을 선택하면 문구 즉시 사라지게
+                                        withAnimation {
+                                            showIntro = false
+                                        }
                                     }
                                 }
                             }
                         }
                     }
                     .padding(.horizontal)
-                    
+
                     Spacer()
-                    
-                    // 선택 완료 버튼
+
                     if let seed = selectedSeed {
                         Button {
-                            dismiss() // 현재 뷰 닫기
+                            dismiss()
                         } label: {
                             Text("'\(seed.name)' 선택완료")
                         }
@@ -96,7 +89,6 @@ struct SeedSelectionView: View {
                         .padding(.horizontal, 20)
                         .padding(.bottom, 16)
                     } else {
-                        // 씨앗 미선택 시 비활성화된 버튼
                         Button {} label: {
                             Text("'선택씨앗' 선택완료")
                         }
@@ -107,8 +99,8 @@ struct SeedSelectionView: View {
                     }
                 }
             }
-            
-            // 오른쪽 상단 닫기 버튼
+
+            // 닫기 버튼
             Button {
                 dismiss()
             } label: {
@@ -119,8 +111,37 @@ struct SeedSelectionView: View {
             }
             .padding(.trailing, 8)
             .padding(.top, 8)
+            .zIndex(1)
 
-            .zIndex(1) // 스크롤 뷰 위에 항상 보이도록 zIndex 지정
+            // 🌱 인트로 문구 오버레이
+            if showIntro {
+                VStack {
+                    Spacer()
+                    VStack(spacing: 8) {
+                        Text("식물마다 자라나는 열매가 다릅니다.")
+                        Text("또 식물마다 자라는 모습이 다릅니다.")
+                        Text("나만의 식물을 기르며 예쁜 과수원을 만들어보세요.")
+                    }
+                    .multilineTextAlignment(.center)
+                    .font(.headline)
+                    .foregroundColor(Color("BrandPrimary"))
+                    .padding(24)
+                    .background(Color("BG_F2F2F2").opacity(0.95))
+                    .cornerRadius(20)
+                    .shadow(radius: 8)
+                    .padding(.horizontal, 30)
+                    .padding(.bottom, 60)
+                }
+                .transition(.opacity)
+                .onAppear {
+                    // ⏳ 4초 후 자연스럽게 사라짐
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
+                        withAnimation(.easeInOut(duration: 0.8)) {
+                            showIntro = false
+                        }
+                    }
+                }
+            }
         }
     }
 }

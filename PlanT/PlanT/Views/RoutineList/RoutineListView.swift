@@ -15,10 +15,11 @@ struct RoutineListView: View {
     @EnvironmentObject var store: RoutineStore
     @EnvironmentObject var authStore: AuthStore
     @State private var isSelectedRoutine: Bool = false
-    
     // 토스트 상태
     @State private var isToastVisible: Bool = false
     @State private var toastMessage: String = ""
+    @State private var tutorialFrames: [String: CGRect] = [:]
+    @StateObject private var tutorialManager = TutorialManager()
     
     enum Route: Hashable {
         case plantAssistant
@@ -66,12 +67,14 @@ struct RoutineListView: View {
                     Text("여기에 루틴이 추가됩니다.")
                         .foregroundColor(.gray)
                         .padding()
+                        .tutorialAnchor("emptyText")
                 } else {
                     ForEach(store.routines) { routine in
                         RoutineCardModernView(
                             routine: routine,
                             progress: store.progress(for: routine)
                         )
+                        .tutorialAnchor("routineCard")
                         .onTapGesture{
                             path.append(Route.manualCreateDetails(routine))
                         }
@@ -88,6 +91,8 @@ struct RoutineListView: View {
             .padding()
             .frame(maxWidth: .infinity)
         }
+        .coordinateSpace(name: "tutorialSpace")
+        .onPreferenceChange(TutorialAnchorKey.self) { tutorialFrames = $0 }
         
         // ✅ 왼쪽 아래: Mate + (선택적으로) 말풍선 토스트
         .overlay(alignment: .bottomLeading) {
@@ -156,8 +161,16 @@ struct RoutineListView: View {
                 RoutineListView(path: $path, showAddAlarmSheet: $showAddAlarmSheet)
             }
         }
-        .onAppear {
-//            NotificationManager.shared.debugPendingNotifications()
+        
+        .overlay {
+            if tutorialManager.isActive {
+                TutorialOverlayView(
+                    manager: tutorialManager,
+                    frames: tutorialFrames
+                ) {
+                    tutorialManager.finish()
+                }
+            }
         }
         
         // ✅ 네비게이션 바 우측 + 버튼 (FAB 대체)
@@ -177,7 +190,47 @@ struct RoutineListView: View {
                     Image(systemName: "plus")
                         .imageScale(.large)
                 }
+                .tutorialAnchor("plusButton")
+
             }
+        }
+        .onAppear {
+            guard !tutorialManager.hasShownTutorial else { return }
+            
+            let steps = [
+                // 첫 번째 튜토리얼 (플러스 버튼 → 오른쪽 위)
+                PlanTTutorialStep(
+                    id: "intro",
+                    message: "안녕하세요! 저는 Mr.Grrr, \n당신의 성장 메이트예요.\n작은 루틴으로\n 씨앗을 심고, 실천하면서 \n 당신만의 루틴식물을 키워봐요",
+                    showNextButton: true,
+                    verticalOffset: 0,     // 위로 올림
+                    horizontalOffset: 0    // 오른쪽으로 이동
+                ),
+                PlanTTutorialStep(
+                    id: "plusButton",
+                    message: "오른쪽 위 + 버튼을 눌러 루틴을 추가하세요!",
+                    showNextButton: true,
+                    verticalOffset: -220,     // 위로 올림
+                    horizontalOffset: 160    // 오른쪽으로 이동
+                ),
+                // 두 번째 튜토리얼 (빈 화면 안내 → 화면 중앙보다 아래쪽)
+                PlanTTutorialStep(
+                    id: "emptyText",
+                    message: "루틴이 없을 때는 아무것도 표시가 안됩니다.",
+                    showNextButton: true,
+                    verticalOffset: 180,     // 아래로 내림
+                    horizontalOffset: 0
+                ),
+                // 세 번째 튜토리얼 (루틴 카드 안내)
+                PlanTTutorialStep(
+                    id: "routineCard",
+                    message: "이곳에서 루틴의 성장을 확인할 수 있습니다.",
+                    showNextButton: true,
+                    verticalOffset: 180,
+                    horizontalOffset: 0
+                )
+            ]
+            tutorialManager.start(steps: steps)
         }
     }
 }
