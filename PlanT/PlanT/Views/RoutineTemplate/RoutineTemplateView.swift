@@ -17,7 +17,9 @@ struct RoutineTemplateView: View {
 
     let categories: [RoutineCategory] = routineTemplates     // 표시할 루틴 카테고리 목록
     @State private var selectedRoutineID: UUID? = nil // 현재 선택된 루틴 ID (없으면 nil)
-    
+    @State private var showSeedStatusFullModal = false
+    @EnvironmentObject var store: RoutineStore
+
     // 초기화 시점에 전달받은 categories가 없으면
     // DEBUG 빌드일 때는 sampleCategories를 기본값으로 사용
     // RELEASE 빌드일 때는 빈 배열 사용
@@ -88,7 +90,7 @@ struct RoutineTemplateView: View {
 
                 )
 
-                SeedStatusView(state: .planted(routine), draft: draft, path: $path, showAddAlarmSheet: $showAddAlarmSheet)
+                SeedStatusView(state: .planted(activeRoutineCount), draft: draft, path: $path, showAddAlarmSheet: $showAddAlarmSheet)
             } else {
                 let fallbackDraft = RoutineDraft(
                     categoryId: "-",
@@ -107,8 +109,12 @@ struct RoutineTemplateView: View {
                     routinePeriodDays: 0
 
                 )
+
                 SeedStatusView(state: .notPlanted, draft: fallbackDraft, path: $path, showAddAlarmSheet: $showAddAlarmSheet)
             }
         }
+    }
+    private var activeRoutineCount: Int {
+        store.routines.filter { !$0.isCompleted }.count
     }
 }

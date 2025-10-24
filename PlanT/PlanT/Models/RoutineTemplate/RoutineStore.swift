@@ -258,3 +258,9 @@ extension RoutineStore {
         await regenerateAIComments(for: routines)
     }
 }
+
+extension RoutineStore {
+    func hasUncompletedRoutine() -> Bool {
+        return routines.contains { !$0.isCompleted }
+    }
+}
