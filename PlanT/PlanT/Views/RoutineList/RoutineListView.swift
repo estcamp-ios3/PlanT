@@ -216,14 +216,14 @@ struct RoutineListView: View {
                 // 두 번째 튜토리얼 (빈 화면 안내 → 화면 중앙보다 아래쪽)
                 PlanTTutorialStep(
                     id: "emptyText",
-                    message: "루틴이 없을 때는 아무것도 표시가 안됩니다.",
+                    message: "루틴이 없을 때는 \n아무것도 표시가 안됩니다.",
                     showNextButton: true,
                     verticalOffset: 180,     // 아래로 내림
                     horizontalOffset: 0
                 ),
                 // 세 번째 튜토리얼 (루틴 카드 안내)
                 PlanTTutorialStep(
-                    id: "routineCard",
+                    id: "emptyText",
                     message: "이곳에서 루틴의 성장을 확인할 수 있습니다.",
                     showNextButton: true,
                     verticalOffset: 180,

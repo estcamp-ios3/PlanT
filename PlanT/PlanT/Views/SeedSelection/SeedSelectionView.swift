@@ -11,7 +11,7 @@ struct SeedSelectionView: View {
     @Environment(\.dismiss) private var dismiss
     @Binding var selectedSeed: Seed?
 
-    // 🌱 인트로 문구 표시 여부
+    //  인트로 문구 표시 여부
     @State private var showIntro = true
 
     private var allSeedsForGrid: [Seed?] {
@@ -28,21 +28,21 @@ struct SeedSelectionView: View {
                         .frame(width: 40, height: 3)
                         .foregroundColor(.gray.opacity(0.3))
                         .padding(.top, 10)
-
+                    
                     Text("씨앗을 선택해 주세요")
                         .font(.title)
                         .padding(.top, 8)
-
+                    
                     LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 16) {
                         ForEach(allSeedsForGrid.indices, id: \.self) { index in
                             let seed = allSeedsForGrid[index]
-
+                            
                             ZStack {
                                 RoundedRectangle(cornerRadius: 10)
                                     .stroke(Color.gray.opacity(0.3), lineWidth: 1)
                                     .background(Color.white)
                                     .frame(height: 150)
-
+                                
                                 if let seed = seed {
                                     VStack(spacing: 4) {
                                         Spacer().frame(height: 4)
@@ -51,7 +51,7 @@ struct SeedSelectionView: View {
                                                 .resizable()
                                                 .scaledToFit()
                                                 .frame(width: 110, height: 110)
-
+                                            
                                             if selectedSeed == seed {
                                                 Image(systemName: "checkmark.circle.fill")
                                                     .resizable()
@@ -66,7 +66,7 @@ struct SeedSelectionView: View {
                                     }
                                     .onTapGesture {
                                         selectedSeed = seed
-                                        // 🌱 씨앗을 선택하면 문구 즉시 사라지게
+                                        // 씨앗을 선택하면 문구 즉시 사라지게
                                         withAnimation {
                                             showIntro = false
                                         }
@@ -76,9 +76,9 @@ struct SeedSelectionView: View {
                         }
                     }
                     .padding(.horizontal)
-
+                    
                     Spacer()
-
+                    
                     if let seed = selectedSeed {
                         Button {
                             dismiss()
@@ -99,45 +99,47 @@ struct SeedSelectionView: View {
                     }
                 }
             }
-
+            
             // 닫기 버튼
-            Button {
-                dismiss()
-            } label: {
-                Image(systemName: "xmark")
-                    .font(.system(size: 30, weight: .bold))
-                    .foregroundColor(.red)
-                    .shadow(radius: 4, x: 0, y: 4)
-            }
-            .padding(.trailing, 8)
-            .padding(.top, 8)
-            .zIndex(1)
-
-            // 🌱 인트로 문구 오버레이
-            if showIntro {
-                VStack {
-                    Spacer()
-                    VStack(spacing: 8) {
-                        Text("식물마다 자라나는 열매가 다릅니다.")
-                        Text("또 식물마다 자라는 모습이 다릅니다.")
-                        Text("나만의 식물을 기르며 예쁜 과수원을 만들어보세요.")
-                    }
-                    .multilineTextAlignment(.center)
-                    .font(.headline)
-                    .foregroundColor(Color("BrandPrimary"))
-                    .padding(24)
-                    .background(Color("BG_F2F2F2").opacity(0.95))
-                    .cornerRadius(20)
-                    .shadow(radius: 8)
-                    .padding(.horizontal, 30)
-                    .padding(.bottom, 60)
+            if selectedSeed != nil {
+                Button {
+                    dismiss()
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 30, weight: .bold))
+                        .foregroundColor(.red)
+                        .shadow(radius: 4, x: 0, y: 4)
                 }
-                .transition(.opacity)
-                .onAppear {
-                    // ⏳ 4초 후 자연스럽게 사라짐
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
-                        withAnimation(.easeInOut(duration: 0.8)) {
-                            showIntro = false
+                .padding(.trailing, 8)
+                .padding(.top, 8)
+                .zIndex(1)
+                
+                // 🌱 인트로 문구 오버레이
+                if showIntro {
+                    VStack {
+                        Spacer()
+                        VStack(spacing: 8) {
+                            Text("식물마다 자라나는 열매가 다르고,")
+                            Text("성장하는 모습이 다릅니다.")
+                            Text("나만의 식물을 기르며 예쁜 과수원을 만들어보세요.")
+                        }
+                        .multilineTextAlignment(.center)
+                        .font(.headline)
+                        .foregroundColor(Color("BrandPrimary"))
+                        .padding(24)
+                        .background(Color("BG_F2F2F2").opacity(0.95))
+                        .cornerRadius(20)
+                        .shadow(radius: 8)
+                        .padding(.horizontal, 30)
+                        .padding(.bottom, 60)
+                    }
+                    .transition(.opacity)
+                    .onAppear {
+                        // ⏳ 4초 후 자연스럽게 사라짐
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
+                            withAnimation(.easeInOut(duration: 0.8)) {
+                                showIntro = false
+                            }
                         }
                     }
                 }
@@ -145,3 +147,4 @@ struct SeedSelectionView: View {
         }
     }
 }
+

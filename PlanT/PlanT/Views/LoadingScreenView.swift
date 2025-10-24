@@ -22,6 +22,7 @@ struct LoadingScreenView: View {
                 .scaleEffect(3.0)
                 .accessibilityHidden(true)
         }
+        .padding(.bottom, vertical6)
     }
 }
 
