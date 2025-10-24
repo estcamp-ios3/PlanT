@@ -27,7 +27,7 @@ struct SettingUserCardView: View {
                 Image(viewModel.model.mateName)
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 150, height: 150)
+                    .frame(width: 120, height: 120)
                     .padding(8)
                     .background(
                         Circle()
@@ -108,7 +108,7 @@ struct SettingUserCardView: View {
 private struct ProfileInfoStyle: ViewModifier {
     func body(content: Content) -> some View {
         content
-            .font(.system(size: 24, weight: .heavy))
+            .font(.system(size: vertical5, weight: .heavy))
             .foregroundColor(.primary)
             .lineLimit(1)
             .minimumScaleFactor(0.85)
