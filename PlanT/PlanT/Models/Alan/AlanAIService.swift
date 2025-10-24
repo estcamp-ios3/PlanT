@@ -30,9 +30,14 @@ final class AlanAIService {
     private var didPrewarm = false
 
     private init() {
-        let clientId = "af5fd1e6-4f5d-40f7-b825-b493dcf0fcdd"
+        let clientId = "34a0ba9f-c677-4406-815a-47b88e791679"
         let client = AlanAI(clientID: clientId)
         self.clientBox = AlanClientBox(client: client)
+
+        // 앱 시작 후 바로 웜업 시도 (실패 무시)
+        Task { [weak self] in
+            await self?.prewarmIfNeeded()
+        }
     }
 
     // MARK: - Warmup (비차단, 실패 무시)
@@ -62,17 +67,40 @@ final class AlanAIService {
         }
     }
 
-    // MARK: - Low-level ask (타임아웃 포함) → String만 반환해 Sendable 충족
+    // MARK: - Low-level ask (타임아웃 + 1회 재시도) → String만 반환해 Sendable 충족
     func ask(question: String, timeout: TimeInterval = 8) async -> String {
+        // 프롬프트 길이가 길면 타임아웃 살짝 늘림
+        let effectiveTimeout = max(timeout, question.count > 180 ? 10 : timeout)
+
+        // 1차 시도
         do {
-            let content: String = try await withTimeout(timeout) { [clientBox] in
+            let content: String = try await withTimeout(effectiveTimeout) { [clientBox] in
                 let res = try await clientBox.question(question)
                 return res?.content ?? ""
             }
             return content
         } catch {
-            print("❌ AlanAI ask error:", error.localizedDescription)
-            return ""
+            // 타임아웃/취소/기타 에러 로깅
+            if let urlErr = error as? URLError, urlErr.code == .timedOut {
+                print("⏳ AlanAI timed out after \(effectiveTimeout)s (len=\(question.count))")
+            } else if error is CancellationError {
+                print("⛔️ AlanAI request canceled by parent task")
+            } else {
+                print("❌ AlanAI ask error:", error.localizedDescription)
+            }
+
+            // 2차 재시도 (짧게)
+            do {
+                try await Task.sleep(nanoseconds: 400_000_000) // 0.4초 대기
+                let content: String = try await withTimeout(min(6, effectiveTimeout)) { [clientBox] in
+                    let res = try await clientBox.question(question)
+                    return res?.content ?? ""
+                }
+                return content
+            } catch {
+                print("❌ AlanAI retry failed:", error.localizedDescription)
+                return ""
+            }
         }
     }
 
@@ -108,6 +136,7 @@ final class AlanAIService {
     /// 병렬 처리 + 타임아웃 + 즉시 fallback
     func generateEncouragement(for items: [RoutineEncItem]) async -> [UUID: String] {
         guard !items.isEmpty else { return [:] }
+        await prewarmIfNeeded()
 
         var result: [UUID: String] = [:]
         let pending = items.filter { !($0.total > 0 && $0.done >= $0.total) }
@@ -128,7 +157,7 @@ final class AlanAIService {
                     }
                     let raw = await self.ask(
                         question: self.makePerRoutinePrompt(title: item.title, total: item.total, done: item.done),
-                        timeout: 8
+                        timeout: 10
                     )
                     let lines = Self.normalizeLines(from: raw)
                     if lines.count >= 2 {
@@ -171,7 +200,7 @@ final class AlanAIService {
         """
     }
 
-    // MARK: - 새 루틴 토스트용 프롬프트
+    // MARK: - 새 루틴 토스트용 프롬프트(현행 유지)
     private func newRoutinePrompt(title: String, minutes: Int?, timesPerWeek: Int?) -> String {
         let mm = minutes ?? 0
         let tw = timesPerWeek ?? 0
@@ -195,7 +224,7 @@ final class AlanAIService {
         let timesPerWeek = Self.extractFirstInt(from: frequencyPerWeekTitle)
 
         let prompt = newRoutinePrompt(title: title, minutes: minutes, timesPerWeek: timesPerWeek)
-        let raw = await ask(question: prompt, timeout: 5) // 토스트는 더 짧게
+        let raw = await ask(question: prompt, timeout: 6)
         let lines = Self.normalizeLines(from: raw)
         let text = lines.prefix(2).joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
 

@@ -91,7 +91,11 @@ final class RoutineStore: ObservableObject {
             print("❌ SwiftData 저장 실패:", error)
         }
 
-        Task {
+        // ✅ 네트워크/AI 작업은 View 생명주기와 무관하게 돌도록 분리
+        Task.detached { [client, weak self] in
+            guard let self else { return }
+
+            // Supabase 업로드
             do {
                 try await client.from("routines").insert(newRoutine.dto).execute()
                 print("✅ Supabase 업로드 완료:", newRoutine.title)
@@ -99,13 +103,15 @@ final class RoutineStore: ObservableObject {
                 print("❌ Supabase 업로드 실패:", error.localizedDescription)
             }
 
-            NotificationManager.shared.scheduleNotification(
-                for: newRoutine.id,
-                title: newRoutine.title,
-                baseDate: draft.startDate ?? Date(),
-                offsets: Array(reminderOffsets)
-            )
-
+            // 알림 예약(메인에서)
+            await MainActor.run {
+                NotificationManager.shared.scheduleNotification(
+                    for: newRoutine.id,
+                    title: newRoutine.title,
+                    baseDate: draft.startDate ?? Date(),
+                    offsets: Array(reminderOffsets)
+                )
+            }
 
             // ✅ AI 작업 '병렬' 실행 (코멘트 갱신은 기다리지 않음, 토스트만 먼저 받아서 띄움)
             async let _ = self.regenerateAIComment(for: newRoutine) // 백그라운드 진행
@@ -115,10 +121,10 @@ final class RoutineStore: ObservableObject {
                 frequencyPerWeekTitle: newRoutine.frequencyPerWeekTitle
             )
 
-            // 토스트만 먼저 받아서 표시
+            // 토스트만 먼저 받아서 표시 (메인)
             let toast = await toastMsg
-            DispatchQueue.main.async {
-                MateToastCenter.show(toast)  // Store에서만 토스트 발사
+            await MainActor.run {
+                MateToastCenter.show(toast)
             }
         }
 
@@ -129,7 +135,8 @@ final class RoutineStore: ObservableObject {
         context.delete(routine)
         do { try context.save() } catch { }
 
-        Task {
+        Task.detached { [client, weak self] in
+            guard let self else { return }
             do {
                 try await client
                     .from("routines")
@@ -141,9 +148,11 @@ final class RoutineStore: ObservableObject {
                 print("❌ Supabase 삭제 실패:", error.localizedDescription)
             }
 
-            // AI 상태 정리
-            aiComments.removeValue(forKey: routine.id)
-            aiSignatures.removeValue(forKey: routine.id)
+            // AI 상태 정리 (메인)
+            await MainActor.run {
+                self.aiComments.removeValue(forKey: routine.id)
+                self.aiSignatures.removeValue(forKey: routine.id)
+            }
         }
 
         loadRoutines()
@@ -174,7 +183,8 @@ extension RoutineStore {
 
         do { try context.save() } catch { print("❌ SwiftData 저장 실패:", error) }
 
-        Task {
+        Task.detached { [client, weak self] in
+            guard let self else { return }
             do {
                 try await client
                     .from("routines")
@@ -184,7 +194,7 @@ extension RoutineStore {
             } catch {
                 print("❌ Supabase 완료횟수 업데이트 실패:", error.localizedDescription)
             }
-            // ✅ 해당 루틴 1건만 AI 호출
+            // ✅ 해당 루틴 1건만 AI 호출 (detached)
             await self.regenerateAIComment(for: routine)
         }
 
@@ -220,20 +230,22 @@ extension RoutineStore {
         // 3) 서비스 호출(완료 루틴은 서비스 내부에서 고정 문구 처리됨)
         let generated: [UUID: String] = await ai.generateEncouragement(for: items)
 
-        // 4) 상태 반영
-        var newComments = aiComments
-        var newSigs = aiSignatures
+        // 4) 상태 반영 (메인)
+        await MainActor.run {
+            var newComments = aiComments
+            var newSigs = aiSignatures
 
-        for (id, text) in generated {
-            newComments[id] = text
-        }
-        for r in targets {
-            newSigs[r.id] = "\(r.completedCount)/\(totalCount(for: r))"
-        }
+            for (id, text) in generated {
+                newComments[id] = text
+            }
+            for r in targets {
+                newSigs[r.id] = "\(r.completedCount)/\(totalCount(for: r))"
+            }
 
-        aiComments = newComments
-        aiSignatures = newSigs
-        print("✅ 자유 응원 코멘트 갱신 완료(\(targets.count)건)")
+            aiComments = newComments
+            aiSignatures = newSigs
+            print("✅ 자유 응원 코멘트 갱신 완료(\(targets.count)건)")
+        }
     }
 
     /// 단일 루틴만 AlanAI에 요청 → 내부적으로 다건 API를 1건 배열로 호출
