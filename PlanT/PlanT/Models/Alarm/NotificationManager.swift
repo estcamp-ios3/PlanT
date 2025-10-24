@@ -58,7 +58,6 @@ final class NotificationManager {
                     print(" 반복 알림 예약됨: \(day.rawValue)요일, \(dateComponents.hour ?? 0):\(dateComponents.minute ?? 0)")
                 }
             }
-            debugPendingNotifications()
             return
         }
         
@@ -89,18 +88,17 @@ final class NotificationManager {
             print(" 트리거시각: \(triggerDate)")
         }
         
-        debugPendingNotifications()
     }
 
     // MARK: - 알림 취소
-    func cancelNotifications(for routineID: UUID) {
-        UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
-            let idsToRemove = requests
+    func cancelNotifications(for routineId: UUID) {
+        let center = UNUserNotificationCenter.current()
+        center.getPendingNotificationRequests { requests in
+            let relatedIds = requests
+                .filter { $0.identifier.hasPrefix(routineId.uuidString) }
                 .map { $0.identifier }
-                .filter { $0.starts(with: routineID.uuidString) }
-            
-            UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: idsToRemove)
-            print(" 삭제된 알림 ID들:", idsToRemove)
+            center.removePendingNotificationRequests(withIdentifiers: relatedIds)
+            print("루틴 \(routineId) 관련 알림 제거됨: \(relatedIds)")
         }
     }
 

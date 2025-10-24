@@ -83,7 +83,8 @@ struct RoutineTemplateView: View {
                     periodIsNoLimit: true,
                     reminderOn: routine.alarm == .every24Hours,
                     goal: routine.goal,
-                    isFavorite: false
+                    isFavorite: false, routinePeriodDays: 0,
+                    
 
                 )
 
@@ -101,7 +102,9 @@ struct RoutineTemplateView: View {
                     periodIsNoLimit: true,
                     reminderOn: false,
                     goal: "-",
-                    isFavorite: false
+                    isFavorite: false,
+                    totalDays: 0,
+                    routinePeriodDays: 0
 
                 )
                 SeedStatusView(state: .notPlanted, draft: fallbackDraft, path: $path, showAddAlarmSheet: $showAddAlarmSheet)

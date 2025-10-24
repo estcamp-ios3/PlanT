@@ -95,7 +95,9 @@ struct RoutineDraft: Codable, Hashable, Identifiable {
     
     var reminderOffsets: Set<Int> = []
     
+    var totalDays: Int? = nil
 
+    var routinePeriodDays: Int
 
     // MARK: - TODO: 서버 routines 테이블에 있지만 클라이언트 초안에 미포함된 필드 예시
     // var deleted_at: Date?    // 삭제 시각 (서버 관리용)
@@ -121,6 +123,7 @@ struct RoutineCreateDTO: Codable {
     let notes: String?
     let iconName: String?
     let isFavorite: Bool
+    
 }
 
 // MARK: - 변환/유효성 검사 헬퍼

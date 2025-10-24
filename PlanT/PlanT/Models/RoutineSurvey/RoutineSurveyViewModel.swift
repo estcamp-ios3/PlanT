@@ -26,6 +26,11 @@ final class RoutineSurveyViewModel: ObservableObject {
     var periodSelection: Set<String>? {
         selections["set_period"]
     }
+    // MARK: - 계산된 루틴 기간 (일 단위)
+    var routinePeriodDays: Int {
+        let diff = Calendar.current.dateComponents([.day], from: surveyStartDate, to: surveyEndDate).day ?? 0
+        return max(diff, 0)
+    }
     
     // 설문 단계 정의: 각 화면에서 보여줄 질문/옵션/선택 제한 등을 순서대로 나열합니다.
     @Published private(set) var steps: [SurveyStep] = [
@@ -175,15 +180,34 @@ final class RoutineSurveyViewModel: ObservableObject {
     }
     // 이전 단계로 이동
     func back() {
-        if !isFirst {
-            currentIndex -= 1
-            let remainingSteps = steps.suffix(from: currentIndex + 1)
-            for step in remainingSteps {
-                selections.removeValue(forKey: step.id)
-            }
+        guard !isFirst else { return }
+
+        //  현재 단계의 ID (되돌아오기 전 단계)
+        let currentStepId = steps[currentIndex].id
+
+        //  한 단계 이전으로 이동
+        currentIndex -= 1
+
+        //  방금 이전 단계(지금 화면에서 보여줄 단계)의 선택을 삭제
+        let stepToClearId = currentStepId
+        selections.removeValue(forKey: stepToClearId)
+
+        //  카테고리(category)는 항상 유지
+        if steps[currentIndex].id == "category" {
+            progressiveSentence = AttributedString()
             objectWillChange.send()
+            return
         }
+
+        // 5️⃣ 문장 초기화 및 재계산
+        progressiveSentence = AttributedString()
+        updateProgressiveSentence()
+
+        // 6️⃣ 뷰 갱신
+        objectWillChange.send()
     }
+
+
     // 현재 선택된 카테고리 id를 slug로 변환
     private func normalizedSlug(from categoryKey: String) -> String? {
         switch categoryKey {
@@ -294,7 +318,10 @@ extension RoutineSurveyViewModel {
             reminderTime: nil,
             reminderDays: nil,
             goal: "\(durationId)/일",
-            isFavorite: false
+            isFavorite: false,
+            reminderOffsets: reminderOffsets,
+            totalDays: routinePeriodDays,
+            routinePeriodDays: routinePeriodDays
         )
     }
     subscript(stepId: String) -> Set<String>? {
@@ -309,7 +336,7 @@ extension RoutineSurveyViewModel {
                 result.append(part)
             }
             if let duration = displayValue(for: "duration") {
-                var part = AttributedString(" / \(duration) 씩 \n ")
+                var part = AttributedString(" / \(duration) 씩 \n")
                 part.foregroundColor = .orange
                 result.append(part)
             }
@@ -326,7 +353,7 @@ extension RoutineSurveyViewModel {
                     result.append(part)
                 } else {
                     let days = Calendar.current.dateComponents([.day], from: surveyStartDate, to: surveyEndDate).day ?? 0
-                    let durationText = days > 0 ? "\(days)일 동안" : "1일 동안"
+                    let durationText = days > 0 ? "\(days)일 동안" : "1일 동안 \n"
                     
                     var part = AttributedString(durationText)
                     part.foregroundColor = .blue
@@ -336,9 +363,9 @@ extension RoutineSurveyViewModel {
             if let reminder = displayValue(for: "set_reminder") {
                 let text: String
                 if reminder == "예" {
-                    text = "매일 알람을 설정 합니다."
+                    text = "\n매일 알람을 설정 합니다."
                 } else if reminder == "아니요" {
-                    text = "알림을 설정하지 않습니다."
+                    text = "\n알림을 설정하지 않습니다."
                 } else {
                     text = ""
                 }
@@ -348,5 +375,6 @@ extension RoutineSurveyViewModel {
             }
             progressiveSentence = result
     }
+    
 }
 

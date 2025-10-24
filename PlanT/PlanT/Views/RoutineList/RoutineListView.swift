@@ -157,7 +157,7 @@ struct RoutineListView: View {
             }
         }
         .onAppear {
-            NotificationManager.shared.debugPendingNotifications()
+//            NotificationManager.shared.debugPendingNotifications()
         }
         
         // ✅ 네비게이션 바 우측 + 버튼 (FAB 대체)

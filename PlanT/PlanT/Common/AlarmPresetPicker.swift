@@ -20,6 +20,9 @@ struct AlarmPresetPicker: View {
                     .font(.subheadline).bold()
 
                 Spacer()
+                Text("맞춤 알림 생성,삭제")
+                    .font(.footnote).bold()
+                    .foregroundColor(.gray.opacity(0.6))
 
                 if isDeleteMode {
                     Button("완료") { isDeleteMode = false }
@@ -29,8 +32,8 @@ struct AlarmPresetPicker: View {
                     Button(role: .destructive) {
                         withAnimation { isDeleteMode = true }
                     } label: {
-                        Image(systemName: "minus")
-                            .font(.system(size: 18, weight: .bold))
+                        Image(systemName: "pencil.tip.crop.circle.badge.minus")
+                            .font(.system(size: 20, weight: .bold))
                             .padding(6)
                     }
                 }

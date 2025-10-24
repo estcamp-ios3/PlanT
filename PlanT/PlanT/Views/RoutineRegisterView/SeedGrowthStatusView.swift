@@ -57,21 +57,28 @@ struct SeedGrowthStatusView: View {
             ProgressView(value: progress / 100)
                 .progressViewStyle(.linear)
                 .tint(Color("BrandPrimary"))
-                .frame(height: 10)
+                .frame(height: 20)
                 .clipShape(Capsule())
                 .padding(.top, 6)
-
+                .animation(.easeInOut(duration: 1.0), value: localProgress)
+            
             if canCompleste {
-                Button(" 루틴 1회 완료") {
+                Button(action: {
                     store.increaseProgress(for:routine)
                     if let updatedRoutine = store.routines.first(where: { $0.id == routine.id }) {
                         self.routine = updatedRoutine
-                        localProgress = store.progress(for: routine)
+                        withAnimation(.easeInOut(duration: 1.0)) {
+                            localProgress = store.progress(for: routine)
+                        }
                     }
+                })
+                {
+                    Text(completedCount >= totalCount ? "루틴 완료" : "루틴 1회 완료")
+                        .frame(maxWidth: .infinity)
                 }
                 .plantPrimaryButton()
                 .disabled(completedCount >= totalCount)
-
+                
             }
         }
         .onReceive(store.$refreshTrigger) { _ in

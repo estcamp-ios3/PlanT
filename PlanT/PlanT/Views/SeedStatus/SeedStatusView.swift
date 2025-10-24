@@ -86,8 +86,10 @@ struct SeedStatusView: View {
                             categoryId: draft.categoryId,
                             draft: draft,
                             reminderOffsets: draft.reminderOffsets
+                            
                         )
-                        
+                        print("✅ 저장된 알람 오프셋 값:", Array(draft.reminderOffsets)) // 👈 이 줄 추가
+
 
                             NotificationManager.shared.scheduleTomorrow9AMNotification(for: routine)
                         print(" 알림 예약 시도 (내일 9시)")
@@ -111,7 +113,7 @@ struct SeedStatusView: View {
                             title: draft.routineTypeTitle.isEmpty ? "새 루틴" : draft.routineTypeTitle,
                             categoryId: draft.categoryId,
                             seedName: seed.imagePrefix,
-                            duration: draft.durationTitle,
+                            duration: "\(draft.routinePeriodDays)일",
                             goal: draft.goal,
                             alarm: draft.reminderOn ? .every24Hours : .every48Hours,
                             frequencyPerWeekId: draft.frequencyPerWeekId,
@@ -119,7 +121,8 @@ struct SeedStatusView: View {
                             note: nil,
                             isCompleted: false,
                             createdAt: Date(),
-                            modifiedAt: Date()
+                            modifiedAt: Date(),
+                            
                         )
                         print("안 심긴 새 루틴 생성 완료: \(routine.title) / 완료상태: \(routine.isCompleted)")
 
