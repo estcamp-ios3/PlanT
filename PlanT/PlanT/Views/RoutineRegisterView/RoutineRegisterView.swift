@@ -467,7 +467,7 @@ extension RoutineRegisterView {
                                     .frame(maxWidth: .infinity)
                                     .background(
                                         isDeleteMode
-                                        ? Color("BrandSecondary")
+                                        ? Color.red.opacity(0.3)
                                         : selectedAlarms.contains(minute) ? Color("BrandAccent") : Color("BrandSecondary"))
                                     .foregroundColor(.black)
                                     .cornerRadius(30)
