@@ -98,6 +98,7 @@ struct SeedSelectionView: View {
                         .disabled(true)
                     }
                 }
+                .cornerRadius(30)
             }
             
             // 닫기 버튼
@@ -111,7 +112,7 @@ struct SeedSelectionView: View {
                         .shadow(radius: 4, x: 0, y: 4)
                 }
                 .padding(.trailing, 8)
-                .padding(.top, 8)
+                .padding(.top, vertical4)
                 .zIndex(1)
                 
                 // 🌱 인트로 문구 오버레이
