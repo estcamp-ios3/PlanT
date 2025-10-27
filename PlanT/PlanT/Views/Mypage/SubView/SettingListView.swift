@@ -50,7 +50,7 @@ struct SettingListView: View {
                 }
             }
         }
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: cornerRadius3, style: .continuous))
         .listStyle(.insetGrouped)
 
         // MARK: - 공지사항 시트

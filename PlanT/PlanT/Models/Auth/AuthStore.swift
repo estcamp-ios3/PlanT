@@ -65,7 +65,7 @@ final class AuthStore: ObservableObject {
     }
     
     // MARK: - 프로필 업데이트
-    func updateProfile(userName: String, nickName: String) async throws {
+    func updateProfile(userName: String, nickName: String, mate: String) async throws {
         guard let session = try? await supabaseManager.restoreSession() else { return }
         let uid = session.user.id.uuidString
         
@@ -73,7 +73,8 @@ final class AuthStore: ObservableObject {
             .from("profiles")
             .update([
                 "userName": userName,
-                "nickName": nickName
+                "nickName": nickName,
+                "mate": mate
             ])
             .eq("id", value: uid)
             .execute()
@@ -81,6 +82,7 @@ final class AuthStore: ObservableObject {
         // 로컬 상태 즉시 반영
         self.userName = userName
         self.nickName = nickName
+        self.mate = mate
     }
     
     // MARK: - 세션 복원
