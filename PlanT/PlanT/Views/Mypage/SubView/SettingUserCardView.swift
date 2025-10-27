@@ -81,7 +81,7 @@ struct SettingUserCardView: View {
                     .foregroundColor(.gray100)
             }
             .plantPrimaryButton()
-            .padding(.leading, UIScreen.main.bounds.width <= 375 ? 244 : 260)            .padding(.trailing, vertical4)
+            .padding(.leading, UIScreen.main.bounds.width <= 375 ? 244 : 286)            .padding(.trailing, vertical4)
             .padding(.top, vertical4)
         }
     }
