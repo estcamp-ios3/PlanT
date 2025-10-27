@@ -10,14 +10,11 @@ import SwiftUI
 struct SettingView: View {
     @EnvironmentObject var authStore: AuthStore
     @State private var showSignOutAlert = false
-
+    
     var body: some View {
         VStack {
-            HStack {
-                SettingUserCardView(authStore: authStore)
-            }
-            ScrollView {
-            }
+            SettingUserCardView(authStore: authStore)
+            SettingListView()
         }
         .padding(.horizontal, vertical4)
         .toolbar {
@@ -30,7 +27,6 @@ struct SettingView: View {
                 }
             }
         }
-        .navigationTitle("설정")
         .navigationBarTitleDisplayMode(.inline)
         // ✅ Alert 추가
         .alert("현재 계정에서 로그아웃 됩니다.", isPresented: $showSignOutAlert) {

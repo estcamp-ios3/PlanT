@@ -32,7 +32,6 @@ struct SettingUserCardView: View {
                     .background(
                         Circle()
                             .fill(.white)
-                            .shadow(color: .black.opacity(0.06), radius: 4, y: 2)
                     )
 
                 VStack(alignment: .leading, spacing: vertical2) {
