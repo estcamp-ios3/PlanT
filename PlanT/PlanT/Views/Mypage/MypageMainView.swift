@@ -34,39 +34,48 @@ struct MypageMainView: View {
                 let peek: CGFloat = 65 // 카드 가로 폭
                 let cardWidth = geo.size.width - (sideInset * 2) - peek
                 let horizontalMargin = max(0, (geo.size.width - cardWidth) / 2)
-
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: vertical1) { // 카드간 가로 간격 조정
-                        ForEach(routineStore.routines) { routine in
-                            MypagePlantsCardView(
-                                authStore: authStore,
-                                routine: routine,
-                                routineStore: routineStore
-                            )
-                            .frame(width: cardWidth, height: 460)
-
-                            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-                            .shadow(color: .black.opacity(0.08), radius: 8, y: 4)
-                            .id(routine.id) // 스냅 타깃 고유 ID
-
-                            .scrollTransition(.animated.threshold(.visible(0.6))) { content, phase in
-                                content
-                                    .scaleEffect(phase.isIdentity ? 1.0 : 0.96)
-                                    .opacity(phase.isIdentity ? 1.0 : 0.95)
+                
+                if routineStore.routines.isEmpty { // 분기처리
+                    // ✅ 루틴이 없을 때: 빈 카드 1개
+                    MypageEmptyPlantsCardView(mateImageName: authStore.mate ?? "MrPurr")
+                        .frame(width: cardWidth, height: 460)
+                        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                        .shadow(color: .black.opacity(0.08), radius: 8, y: 4)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: vertical1) {
+                            ForEach(routineStore.routines) { routine in
+                                MypagePlantsCardView(
+                                    authStore: authStore,
+                                    routine: routine,
+                                    routineStore: routineStore
+                                )
+                                .frame(width: cardWidth, height: 460)
+                                
+                                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                                .shadow(color: .black.opacity(0.08), radius: 8, y: 4)
+                                .id(routine.id) // 스냅 타깃 고유 ID
+                                
+                                .scrollTransition(.animated.threshold(.visible(0.6))) { content, phase in
+                                    content
+                                        .scaleEffect(phase.isIdentity ? 1.0 : 0.96)
+                                        .opacity(phase.isIdentity ? 1.0 : 0.95)
+                                }
                             }
                         }
+                        .padding(.top, 8)
+                        .scrollTargetLayout()
                     }
-                    .padding(.top, 8)
-                    .scrollTargetLayout()
-                }
-                .frame(height: 500)
-                .contentMargins(.horizontal, horizontalMargin, for: .scrollContent)
-                .scrollPosition(id: $currentRoutineID, anchor: .center)
-                .scrollTargetBehavior(.viewAligned)
-                .animation(Animation.interactiveSpring(response: 0.35, dampingFraction: 0.8), value: currentRoutineID)
-                .onAppear {
-                    if currentRoutineID == nil {
-                        currentRoutineID = routineStore.routines.first?.id
+                    .frame(height: 500)
+                    .contentMargins(.horizontal, horizontalMargin, for: .scrollContent)
+                    .scrollPosition(id: $currentRoutineID, anchor: .center)
+                    .scrollTargetBehavior(.viewAligned)
+                    .animation(Animation.interactiveSpring(response: 0.35, dampingFraction: 0.8), value: currentRoutineID)
+                    .onAppear {
+                        if currentRoutineID == nil {
+                            currentRoutineID = routineStore.routines.first?.id
+                        }
                     }
                 }
             }
