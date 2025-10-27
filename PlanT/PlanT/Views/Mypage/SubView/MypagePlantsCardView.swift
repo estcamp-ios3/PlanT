@@ -81,7 +81,7 @@ struct MypagePlantsCardView: View {
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 28, style: .continuous)
-                    .stroke(Color.black.opacity(0.08), lineWidth: 1)
+                    .stroke(Color.black.opacity(0.5), lineWidth: 1)
             )
         }
     }
