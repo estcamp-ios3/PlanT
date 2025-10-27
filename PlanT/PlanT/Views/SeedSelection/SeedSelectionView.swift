@@ -67,6 +67,7 @@ struct SeedSelectionView: View {
                                     }
                                     .onTapGesture {
                                         selectedSeed = seed
+                                        hasSeenSeedIntro = true
                                         withAnimation { showIntro = false }
                                     }
                                 }
@@ -75,10 +76,9 @@ struct SeedSelectionView: View {
                     }
                     .padding(.horizontal)
                     .overlay(alignment: .bottomTrailing) {
-                        // ❓ Help button below grid, right aligned
                         Button {
                             withAnimation(.easeInOut(duration: 0.5)) {
-                                showIntro = true
+                                showIntro.toggle()
                             }
                         } label: {
                             Image(systemName: "questionmark.circle.fill")
@@ -133,31 +133,41 @@ struct SeedSelectionView: View {
                 Spacer()
             }
 
-            // 🌱 Intro overlay
             if showIntro {
-                VStack {
-                    Spacer()
-                    VStack(spacing: 8) {
-                        Text("식물마다 자라나는 열매가 다르고,")
-                        Text("성장하는 모습이 다릅니다.")
-                        Text("나만의 식물을 기르며 예쁜 과수원을 만들어보세요.")
+                ZStack {
+                    Color.black.opacity(0.001)
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                showIntro = false
+                            }
+                        }
+                    
+                    VStack {
+                        Spacer()
+                        VStack(spacing: 8) {
+                            Text("식물마다 자라나는 열매가 다르고,")
+                            Text("성장하는 모습이 다릅니다.")
+                            Text("나만의 식물을 기르며 예쁜 과수원을 만들어보세요.")
+                        }
+                        .multilineTextAlignment(.center)
+                        .font(.headline)
+                        .foregroundColor(Color("BrandPrimary"))
+                        .padding(24)
+                        .background(Color("BG_F2F2F2").opacity(0.95))
+                        .cornerRadius(20)
+                        .shadow(radius: 8)
+                        .padding(.horizontal, 30)
+                        .padding(.bottom, 60)
                     }
-                    .multilineTextAlignment(.center)
-                    .font(.headline)
-                    .foregroundColor(Color("BrandPrimary"))
-                    .padding(24)
-                    .background(Color("BG_F2F2F2").opacity(0.95))
-                    .cornerRadius(20)
-                    .shadow(radius: 8)
-                    .padding(.horizontal, 30)
-                    .padding(.bottom, 60)
-                }
-                .transition(.opacity)
-                .onAppear {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
-                        withAnimation(.easeInOut(duration: 0.8)) {
-                            if !hasSeenSeedIntro {
-                                showIntro = true
+                    .transition(.opacity)
+                    .onAppear {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
+                            withAnimation(.easeInOut(duration: 0.8)) {
+                                if !hasSeenSeedIntro {
+                                    showIntro = true
+                                    hasSeenSeedIntro = true
+                                }
                             }
                         }
                     }
