@@ -61,7 +61,7 @@ struct MypageUserCardView: View {
         }
         .padding(8)
         .background(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
+            RoundedRectangle(cornerRadius: cornerRadius3, style: .continuous)
                 .fill(Color(UIColor.systemGray6))
         )
         // ✅ ViewModel의 상태를 기반으로 네비게이션 전환

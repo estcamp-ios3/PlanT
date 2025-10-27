@@ -55,7 +55,7 @@ struct MypagePlantsCardView: View {
                         .resizable()
                         .scaledToFit()
                         .frame(width: 40, height: 40)
-                        .padding(.top, 4)
+                        .padding(.top, vertical1)
 
                     VStack(alignment: .leading, spacing: 0) {
                         Spacer(minLength: 0)
@@ -74,13 +74,13 @@ struct MypagePlantsCardView: View {
                 }
                 .padding(.top, vertical1)
             }
-            .padding(20)
+            .padding(vertical5)
             .background(
-                RoundedRectangle(cornerRadius: 28, style: .continuous)
+                RoundedRectangle(cornerRadius: cornerRadius3, style: .continuous)
                     .fill(Color(UIColor.systemBackground))
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 28, style: .continuous)
+                RoundedRectangle(cornerRadius: cornerRadius3, style: .continuous)
                     .stroke(Color.black.opacity(0.5), lineWidth: 1)
             )
         }
@@ -146,11 +146,11 @@ struct MypageEmptyPlantsCardView: View {
         }
         .padding(20)
         .background(
-            RoundedRectangle(cornerRadius: 28, style: .continuous)
+            RoundedRectangle(cornerRadius: cornerRadius3, style: .continuous)
                 .fill(Color(UIColor.systemBackground))
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 28, style: .continuous)
+            RoundedRectangle(cornerRadius: cornerRadius3, style: .continuous)
                 .stroke(Color.black.opacity(0.5), lineWidth: 1)
         )
     }

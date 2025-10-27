@@ -39,7 +39,7 @@ struct MypageMainView: View {
                     // ✅ 루틴이 없을 때: 빈 카드 1개
                     MypageEmptyPlantsCardView(mateImageName: authStore.mate ?? "MrPurr")
                         .frame(width: cardWidth, height: 460)
-                        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                        .clipShape(RoundedRectangle(cornerRadius: cornerRadius3, style: .continuous))
                         .shadow(color: .black.opacity(0.08), radius: 8, y: 4)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
@@ -53,8 +53,8 @@ struct MypageMainView: View {
                                 )
                                 .frame(width: cardWidth, height: 460)
                                 
-                                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-                                .shadow(color: .black.opacity(0.08), radius: 8, y: 4)
+                                .clipShape(RoundedRectangle(cornerRadius: cornerRadius3, style: .continuous))
+                                .shadow(color: .black.opacity(0.08), radius: vertical2, y: vertical1)
                                 .id(routine.id) // 스냅 타깃 고유 ID
                                 
                                 .scrollTransition(.animated.threshold(.visible(0.6))) { content, phase in
@@ -64,7 +64,7 @@ struct MypageMainView: View {
                                 }
                             }
                         }
-                        .padding(.top, 8)
+                        .padding(.top, vertical2)
                         .scrollTargetLayout()
                     }
                     .frame(height: 500)
@@ -85,7 +85,7 @@ struct MypageMainView: View {
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button("설정") { showSettings = true }
-                    .font(.system(size: 12, weight: .bold))
+                    .font(.system(size: vertical3, weight: .bold))
                     .foregroundColor(.gray900)
             }
         }
