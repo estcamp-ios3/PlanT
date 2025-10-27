@@ -57,8 +57,8 @@ struct RoutineSurveyView: View {
                             useDate: .constant(true),
                             isAllDay: $isAllday,
                             hasEnd: $hasEnd,
-                            startDate: $startDate,
-                            endDate: $endDate
+                            startDate: $vm.surveyStartDate,
+                            endDate: $vm.surveyEndDate
                         )
                     }
                     if showInLineAlarmPicker {
@@ -104,22 +104,14 @@ struct RoutineSurveyView: View {
                 
                 .onChange(of: vm.periodSelection) {
                     updateInlineViews()
-//                    print(" 저장됨 - 알람 오프셋: \(vm.reminderOffsets)")
                 }
                 .onChange(of: vm.currentIndex) {
                     updateInlineViews()
-//                    print(" 저장됨 - 시작일: \(vm.surveyStartDate)")
                 }
                 .onChange(of: vm["set_reminder"]) {
                     updateInlineViews()
-//                    print("저장됨 - 종료일: \(vm.surveyEndDate)")
                 }
-                .onChange(of: startDate) { _, newValue in
-                    vm.surveyStartDate = newValue
-                }
-                .onChange(of: endDate) { _, newValue in
-                    vm.surveyEndDate = newValue
-                }
+            
                 .navigationDestination(for: Route.self) { route in
                     switch route {
                     case .seedStatus(let draft):
