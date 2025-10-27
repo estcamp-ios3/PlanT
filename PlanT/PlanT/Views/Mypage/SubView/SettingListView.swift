@@ -92,7 +92,7 @@ private struct SettingRow: View {
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: systemImage)
-                .foregroundColor(.green)
+                .foregroundColor(Color("567319"))
             Text(title)
                 .foregroundColor(.primary)
         }
