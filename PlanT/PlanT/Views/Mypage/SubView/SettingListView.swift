@@ -15,6 +15,7 @@ struct SettingListView: View {
     @State private var showTermsSheet = false
     @State private var showPrivacySheet = false
     @State private var showContactAlert = false
+    @State private var deleteAccountAlert = false
 
     var body: some View {
         List {
@@ -49,6 +50,15 @@ struct SettingListView: View {
                     SettingRow(title: "개인정보 처리방침", systemImage: "lock.shield.fill")
                 }
             }
+            
+            // MARK: - 회원 탈퇴
+            Section(header: Text("회원 탈퇴")) {
+                Button {
+                    deleteAccountAlert = true   // ✅ 알럿 띄우기
+                } label: {
+                    SettingRow(title: "회원 탈퇴", systemImage: "person.crop.circle.badge.minus")
+                }
+            }
         }
         .clipShape(RoundedRectangle(cornerRadius: cornerRadius3, style: .continuous))
         .listStyle(.insetGrouped)
@@ -74,6 +84,17 @@ struct SettingListView: View {
         } message: {
             Text("문의: planT_support@teamplant.com")
         }
+        
+        // MARK: - 회원 탈퇴 Alert (확인/취소)
+        .alert("정말 탈퇴하시겠어요?", isPresented: $deleteAccountAlert) {
+            Button("취소", role: .cancel) { }
+            Button("회원 탈퇴", role: .destructive) {
+                // TODO: 실제 탈퇴 로직 연결 (예: AuthStore.deleteAccount())
+                // ex) Task { try? await authStore.deleteAccount() }
+            }
+        } message: {
+            Text("계정 및 데이터가 영구적으로 삭제될 수 있습니다.")
+        }
     }
 }
 
@@ -83,7 +104,7 @@ private struct SettingRow: View {
     let systemImage: String
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: vertical3) {
             Image(systemName: systemImage)
                 .foregroundColor(Color("567319"))
             Text(title)
@@ -103,7 +124,7 @@ private struct NoticeListView: View {
             }
             .navigationTitle("공지사항")
             .navigationBarTitleDisplayMode(.inline)
-            .modalToolbar() // ✅ 공통 닫기 버튼
+            .modalToolbar()
         }
     }
 }
@@ -123,7 +144,7 @@ private struct TermsView: View {
             }
             .navigationTitle(title)
             .navigationBarTitleDisplayMode(.inline)
-            .modalToolbar() // ✅ 공통 닫기 버튼
+            .modalToolbar()
         }
     }
 }
