@@ -101,6 +101,7 @@ private struct SettingRow: View {
 
 // MARK: - 공지사항 뷰 (임시)
 private struct NoticeListView: View {
+    @Environment(\.dismiss) private var dismiss
     var body: some View {
         NavigationStack {
             List {
@@ -110,12 +111,25 @@ private struct NoticeListView: View {
             }
             .navigationTitle("공지사항")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 14, weight: .bold))
+                    }
+                    .accessibilityLabel("닫기")
+                }
+            }
         }
     }
 }
 
 // MARK: - 약관 / 개인정보 뷰 (공용)
 private struct TermsView: View {
+    @Environment(\.dismiss) private var dismiss
+
     let title: String
     let content: String
 
@@ -129,6 +143,17 @@ private struct TermsView: View {
             }
             .navigationTitle(title)
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 14, weight: .bold))
+                    }
+                    .accessibilityLabel("닫기")
+                }
+            }
         }
     }
 }
