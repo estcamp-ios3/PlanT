@@ -69,7 +69,6 @@ struct TutorialOverlayView: View {
                                 Text(step.message)
                                     .foregroundColor(Color("BrandPrimary"))
                                     .font(.headline)
-                                    .background(Color("BG_F2F2F2"))
                                     .padding(14)
                                     .cornerRadius(12)
 

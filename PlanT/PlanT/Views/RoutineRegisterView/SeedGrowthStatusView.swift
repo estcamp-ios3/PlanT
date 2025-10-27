@@ -28,8 +28,17 @@ struct SeedGrowthStatusView: View {
         routine.seedName ?? ""
     }
     private var currentStage: Int {
-        let stage = Int(progress / 100 * 4) + 1
-        return max(1, min(5, stage))
+            if progress >= 100 {
+                return 5
+            } else if progress >= 75 {
+                return 4
+            } else if progress >= 50 {
+                return 3
+            } else if progress >= 25 {
+                return 2
+            } else {
+                return 1
+            }
     }
     
     var body: some View {

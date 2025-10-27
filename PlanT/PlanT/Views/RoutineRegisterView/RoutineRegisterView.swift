@@ -105,7 +105,11 @@ struct RoutineRegisterView: View {
                     Divider()
                     goalSection()      // 목표시간, 주기 등
                     Divider()
-                    alarmSection()     // 알림 선택 및 관리
+                    
+                    GeometryReader { geo in
+                        alarmSection(width: geo.size.width)
+                    }
+                    .frame(height: 300)
                     Divider()
                 }
                             .padding(.horizontal, vertical4)
@@ -402,91 +406,95 @@ extension RoutineRegisterView {
 // MARK: - 알림 선택 및 관리
 extension RoutineRegisterView {
     @ViewBuilder
-    private func alarmSection() -> some View {
+    private func alarmSection(width: CGFloat) -> some View {
+            
+            let isSmallDevice = width < 380
+            
+        let columns = [GridItem(.adaptive(minimum: 70, maximum: 80), spacing: isSmallDevice ? 6 : 10)]
+            
         VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text("알림")
-                    .font(.subheadline).bold()
-                Spacer()
-                Text("맞춤 알림 생성,삭제")
-                    .font(.footnote).bold()
-                    .foregroundColor(.gray.opacity(0.6))
-                // 삭제모드/일반모드 토글
-                if isDeleteMode {
-                    Button("완료") { isDeleteMode = false }
+                HStack {
+                    Text("알림")
                         .font(.subheadline).bold()
-                        .foregroundColor(.red)
-                } else {
-                    Button(role: .destructive) {
-                        isDeleteMode = true
-                    } label: {
-                        Image(systemName: "pencil.tip.crop.circle.badge.minus")
-                            .font(.system(size: 20, weight: .bold))
-                            .padding(6)
+                    Spacer()
+                    Text("맞춤 알림 생성,삭제")
+                        .font(.footnote).bold()
+                        .foregroundColor(.gray.opacity(0.6))
+                    // 삭제모드/일반모드 토글
+                    if isDeleteMode {
+                        Button("완료") { isDeleteMode = false }
+                            .font(.subheadline).bold()
+                            .foregroundColor(.red)
+                    } else {
+                        Button(role: .destructive) {
+                            isDeleteMode = true
+                        } label: {
+                            Image(systemName: "pencil.tip.crop.circle.badge.minus")
+                                .font(.system(size: 20, weight: .bold))
+                                .padding(6)
+                        }
                     }
+                    // 알림 섹션 표시/숨김 토글
+                    Toggle("", isOn: $showAlarms)
+                        .labelsHidden()
+                        .toggleStyle(CustomToggleStyle())
                 }
-                // 알림 섹션 표시/숨김 토글
-                Toggle("", isOn: $showAlarms)
-                    .labelsHidden()
-                    .toggleStyle(CustomToggleStyle())
-            }
-            // 알림 섹션 표시 시: 프리셋 버튼 목록/추가, 선택/해제, 삭제
-            if showAlarms {
-                LazyVGrid(
-                    columns: [GridItem(.adaptive(minimum:60), spacing: 4)],
-                    spacing: 10
-                ) {
-                    // 알림 프리셋 버튼들(삭제모드일 때 기본값은 비활성)
-                    ForEach(alarmStore.alamPresets.filter {!isDeleteMode || !alarmStore.defaultPresets.contains($0) }, id: \.self) { minute in
-                        Button(action: {
-                            if isDeleteMode {
-                                // 삭제 모드: 기본 프리셋은 삭제 불가, 나머지는 삭제
-                                if !alarmStore.defaultPresets.contains(minute) {
-                                    Task { await alarmStore.deletePreset(minute) }
-                                }
-                            } else {
-                                // 일반 모드: 선택/해제 토글
-                                if selectedAlarms.contains(minute) {
-                                    selectedAlarms.remove(minute)
+                // 알림 섹션 표시 시: 프리셋 버튼 목록/추가, 선택/해제, 삭제
+                if showAlarms {
+                    LazyVGrid(
+                        columns: columns, spacing: 10) {
+                        // 알림 프리셋 버튼들(삭제모드일 때 기본값은 비활성)
+                        ForEach(alarmStore.alamPresets.filter {!isDeleteMode || !alarmStore.defaultPresets.contains($0) }, id: \.self) { minute in
+                            Button(action: {
+                                if isDeleteMode {
+                                    // 삭제 모드: 기본 프리셋은 삭제 불가, 나머지는 삭제
+                                    if !alarmStore.defaultPresets.contains(minute) {
+                                        Task { await alarmStore.deletePreset(minute) }
+                                    }
                                 } else {
-                                    selectedAlarms.insert(minute)
+                                    // 일반 모드: 선택/해제 토글
+                                    if selectedAlarms.contains(minute) {
+                                        selectedAlarms.remove(minute)
+                                    } else {
+                                        selectedAlarms.insert(minute)
+                                    }
                                 }
+                            }) {
+                                Text("\(minute)분 전")
+                                    .font(.subheadline)
+                                    .padding(.vertical, 8)
+                                    .padding(.horizontal, 10)
+                                    .frame(maxWidth: .infinity)
+                                    .background(
+                                        isDeleteMode
+                                        ? Color("BrandSecondary")
+                                        : selectedAlarms.contains(minute) ? Color("BrandAccent") : Color("BrandSecondary"))
+                                    .foregroundColor(.black)
+                                    .cornerRadius(30)
                             }
-                        }) {
-                            Text("\(minute)분 전")
-                                .font(.subheadline)
-                                .padding(.vertical, 8)
-                                .padding(.horizontal, 10)
-                                .frame(maxWidth: .infinity)
-                                .background(
-                                    isDeleteMode
-                                    ? Color("BrandSecondary")
-                                    : selectedAlarms.contains(minute) ? Color("BrandAccent") : Color("BrandSecondary"))
-                                .foregroundColor(.black)
-                                .cornerRadius(30)
+                        }
+                        // 알림 프리셋 개수가 10개 미만이면, 추가 버튼 노출
+                        if alarmStore.alamPresets.count < 10 {
+                            Button(action: {
+                                withAnimation {
+                                    showAddAlarmSheet = true
+                                }
+                            }) {
+                                Image(systemName: "plus")
+                                    .font(.subheadline)
+                                    .padding(8)
+                                    .frame(maxWidth: .infinity, minHeight: 36)
+                                    .background(Color.gray.opacity(0.2))
+                                    .clipShape(Circle())
+                            }
                         }
                     }
-                    // 알림 프리셋 개수가 10개 미만이면, 추가 버튼 노출
-                    if alarmStore.alamPresets.count < 10 {
-                        Button(action: {
-                            withAnimation {
-                                showAddAlarmSheet = true
-                            }
-                        }) {
-                            Image(systemName: "plus")
-                                .font(.subheadline)
-                                .padding(8)
-                                .frame(maxWidth: .infinity, minHeight: 36)
-                                .background(Color.gray.opacity(0.2))
-                                .clipShape(Circle())
-                        }
-                    }
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+                    .animation(.spring(), value: showAlarms)
                 }
-                .transition(.opacity.combined(with: .move(edge: .top)))
-                .animation(.spring(), value: showAlarms)
             }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        
     }
 }
 
