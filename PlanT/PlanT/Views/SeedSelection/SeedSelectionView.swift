@@ -87,7 +87,7 @@ struct SeedSelectionView: View {
                                 .shadow(radius: 4, x: 0, y: 2)
                         }
                         .padding(.trailing, 12)
-                        .padding(.bottom, -36)
+                        .padding(.bottom, -50)
                     }
                     
                     Spacer()
@@ -101,7 +101,7 @@ struct SeedSelectionView: View {
                         }
                         .plantPrimaryButton()
                         .padding(.horizontal, 20)
-                        .padding(.bottom, 16)
+                        .padding(.bottom, 100)
                     } else {
                         Button {} label: {
                             Text("'선택씨앗' 선택완료")
