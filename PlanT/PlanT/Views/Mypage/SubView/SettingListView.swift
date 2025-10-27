@@ -8,7 +8,9 @@
 import SwiftUI
 
 struct SettingListView: View {
-    @State private var appVersion: String = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "알 수 없음" // Info.plist에서 앱 버전 불러오기
+    @State private var appVersion: String =
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "알 수 없음" // Info.plist에서 앱 버전
+
     @State private var showNoticeSheet = false
     @State private var showTermsSheet = false
     @State private var showPrivacySheet = false
@@ -18,9 +20,7 @@ struct SettingListView: View {
         List {
             // MARK: - 공지사항 섹션
             Section(header: Text("앱 정보")) {
-                Button {
-                    showNoticeSheet = true
-                } label: {
+                Button { showNoticeSheet = true } label: {
                     SettingRow(title: "공지사항", systemImage: "megaphone.fill")
                 }
 
@@ -35,24 +35,17 @@ struct SettingListView: View {
 
             // MARK: - 고객지원 섹션
             Section(header: Text("고객 지원")) {
-                Button {
-                    showContactAlert = true
-                } label: {
+                Button { showContactAlert = true } label: {
                     SettingRow(title: "문의하기", systemImage: "envelope.fill")
                 }
             }
 
             // MARK: - 정책 섹션
             Section(header: Text("정책 및 약관")) {
-                Button {
-                    showTermsSheet = true
-                } label: {
+                Button { showTermsSheet = true } label: {
                     SettingRow(title: "이용약관", systemImage: "doc.text.fill")
                 }
-
-                Button {
-                    showPrivacySheet = true
-                } label: {
+                Button { showPrivacySheet = true } label: {
                     SettingRow(title: "개인정보 처리방침", systemImage: "lock.shield.fill")
                 }
             }
@@ -99,7 +92,7 @@ private struct SettingRow: View {
     }
 }
 
-// MARK: - 공지사항 뷰 (임시)
+// MARK: - 공지사항 뷰 (모달)
 private struct NoticeListView: View {
     var body: some View {
         NavigationStack {
@@ -110,11 +103,12 @@ private struct NoticeListView: View {
             }
             .navigationTitle("공지사항")
             .navigationBarTitleDisplayMode(.inline)
+            .modalToolbar() // ✅ 공통 닫기 버튼
         }
     }
 }
 
-// MARK: - 약관 / 개인정보 뷰 (공용)
+// MARK: - 약관 / 개인정보 뷰 (모달)
 private struct TermsView: View {
     let title: String
     let content: String
@@ -129,6 +123,7 @@ private struct TermsView: View {
             }
             .navigationTitle(title)
             .navigationBarTitleDisplayMode(.inline)
+            .modalToolbar() // ✅ 공통 닫기 버튼
         }
     }
 }
