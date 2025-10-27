@@ -86,8 +86,6 @@ struct RoutineSurveyView: View {
                         }
                         
                         Button {
-                            print(" 선택된 알람: \(selectedAlarm)")
-                            print(" 선택된 날짜: 시작 \(startDate), 종료 \(endDate)")
                             if vm.isLast {
                                 path.append(Route.seedStatus(draft: vm.draft))
                             } else {
