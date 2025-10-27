@@ -87,7 +87,18 @@ struct RoutineSurveyView: View {
                         
                         Button {
                             if vm.isLast {
-                                path.append(Route.seedStatus(draft: vm.draft))
+                                
+                                let draft = vm.draft
+                                print("""
+                                        🟢 [RoutineSurveyView] SeedStatusView로 이동
+                                        • draft.startDate: \(draft.startDate ?? Date())
+                                        • draft.endDate: \(draft.endDate ?? Date())
+                                        • draft.reminderOffsets: \(draft.reminderOffsets)
+                                        """)
+                                DispatchQueue.main.async {
+                                    path.append(Route.seedStatus(draft: vm.draft))
+                                }
+                                
                             } else {
                                 if vm.currentStep.id == "set_period" {
                                     showInLineDatePicker = false
@@ -110,6 +121,9 @@ struct RoutineSurveyView: View {
                 }
                 .onChange(of: vm["set_reminder"]) {
                     updateInlineViews()
+                }
+                .onChange(of: selectedAlarm) { newValue in
+                    vm.reminderOffsets = newValue
                 }
             
                 .navigationDestination(for: Route.self) { route in
@@ -141,3 +155,4 @@ struct RoutineSurveyView: View {
     }
        
 }
+

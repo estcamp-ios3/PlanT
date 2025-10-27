@@ -43,6 +43,7 @@ final class RoutineStore: ObservableObject {
         let fetchDescriptor = FetchDescriptor<Routine>()
         do {
             routines = try context.fetch(fetchDescriptor)
+            print(" [RoutineStore] loadRoutines() 호출됨 - 불러온 루틴개수: \(routines.count)")
         } catch {
             print("❌ 루틴 불러오기 실패:", error)
         }
@@ -69,8 +70,8 @@ final class RoutineStore: ObservableObject {
             completedCount: 0,
             createdAt: Date(),
             modifiedAt: Date(),
-            startDate: draft.startDate,
-            endDate: draft.endDate
+            startDate: draft.startDate ?? Date(),
+            endDate: draft.endDate ?? Date().addingTimeInterval(7 * 24 * 60 * 60)
         )
 
         newRoutine.startDate = draft.startDate

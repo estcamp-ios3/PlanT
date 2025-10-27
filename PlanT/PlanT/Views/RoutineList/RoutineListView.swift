@@ -204,6 +204,8 @@ struct RoutineListView: View {
             }
         }
         .onAppear {
+            store.loadRoutines()
+            store.refreshTrigger = UUID()
             guard !tutorialManager.hasShownTutorial else { return }
             
             let steps = [

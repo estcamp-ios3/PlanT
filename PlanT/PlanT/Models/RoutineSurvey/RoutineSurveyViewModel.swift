@@ -291,6 +291,12 @@ extension RoutineSurveyViewModel {
     // Draft built from current selections for navigation to SeedStatusView
     var draft: RoutineDraft {
         // 선택된 optionId를 가져오는 헬퍼 (없으면 "-")
+        print("""
+           ✅ [RoutineSurveyViewModel] draft 생성됨:
+           • startDate: \(surveyStartDate)
+           • endDate: \(surveyEndDate)
+           • reminderOffsets: \(reminderOffsets)
+           """)
         func pick(_ id: String) -> String { selections[id]?.first ?? "-" }
         // 각 단계에서 선택된 값 추출
         let categoryId = pick("category")
@@ -312,8 +318,8 @@ extension RoutineSurveyViewModel {
             durationId: durationId,
             durationTitle: title(for: "duration", optionId: durationId),
             periodIsNoLimit: periodYes,
-            startDate: periodYes ? nil : surveyStartDate,
-            endDate: periodYes ? nil : surveyEndDate,
+            startDate: periodYes ? surveyStartDate : Date(),
+            endDate: periodYes ?  surveyEndDate : Date().addingTimeInterval(7 * 24 * 60 * 60),
             reminderOn: reminderYes,
             reminderTime: nil,
             reminderDays: nil,

@@ -19,13 +19,14 @@ final class RoutineAlarmStore: ObservableObject {
     }
     
     func fetchOffsets(for routineId: UUID) -> [Int] {
+        do {
         let descriptor = FetchDescriptor<RoutineAlarm>(
             predicate: #Predicate { $0.routineId == routineId }
         )
-        do {
-            return try context.fetch(descriptor).map { $0.offset }
+            let alarms = try context.fetch(descriptor)
+            return alarms.map { $0.offset }
         } catch {
-            print("❌ RoutineAlarm fetch 실패:", error)
+            print(" RoutineAlarm fetch 실패:", error)
             return []
         }
     }

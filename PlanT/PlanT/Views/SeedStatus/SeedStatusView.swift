@@ -26,6 +26,7 @@ struct SeedStatusView: View {
     @EnvironmentObject var authStore: AuthStore
     @EnvironmentObject var store: RoutineStore
     
+    
     var body: some View {
         VStack {
             Spacer(minLength: 40)
@@ -65,6 +66,7 @@ struct SeedStatusView: View {
             }
         }
         .onAppear {
+            
             isLoding = false
             if selectedSeed != nil {
                 currentStatus = .notPlanted
@@ -175,6 +177,8 @@ private extension SeedStatusView {
             
             Button("루틴 등록하기") {
                 addRoutine(for: seed)
+                print(" [AddButton] 다음 버튼 눌림")
+
             }
             .plantPrimaryButton()
             .padding(.horizontal, 20)
@@ -182,14 +186,75 @@ private extension SeedStatusView {
         }
     }
     
+//    func addRoutine(for seed: Seed) {
+//        isLoding = true
+//        Task {
+//            let routine = Routine(
+//                title: draft.routineTypeTitle.isEmpty ? "새 루틴" : draft.routineTypeTitle,
+//                categoryId: draft.categoryId,
+//                seedName: seed.imagePrefix,
+//                duration: draft.durationTitle,
+//                goal: draft.goal,
+//                alarm: draft.reminderOn ? .every24Hours : .every48Hours,
+//                frequencyPerWeekId: draft.frequencyPerWeekId,
+//                frequencyPerWeekTitle: draft.frequencyPerWeekTitle,
+//                note: nil,
+//                isCompleted: false,
+//                createdAt: Date(),
+//                modifiedAt: Date()
+//            )
+////            let ai = AlanAIService.shared
+////            let aiComment = await ai.generateEncouragement(for: [
+////                .init(id: routine.id,
+////                      title: routine.title,
+////                      total: 1,
+////                      done: 0)
+////            ])
+////            print(" AI 우선 호출 완료:", aiComment)
+//            
+//            store.addRoutine(
+//                from: seed,
+//                basedOn: routine,
+//                categoryId: draft.categoryId,
+//                draft: draft,
+//                reminderOffsets: draft.reminderOffsets
+//            )
+//            
+//            NotificationManager.shared.scheduleTomorrow9AMNotification(for: routine)
+//            NotificationManager.shared.scheduleNotification(
+//                for: routine.id,
+//                title: routine.title,
+//                baseDate: draft.startDate ?? Date(),
+//                offsets: Array(draft.reminderOffsets)
+//            )
+//            
+//            try? await Task.sleep(nanoseconds: 5_000_000_000)
+//            
+//            await MainActor.run {
+//                isLoding  = false
+//                path = NavigationPath()
+//                showAddAlarmSheet = false
+//            }
+//        }
+//    }
+    
     func addRoutine(for seed: Seed) {
         isLoding = true
+
+        
         Task {
+            let totalDays = draft.totalDays ?? {
+                     let start = draft.startDate ?? Date()
+                     let end = draft.endDate ?? Date()
+                     let days = Calendar.current.dateComponents([.day], from: start, to: end).day ?? 0
+                     return max(days, 1)
+                 }()
+            // 1️⃣ 루틴 인스턴스 생성
             let routine = Routine(
                 title: draft.routineTypeTitle.isEmpty ? "새 루틴" : draft.routineTypeTitle,
                 categoryId: draft.categoryId,
                 seedName: seed.imagePrefix,
-                duration: draft.durationTitle,
+                duration: "\(totalDays)일",
                 goal: draft.goal,
                 alarm: draft.reminderOn ? .every24Hours : .every48Hours,
                 frequencyPerWeekId: draft.frequencyPerWeekId,
@@ -199,15 +264,20 @@ private extension SeedStatusView {
                 createdAt: Date(),
                 modifiedAt: Date()
             )
-//            let ai = AlanAIService.shared
-//            let aiComment = await ai.generateEncouragement(for: [
-//                .init(id: routine.id,
-//                      title: routine.title,
-//                      total: 1,
-//                      done: 0)
-//            ])
-//            print(" AI 우선 호출 완료:", aiComment)
-            
+            print("""
+            ✅ [1단계] 루틴 객체 생성 완료
+            ────────────────
+            • ID: \(routine.id)
+            • TITLE: \(routine.title)
+            • CATEGORY: \(routine.categoryId)
+            • GOAL: \(routine.goal)
+            • DURATION: \(routine.duration)
+            • ALARM: \(routine.alarm)
+            ────────────────
+            """)
+
+            // 2️⃣ Store에 추가 (SwiftData + Supabase)
+            print("🟡 [2단계] store.addRoutine 호출 시작")
             store.addRoutine(
                 from: seed,
                 basedOn: routine,
@@ -215,22 +285,35 @@ private extension SeedStatusView {
                 draft: draft,
                 reminderOffsets: draft.reminderOffsets
             )
-            
+            print("✅ [2단계] store.addRoutine 호출 완료")
+
+            // 3️⃣ 로컬 알림 등록 확인
+            print("🟡 [3단계] 알림 등록 시도")
             NotificationManager.shared.scheduleTomorrow9AMNotification(for: routine)
+            print("✅ [3단계-1] 내일 오전 9시 알림 예약 완료")
+
             NotificationManager.shared.scheduleNotification(
                 for: routine.id,
                 title: routine.title,
                 baseDate: draft.startDate ?? Date(),
                 offsets: Array(draft.reminderOffsets)
             )
-            
+            print("✅ [3단계-2] 커스텀 오프셋 알림 예약 완료 → \(draft.reminderOffsets)")
+
+            // 4️⃣ 대기(로딩 스크린 표시용)
+            print("⏳ [4단계] 저장 대기 중 (5초)")
             try? await Task.sleep(nanoseconds: 5_000_000_000)
-            
+
+            // 5️⃣ 완료 후 UI 갱신
             await MainActor.run {
-                isLoding  = false
+                isLoding = false
                 path = NavigationPath()
                 showAddAlarmSheet = false
+                print("🎉 [5단계] 루틴 등록 프로세스 완료 → SeedStatusView 닫힘 및 RoutineListView로 이동")
             }
         }
     }
+
+    
+    
 }

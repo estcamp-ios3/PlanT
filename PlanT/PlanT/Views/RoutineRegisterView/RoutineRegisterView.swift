@@ -32,7 +32,7 @@ struct RoutineRegisterView: View {
     @State private var dateMode: DateMode = .endDate         // 날짜 입력 모드
     @State private var startDate = Date()                    // 루틴 시작일
     @State private var endDate = Date()                      // 루틴 종료일
-    @State fileprivate var selectedAlarms: Set<Int> = [15]   // 선택된 알림(분 단위)
+    @State fileprivate var selectedAlarms: Set<Int> = []   // 선택된 알림(분 단위)
     @State private var currentMode: RoutineRegisterMode       // 현재 화면의 모드
     @State private var goToseedStatus = false                // 씨앗 상태화면으로 이동 여부
     @State private var goalDays: String = ""                 // 주간 목표(횟수)
@@ -122,7 +122,11 @@ struct RoutineRegisterView: View {
                         .environmentObject(store)
                 }
             }
-            .onAppear { setupMode() }      // 화면 진입 시 데이터 세팅
+            .onAppear {
+                store.loadRoutines()
+                    setupMode()
+                      // 화면 진입 시 데이터 세팅
+            }
             .navigationTitle(modeTitle)    // 네비바 타이틀
             .toolbar { toolbarContent() }  // 우측 상단 툴바 (편집/비우기)
             .safeAreaInset(edge: .bottom) {
@@ -164,19 +168,15 @@ extension RoutineRegisterView {
         case .details(let routine),
                 .edit(let routine):
             // 기존 루틴 정보 반영
+            let savedOffsets = routineAlarmStore.fetchOffsets(for: routine.id)
+                    selectedAlarms = Set(savedOffsets)
+                    startDate = routine.startDate ?? Date()
+                    endDate = routine.endDate ?? Date()
             routineTitle = routine.title
             if selectedCategory == "선택하세요" {
                 selectedCategory = "알 수 없는 카테고리"
             }
-            Task {
-                let savedOffsets = routineAlarmStore.fetchOffsets(for: routine.id)
-                if !savedOffsets.isEmpty {
-                    selectedAlarms = Set(savedOffsets)
-                    print("불러온 알람 오프셋:", savedOffsets)
-                } else {
-                    print(" 알람 데이터가 비어 있음 - fetch 타이밍 지연 문제 가능성")
-                }
-            }
+           
             // 목표/기간/주기 값 세팅
             if routine.goal.contains("분") {
                 goalHours = routine.goal.replacingOccurrences(of: "분/일", with: "")
@@ -489,8 +489,8 @@ extension RoutineRegisterView {
                             }
                         }
                     }
-                    .transition(.opacity.combined(with: .move(edge: .top)))
-                    .animation(.spring(), value: showAlarms)
+//                    .transition(.opacity.combined(with: .move(edge: .top)))
+//                    .animation(.spring(), value: showAlarms)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
