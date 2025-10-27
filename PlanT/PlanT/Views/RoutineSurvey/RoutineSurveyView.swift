@@ -106,16 +106,15 @@ struct RoutineSurveyView: View {
                 
                 .onChange(of: vm.periodSelection) {
                     updateInlineViews()
-                    print(" 저장됨 - 알람 오프셋: \(vm.reminderOffsets)")
+//                    print(" 저장됨 - 알람 오프셋: \(vm.reminderOffsets)")
                 }
                 .onChange(of: vm.currentIndex) {
                     updateInlineViews()
-                    print(" 저장됨 - 시작일: \(vm.surveyStartDate)")
+//                    print(" 저장됨 - 시작일: \(vm.surveyStartDate)")
                 }
                 .onChange(of: vm["set_reminder"]) {
                     updateInlineViews()
-                    print("저장됨 - 종료일: \(vm.surveyEndDate)")
-                    
+//                    print("저장됨 - 종료일: \(vm.surveyEndDate)")
                 }
                 .onChange(of: startDate) { _, newValue in
                     vm.surveyStartDate = newValue

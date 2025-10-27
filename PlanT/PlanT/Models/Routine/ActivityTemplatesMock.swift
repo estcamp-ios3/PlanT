@@ -44,7 +44,7 @@ enum ActivityTemplatesMock {
         .social: [
             .init(id: "speech_training", title: "스피치 훈련", icon: "megaphone"),
             .init(id: "conversation_skill", title: "대화 연습", icon: "bubble.left.and.bubble.right"),
-            .init(id: "negotiation", title: "협상 연습", icon: "handshake"),
+            .init(id: "negotiation", title: "협상 연습", icon: "hands.clap"),
             .init(id: "networking", title: "네트워킹", icon: "person.3.sequence"),
             .init(id: "volunteering", title: "봉사 활동", icon: "hands.sparkles"),
         ],

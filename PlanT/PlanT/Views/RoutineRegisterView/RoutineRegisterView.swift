@@ -164,9 +164,14 @@ extension RoutineRegisterView {
             if selectedCategory == "선택하세요" {
                 selectedCategory = "알 수 없는 카테고리"
             }
-            let savedOffsets = routineAlarmStore.fetchOffsets(for: routine.id)
-            if !savedOffsets.isEmpty {
-                selectedAlarms = Set(savedOffsets)
+            Task {
+                let savedOffsets = routineAlarmStore.fetchOffsets(for: routine.id)
+                if !savedOffsets.isEmpty {
+                    selectedAlarms = Set(savedOffsets)
+                    print("불러온 알람 오프셋:", savedOffsets)
+                } else {
+                    print(" 알람 데이터가 비어 있음 - fetch 타이밍 지연 문제 가능성")
+                }
             }
             // 목표/기간/주기 값 세팅
             if routine.goal.contains("분") {
@@ -566,6 +571,7 @@ extension RoutineRegisterView {
         case .create:
             // 실제 저장로직은 store 또는 상위에서 구현
             print("새 루틴 등록 로직 실행")
+            print("현재 store.routines.count:", store.routines.count)
             if let routine = store.routines.last {
                 // 알림 프리셋 및 알림 예약 저장
                 routineAlarmStore.saveOffsets(
@@ -578,6 +584,8 @@ extension RoutineRegisterView {
                     baseDate: startDate,
                     offsets: Array(selectedAlarms)
                 )
+            } else {
+                print(" 루틴이 아직 store에 없음 -> saveOffsets 실행 안 됨")
             }
         case .edit(let routine):
             // 기존 루틴 정보 갱신

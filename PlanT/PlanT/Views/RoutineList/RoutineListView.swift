@@ -224,7 +224,7 @@ struct RoutineListView: View {
                 // 세 번째 튜토리얼 (루틴 카드 안내)
                 PlanTTutorialStep(
                     id: "emptyText",
-                    message: "이곳에서 루틴의 성장을 확인할 수 있습니다.",
+                    message: "이곳에서 루틴의 성장을 \n확인할 수 있습니다.",
                     showNextButton: true,
                     verticalOffset: 180,
                     horizontalOffset: 0

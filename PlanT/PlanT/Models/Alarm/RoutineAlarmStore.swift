@@ -23,10 +23,9 @@ final class RoutineAlarmStore: ObservableObject {
             predicate: #Predicate { $0.routineId == routineId }
         )
         do {
-            let alarms = try context.fetch(descriptor)
-            return alarms.map { $0.offset }
+            return try context.fetch(descriptor).map { $0.offset }
         } catch {
-            print(" RoutineAlarm fetch 실패:", error)
+            print("❌ RoutineAlarm fetch 실패:", error)
             return []
         }
     }
