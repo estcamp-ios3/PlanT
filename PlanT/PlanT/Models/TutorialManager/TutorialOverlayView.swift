@@ -26,7 +26,7 @@ struct TutorialOverlayView: View {
                         Image("MrGrrr") // ← 프로젝트 asset에 추가된 캐릭터 이름
                             .resizable()
                             .scaledToFit()
-                            .frame(width: 180, height: 180)
+                            .frame(width: 130, height: 130)
                             .shadow(radius: 10)
 
                         Text(step.message)

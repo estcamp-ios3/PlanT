@@ -36,35 +36,45 @@ final class TutorialManager: ObservableObject {
     var steps: [PlanTTutorialStep] = []
     
     private let tutorialKey = "hasShownTutorial"
+    private let progressKey = "tutorialProgressIndex"
 
-    // ✅ 튜토리얼 완료 여부 확인
+    //  튜토리얼 완료 여부 확인
     var hasShownTutorial: Bool {
         UserDefaults.standard.bool(forKey: tutorialKey)
     }
 
-    // ✅ 완료 표시 저장
+    //  완료 표시 저장
     func markTutorialAsShown() {
         UserDefaults.standard.set(true, forKey: tutorialKey)
     }
+    
+    func saveProgress() {
+        UserDefaults.standard.set(currentIndex, forKey: progressKey)
+    }
+    
+    func loadProgress() -> Int {
+        UserDefaults.standard.integer(forKey: progressKey)
+    }
 
-    // ✅ 튜토리얼 시작
+    //  튜토리얼 시작
     func start(steps: [PlanTTutorialStep]) {
         self.steps = steps
-        currentIndex = 0
+        currentIndex = loadProgress()
         isActive = true
     }
 
-    // ✅ 다음 단계로 이동
+    //  다음 단계로 이동
     func next() {
         guard isActive else { return }
         if currentIndex + 1 < steps.count {
             currentIndex += 1
+            saveProgress()
         } else {
             finish()
         }
     }
 
-    // ✅ 튜토리얼 종료 및 기록
+    //  튜토리얼 종료 및 기록
     func finish() {
         isActive = false
         markTutorialAsShown()

@@ -10,9 +10,9 @@ import SwiftUI
 struct SeedSelectionView: View {
     @Environment(\.dismiss) private var dismiss
     @Binding var selectedSeed: Seed?
-
-    //  인트로 문구 표시 여부
-    @State private var showIntro = true
+    @AppStorage("hasSeenSeedIntro") private var hasSeenSeedIntro: Bool = false
+    @State private var showIntro = false
+    @State private var showHelp = false
 
     private var allSeedsForGrid: [Seed?] {
         var list = allSeeds.map { Optional($0) }
@@ -21,7 +21,7 @@ struct SeedSelectionView: View {
     }
 
     var body: some View {
-        ZStack(alignment: .topTrailing) {
+        ZStack {
             ScrollView {
                 VStack(spacing: 16) {
                     Capsule()
@@ -33,6 +33,7 @@ struct SeedSelectionView: View {
                         .font(.title)
                         .padding(.top, 8)
                     
+                    // MARK: - Seed grid
                     LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 16) {
                         ForEach(allSeedsForGrid.indices, id: \.self) { index in
                             let seed = allSeedsForGrid[index]
@@ -66,19 +67,32 @@ struct SeedSelectionView: View {
                                     }
                                     .onTapGesture {
                                         selectedSeed = seed
-                                        // 씨앗을 선택하면 문구 즉시 사라지게
-                                        withAnimation {
-                                            showIntro = false
-                                        }
+                                        hasSeenSeedIntro = true
+                                        withAnimation { showIntro = false }
                                     }
                                 }
                             }
                         }
                     }
                     .padding(.horizontal)
+                    .overlay(alignment: .bottomTrailing) {
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.5)) {
+                                showIntro.toggle()
+                            }
+                        } label: {
+                            Image(systemName: "questionmark.circle.fill")
+                                .font(.system(size: 30, weight: .bold))
+                                .foregroundColor(.brandPrimary)
+                                .shadow(radius: 4, x: 0, y: 2)
+                        }
+                        .padding(.trailing, 12)
+                        .padding(.bottom, -36)
+                    }
                     
                     Spacer()
                     
+                    // MARK: - Select button
                     if let seed = selectedSeed {
                         Button {
                             dismiss()
@@ -100,23 +114,35 @@ struct SeedSelectionView: View {
                 }
                 .cornerRadius(30)
             }
-            
-            // 닫기 버튼
-            if selectedSeed != nil {
-                Button {
-                    dismiss()
-                } label: {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 30, weight: .bold))
-                        .foregroundColor(.red)
-                        .shadow(radius: 4, x: 0, y: 4)
+
+            // ❌ Close button always visible (top-right)
+            VStack {
+                HStack {
+                    Spacer()
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 30, weight: .bold))
+                            .foregroundColor(.red)
+                            .shadow(radius: 4, x: 0, y: 2)
+                    }
+                    .padding(.trailing, 12)
+                    .padding(.top, vertical4)
                 }
-                .padding(.trailing, 8)
-                .padding(.top, vertical4)
-                .zIndex(1)
-                
-                // 🌱 인트로 문구 오버레이
-                if showIntro {
+                Spacer()
+            }
+
+            if showIntro {
+                ZStack {
+                    Color.black.opacity(0.001)
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                showIntro = false
+                            }
+                        }
+                    
                     VStack {
                         Spacer()
                         VStack(spacing: 8) {
@@ -136,10 +162,12 @@ struct SeedSelectionView: View {
                     }
                     .transition(.opacity)
                     .onAppear {
-                        // ⏳ 4초 후 자연스럽게 사라짐
                         DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
                             withAnimation(.easeInOut(duration: 0.8)) {
-                                showIntro = false
+                                if !hasSeenSeedIntro {
+                                    showIntro = true
+                                    hasSeenSeedIntro = true
+                                }
                             }
                         }
                     }
@@ -148,4 +176,3 @@ struct SeedSelectionView: View {
         }
     }
 }
-

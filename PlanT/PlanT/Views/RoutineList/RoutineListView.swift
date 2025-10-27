@@ -178,12 +178,21 @@ struct RoutineListView: View {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Menu {
                     Button("PlanT와 루틴 만들기") {
+                       if tutorialManager.isActive {
+                            tutorialManager.next()
+                        }
                         path.append(Route.plantAssistant)
                     }
                     Button("PlanT의 추천 루틴") {
+                        if tutorialManager.isActive {
+                             tutorialManager.next()
+                         }
                         path.append(Route.recommendedTemplates)
                     }
                     Button("직접 등록하기") {
+                        if tutorialManager.isActive {
+                             tutorialManager.next()
+                         }
                         path.append(Route.manualCreate)
                     }
                 } label: {

@@ -63,12 +63,14 @@ struct RoutineDateView: View {
                             // 종료가 시작보다 빠르면 시작과 동일로 보정 (간단 보호)
                             dateBlock(title: "종료", date: $endDate, showTime: !isAllDay)
                                 .frame(maxWidth: .infinity)
-                                .onChange(of: endDate) { oldValue, newValue in
-                                    if newValue < startDate { endDate = startDate }
-                                }
+                               
                                 .onChange(of: startDate) { oldValue, newValue in
+                                    guard newValue != oldValue else { return }
                                print(startDate)
                                     if endDate < newValue { endDate = newValue }
+                                }
+                                .onChange(of: endDate) { oldValue, newValue in
+                                    if newValue < startDate { endDate = startDate }
                                 }
                         }
                     }

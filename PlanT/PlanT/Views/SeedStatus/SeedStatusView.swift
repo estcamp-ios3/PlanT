@@ -23,7 +23,7 @@ struct SeedStatusView: View {
     @State private var goToRoutineList = false
     @State private var isLoding: Bool = false
     @State private var currentStatus: SeedStatus = .notPlanted
-    
+    @EnvironmentObject var authStore: AuthStore
     @EnvironmentObject var store: RoutineStore
     
     var body: some View {
@@ -120,7 +120,7 @@ private extension SeedStatusView {
     
     func plantedView(plantedCount: Int) -> some View {
         VStack {
-            Text("현재 님이 키우고 있는 \n 작물의 수는 \(plantedCount) 개 입니다. ")
+            Text("현재 \(authStore.nickName ?? "회원")님이 키우고 있는 \n 작물의 수는 \(plantedCount) 개 입니다. ")
                 .font(.title)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 16)
