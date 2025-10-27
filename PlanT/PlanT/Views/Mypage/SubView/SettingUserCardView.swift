@@ -27,7 +27,7 @@ struct SettingUserCardView: View {
                 Image(viewModel.model.mateName)
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 120, height: 120)
+                    .frame(width: 100, height: 100)
                     .padding(8)
                     .background(
                         Circle()
@@ -81,8 +81,7 @@ struct SettingUserCardView: View {
                     .foregroundColor(.gray100)
             }
             .plantPrimaryButton()
-            .padding(.leading, 260)
-            .padding(.trailing, vertical4)
+            .padding(.leading, UIScreen.main.bounds.width <= 375 ? 244 : 260)            .padding(.trailing, vertical4)
             .padding(.top, vertical4)
         }
     }
