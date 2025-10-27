@@ -48,6 +48,12 @@ enum ActivityTemplatesMock {
             .init(id: "networking", title: "네트워킹", icon: "person.3.sequence"),
             .init(id: "volunteering", title: "봉사 활동", icon: "hands.sparkles"),
         ],
-        .finance: []
+        .finance: [
+            .init(id: "ledger", title: "가계부 작성", icon: "wallet.pass"),
+            .init(id: "investing", title: "투자 공부", icon: "chart.line.uptrend.xyaxis"),
+            .init(id: "time_manage", title: "시간 관리", icon: "clock.arrow.circlepath"),
+            .init(id: "declutter", title: "정리 정돈", icon: "square.stack.3d.down.forward"),
+            .init(id: "vision_board", title: "비전보드 만들기", icon: "target"),
+        ]
     ]
 }

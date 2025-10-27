@@ -199,6 +199,14 @@ private extension SeedStatusView {
                 createdAt: Date(),
                 modifiedAt: Date()
             )
+//            let ai = AlanAIService.shared
+//            let aiComment = await ai.generateEncouragement(for: [
+//                .init(id: routine.id,
+//                      title: routine.title,
+//                      total: 1,
+//                      done: 0)
+//            ])
+//            print(" AI 우선 호출 완료:", aiComment)
             
             store.addRoutine(
                 from: seed,
