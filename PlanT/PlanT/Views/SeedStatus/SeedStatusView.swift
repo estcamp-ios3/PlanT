@@ -186,84 +186,47 @@ private extension SeedStatusView {
         }
     }
     
-//    func addRoutine(for seed: Seed) {
-//        isLoding = true
-//        Task {
-//            let routine = Routine(
-//                title: draft.routineTypeTitle.isEmpty ? "새 루틴" : draft.routineTypeTitle,
-//                categoryId: draft.categoryId,
-//                seedName: seed.imagePrefix,
-//                duration: draft.durationTitle,
-//                goal: draft.goal,
-//                alarm: draft.reminderOn ? .every24Hours : .every48Hours,
-//                frequencyPerWeekId: draft.frequencyPerWeekId,
-//                frequencyPerWeekTitle: draft.frequencyPerWeekTitle,
-//                note: nil,
-//                isCompleted: false,
-//                createdAt: Date(),
-//                modifiedAt: Date()
-//            )
-////            let ai = AlanAIService.shared
-////            let aiComment = await ai.generateEncouragement(for: [
-////                .init(id: routine.id,
-////                      title: routine.title,
-////                      total: 1,
-////                      done: 0)
-////            ])
-////            print(" AI 우선 호출 완료:", aiComment)
-//            
-//            store.addRoutine(
-//                from: seed,
-//                basedOn: routine,
-//                categoryId: draft.categoryId,
-//                draft: draft,
-//                reminderOffsets: draft.reminderOffsets
-//            )
-//            
-//            NotificationManager.shared.scheduleTomorrow9AMNotification(for: routine)
-//            NotificationManager.shared.scheduleNotification(
-//                for: routine.id,
-//                title: routine.title,
-//                baseDate: draft.startDate ?? Date(),
-//                offsets: Array(draft.reminderOffsets)
-//            )
-//            
-//            try? await Task.sleep(nanoseconds: 5_000_000_000)
-//            
-//            await MainActor.run {
-//                isLoding  = false
-//                path = NavigationPath()
-//                showAddAlarmSheet = false
-//            }
-//        }
-//    }
-    
     func addRoutine(for seed: Seed) {
         isLoding = true
 
         
         Task {
-            let totalDays = draft.totalDays ?? {
-                     let start = draft.startDate ?? Date()
-                     let end = draft.endDate ?? Date()
-                     let days = Calendar.current.dateComponents([.day], from: start, to: end).day ?? 0
-                     return max(days, 1)
-                 }()
-            // 1️⃣ 루틴 인스턴스 생성
-            let routine = Routine(
-                title: draft.routineTypeTitle.isEmpty ? "새 루틴" : draft.routineTypeTitle,
-                categoryId: draft.categoryId,
-                seedName: seed.imagePrefix,
-                duration: "\(totalDays)일",
-                goal: draft.goal,
-                alarm: draft.reminderOn ? .every24Hours : .every48Hours,
-                frequencyPerWeekId: draft.frequencyPerWeekId,
-                frequencyPerWeekTitle: draft.frequencyPerWeekTitle,
-                note: nil,
-                isCompleted: false,
-                createdAt: Date(),
-                modifiedAt: Date()
-            )
+                let durationText: String
+                let totalDays: Int
+                
+            switch draft.sourceType {
+            case .template:
+                // ✅ 템플릿 기반: draft.totalDays 우선 사용
+                let days = draft.totalDays ?? draft.durationTitle.extractDays()
+                totalDays = days
+                durationText = "\(days)일"
+                
+            case .survey:
+                // ✅ 설문 기반: 날짜 계산
+                let start = draft.startDate ?? Date()
+                let end = draft.endDate ?? Date()
+                let days = Calendar.current.dateComponents([.day], from: start, to: end).day ?? 0
+                totalDays = max(days, 1)
+                durationText = "\(totalDays)일"
+            }
+
+                
+                //  루틴 생성
+                let routine = Routine(
+                    title: draft.routineTypeTitle.isEmpty ? "새 루틴" : draft.routineTypeTitle,
+                    categoryId: draft.categoryId,
+                    seedName: seed.imagePrefix,
+                    duration: durationText,
+                    goal: draft.goal,
+                    alarm: draft.reminderOn ? .every24Hours : .every48Hours,
+                    frequencyPerWeekId: draft.frequencyPerWeekId,
+                    frequencyPerWeekTitle: draft.frequencyPerWeekTitle,
+                    note: nil,
+                    isCompleted: false,
+                    createdAt: Date(),
+                    modifiedAt: Date()
+                )
+            
             print("""
             ✅ [1단계] 루틴 객체 생성 완료
             ────────────────
@@ -313,7 +276,4 @@ private extension SeedStatusView {
             }
         }
     }
-
-    
-    
 }

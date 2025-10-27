@@ -73,22 +73,27 @@ struct RoutineTemplateView: View {
             if let routine = routineTemplates.flatMap({ $0.routines }).first(where: { $0.id == id }),
                let category = routineTemplates.first(where: {$0.routines.contains(where: { $0.id == id }) }) {
 
+                
+                let days = routine.duration.extractDays() //  "21일" -> 21
+
                 let draft = RoutineDraft(
                     categoryId: category.categoryId,
                     categoryTitle: category.categoryTitle,
                     routineTypeId: routine.title,
                     routineTypeTitle: routine.title,
-                    frequencyPerWeekId: "3x",
-                    frequencyPerWeekTitle: "주 3회",
+                    frequencyPerWeekId: routine.frequencyPerWeekId,
+                    frequencyPerWeekTitle: routine.frequencyPerWeekTitle,
                     durationId: routine.duration,
                     durationTitle: routine.duration,
                     periodIsNoLimit: true,
                     reminderOn: routine.alarm == .every24Hours,
                     goal: routine.goal,
-                    isFavorite: false, routinePeriodDays: 0,
-                    
-
+                    isFavorite: false,
+                    totalDays: days, //  숫자 저장
+                    routinePeriodDays: days,
+                    sourceType: .template
                 )
+
 
                 SeedStatusView(state: .planted(activeRoutineCount), draft: draft, path: $path, showAddAlarmSheet: $showAddAlarmSheet)
             } else {
@@ -106,7 +111,8 @@ struct RoutineTemplateView: View {
                     goal: "-",
                     isFavorite: false,
                     totalDays: 0,
-                    routinePeriodDays: 0
+                    routinePeriodDays: 0,
+                    sourceType: .template //  템플릿에서 생성됨
 
                 )
 

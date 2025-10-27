@@ -9,6 +9,10 @@
 
 import Foundation
 
+enum RoutineSourceType: String, Codable {
+    case survey      // 설문 기반 생성
+    case template    // 템플릿 기반 생성
+}
 
 // MARK: - 화면 전용 모델 (Codable 추가만 + 요일 타입 세이프)
 /// 루틴 생성/수정 화면에서 사용하는 임시 초안 모델
@@ -98,6 +102,9 @@ struct RoutineDraft: Codable, Hashable, Identifiable {
     var totalDays: Int? = nil
 
     var routinePeriodDays: Int
+    
+    var sourceType: RoutineSourceType = .survey //  기본값은 설문 기반
+
 
     // MARK: - TODO: 서버 routines 테이블에 있지만 클라이언트 초안에 미포함된 필드 예시
     // var deleted_at: Date?    // 삭제 시각 (서버 관리용)
