@@ -15,7 +15,7 @@ struct SpeechBubbleView: View {
     var maxWidth: CGFloat = UIScreen.main.bounds.width * 0.78
     var background: Color = Color("Gray400")
     var textColor: Color = .primary
-    var cornerRadius: CGFloat = vertical5
+    var cornerRadius: CGFloat = cornerRadius3
     var hPadding: CGFloat = vertical5
     var vPadding: CGFloat = vertical4
     var shadowColor: Color = .black.opacity(0.10)
