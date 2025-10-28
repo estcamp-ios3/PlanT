@@ -122,7 +122,7 @@ struct RoutineSurveyView: View {
                 .onChange(of: vm["set_reminder"]) {
                     updateInlineViews()
                 }
-                .onChange(of: selectedAlarm) { newValue in
+                .onChange(of: selectedAlarm) { oldvalue, newValue in
                     vm.reminderOffsets = newValue
                 }
             
