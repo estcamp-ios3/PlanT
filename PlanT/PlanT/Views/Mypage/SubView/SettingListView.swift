@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct SettingListView: View {
+    @EnvironmentObject var authStore: AuthStore
     @State private var appVersion: String =
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "알 수 없음" // Info.plist에서 앱 버전
 
@@ -54,7 +55,7 @@ struct SettingListView: View {
             // MARK: - 회원 탈퇴
             Section(header: Text("회원 탈퇴")) {
                 Button {
-                    deleteAccountAlert = true   // ✅ 알럿 띄우기
+                    deleteAccountAlert = true
                 } label: {
                     SettingRow(title: "회원 탈퇴", systemImage: "person.crop.circle.badge.minus")
                 }
@@ -89,8 +90,9 @@ struct SettingListView: View {
         .alert("정말 탈퇴하시겠어요?", isPresented: $deleteAccountAlert) {
             Button("취소", role: .cancel) { }
             Button("회원 탈퇴", role: .destructive) {
-                // TODO: 실제 탈퇴 로직 연결 (예: AuthStore.deleteAccount())
-                // ex) Task { try? await authStore.deleteAccount() }
+                Task {
+                    await authStore.deleteAccount()
+                }
             }
         } message: {
             Text("계정 및 데이터가 영구적으로 삭제될 수 있습니다.")

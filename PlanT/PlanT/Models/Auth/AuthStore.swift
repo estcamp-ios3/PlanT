@@ -85,6 +85,39 @@ final class AuthStore: ObservableObject {
         self.mate = mate
     }
     
+    // MARK: - 회원탈퇴 (계정 완전 삭제)
+    func deleteAccount() async {
+        do {
+            guard let session = try? await supabaseManager.restoreSession() else {
+                print("❌ 세션이 없습니다.")
+                return
+            }
+
+            let uid = session.user.id.uuidString
+            let accessToken = session.accessToken
+
+            // 🔹 Supabase Edge Function 호출
+            guard let url = URL(string: "https://zgkbeonrsmpqxmdluuke.supabase.co/functions/v1/delete_user") else { return }
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization") // ✅ 인증 추가
+            request.httpBody = try JSONEncoder().encode(["user_id": uid])
+
+            let (data, response) = try await URLSession.shared.data(for: request)
+            guard let httpResponse = response as? HTTPURLResponse else { return }
+
+            if httpResponse.statusCode == 200 {
+                print("✅ Supabase 계정 삭제 성공:", String(data: data, encoding: .utf8) ?? "")
+                await signOut()
+            } else {
+                print("❌ 계정 삭제 실패:", String(data: data, encoding: .utf8) ?? "")
+            }
+        } catch {
+            print("❌ 회원 탈퇴 중 오류:", error.localizedDescription)
+        }
+    }
+    
     // MARK: - 세션 복원
     func restoreSession() async {
         do {
