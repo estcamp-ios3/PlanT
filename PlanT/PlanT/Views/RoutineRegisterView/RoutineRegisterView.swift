@@ -226,6 +226,8 @@ extension RoutineRegisterView {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .background(Color("F2F0CE"))
                         .cornerRadius(30)
+                        .themedTextColor()
+
                 default:
                     // 신규등록 모드에서는 카테고리 드롭다운 메뉴
                     Menu {
@@ -267,6 +269,8 @@ extension RoutineRegisterView {
                 TextField("루틴 제목을 입력하세요", text: $routineTitle)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .cornerRadius(30)
+                    .themedTextColor()
+
             }
         }
     }
@@ -304,6 +308,8 @@ extension RoutineRegisterView {
             HStack {
                 Text("목표")
                     .font(.headline).bold()
+                    .themedTextColor()
+
                 if isCreateOrEdit {
                     Spacer()
                     Button {
@@ -322,39 +328,57 @@ extension RoutineRegisterView {
                         Text("하루 목표 시간")
                             .font(.subheadline)
                             .frame(width: 100, alignment: .leading)
+                            .themedTextColor()
+
                         TextField("30", text: $goalHours)
                             .keyboardType(.numberPad)
                             .frame(width: 50)
                             .multilineTextAlignment(.trailing)
                             .textFieldStyle(.roundedBorder)
+                            .themedTextColor()
+
                         Text("분/일")
                             .font(.subheadline)
+                            .themedTextColor()
+
                         Spacer()
                     }
                     HStack {
                         Text("주 실행 빈도")
                             .font(.subheadline)
                             .frame(width: 100, alignment: .leading)
+                            .themedTextColor()
+
                         TextField("5", text: $goalDays)
                             .keyboardType(.numberPad)
                             .frame(width: 50)
                             .multilineTextAlignment(.trailing)
                             .textFieldStyle(.roundedBorder)
+                            .themedTextColor()
+
                         Text("회/주")
                             .font(.subheadline)
+                            .themedTextColor()
+
                         Spacer()
                     }
                     HStack {
                         Text("총 실행 기간")
                             .font(.subheadline)
                             .frame(width: 100, alignment: .leading)
+                            .themedTextColor()
+
                         TextField("21", text: $goalTask)
                             .keyboardType(.numberPad)
                             .frame(width: 50)
                             .multilineTextAlignment(.trailing)
                             .textFieldStyle(.roundedBorder)
+                            .themedTextColor()
+
                         Text("일 동안")
                             .font(.subheadline)
+                            .themedTextColor()
+
                         Spacer()
                     }
                 }
@@ -366,7 +390,11 @@ extension RoutineRegisterView {
             if case .details = currentMode {
                 HStack {
                     Text("\(routineFromMode?.goal ?? "-")")
+                        .themedTextColor()
+
                     Text("주 \(routineFromMode?.frequencyPerWeekId.replacingOccurrences(of: "x", with: "") ?? "0")회 \(routineFromMode?.duration ?? "-")")
+                        .themedTextColor()
+
                     Spacer()
                 }
                 .font(.subheadline)
@@ -382,20 +410,32 @@ extension RoutineRegisterView {
                         .keyboardType(.numberPad)
                         .multilineTextAlignment(.trailing)
                         .textFieldStyle(.roundedBorder)
+                        .themedTextColor()
+
                     Text("분/일")
+                        .themedTextColor()
+
                     TextField("5", text: $goalDays)
                         .keyboardType(.numberPad)
                         .frame(width: 40)
                         .multilineTextAlignment(.trailing)
                         .textFieldStyle(.roundedBorder)
+                        .themedTextColor()
+
                     Text("회/주")
+                        .themedTextColor()
+
                     
                     TextField("21", text: $goalTask)
                         .keyboardType(.numberPad)
                         .frame(width: 40)
                         .multilineTextAlignment(.trailing)
                         .textFieldStyle(.roundedBorder)
+                        .themedTextColor()
+
                     Text("일 동안")
+                        .themedTextColor()
+
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
@@ -416,6 +456,8 @@ extension RoutineRegisterView {
                 HStack {
                     Text("알림")
                         .font(.subheadline).bold()
+                        .themedTextColor()
+
                     Spacer()
                     Text("맞춤 알림 생성,삭제")
                         .font(.footnote).bold()

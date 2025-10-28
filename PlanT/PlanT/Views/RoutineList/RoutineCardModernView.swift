@@ -8,6 +8,7 @@ import SwiftUI
 
 struct RoutineCardModernView: View {
     @EnvironmentObject var store: RoutineStore
+    @Environment(\.colorScheme) var colorScheme
 
     let routine: Routine
     var progress: Double = 0
@@ -33,28 +34,34 @@ struct RoutineCardModernView: View {
                 HStack {
                     Text(routine.title)
                         .font(.headline)
+
                     Spacer()
                     Text("카테고리: \(routine.categoryTitleMapped)")
                         .font(.caption2)
+
                 }
 
                 HStack {
                     
                     Text("목표: \(routine.goal)")
                         .font(.subheadline)
+
                     Spacer()
                     Text("주 \(routine.frequencyPerWeekId.replacingOccurrences(of: "x", with: ""))회       \(routine.duration)")
                         .font(.subheadline)
+
                 }
 
                 HStack {
                     Text("진행률")
                         .font(.caption)
+
                     
                     Spacer()
                     
                     Text("\(Int(progress))%")
                         .font(.caption)
+
                 }
                 
                 ProgressView(value: progress / 100)
@@ -69,12 +76,13 @@ struct RoutineCardModernView: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 30)
-                .fill(Color.white)
+                .themedBackground()
                 .shadow(color: .black.opacity(0.05), radius: 6, x:0, y: 3)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 18)
-                .stroke(Color.gray400,lineWidth: 1)
+            RoundedRectangle(cornerRadius: 30)
+                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+
         )
         .onAppear {
          
