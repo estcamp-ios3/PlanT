@@ -125,7 +125,7 @@ struct MypageEmptyPlantsCardView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: 40, height: 40)
-                    .padding(.top, 4)
+                    .padding(.top, vertical1)
 
                 VStack(alignment: .leading, spacing: 0) {
                     Spacer(minLength: 0)
