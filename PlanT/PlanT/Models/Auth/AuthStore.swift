@@ -48,8 +48,13 @@ final class AuthStore: ObservableObject {
             try await supabaseManager.signUp(user: user)
             print("✅ 회원가입 성공")
         } catch {
-            print("❌ 회원가입 실패:", error.localizedDescription)
-            throw error
+            if let authError = error as? AuthError {
+                print("⚠️ 회원가입 실패: \(authError.localizedDescription)")
+                throw authError
+            } else {
+                print("❌ 회원가입 실패:", error.localizedDescription)
+                throw error
+            }
         }
     }
     

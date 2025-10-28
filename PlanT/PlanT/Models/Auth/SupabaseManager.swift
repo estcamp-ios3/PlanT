@@ -53,11 +53,30 @@ struct SupabaseManager {
             "mate": .string(user.mate)
         ]
 
-        _ = try await supabaseClient.auth.signUp(
-            email: user.email,
-            password: user.password,
-            data: meta
-        )
+        do {
+            _ = try await supabaseClient.auth.signUp(
+                email: user.email,
+                password: user.password,
+                data: meta
+            )
+        } catch {
+            // ✅ SDK 버전에 따라 에러 타입이 달라서, 문자열 기반으로 안전하게 판별
+            let raw = error.localizedDescription.lowercased()
+
+            // 흔한 메시지 패턴들: "User already registered", "already exists"
+            if raw.contains("already") && (raw.contains("registered") || raw.contains("exist")) {
+                throw AuthError.emailAlreadyExists
+            }
+
+            // Supabase가 message를 userInfo에 넣는 경우도 가끔 있음
+            let ns = error as NSError
+            if let msg = (ns.userInfo["message"] as? String)?.lowercased(),
+               msg.contains("already") && (msg.contains("registered") || msg.contains("exist")) {
+                throw AuthError.emailAlreadyExists
+            }
+
+            throw error
+        }
     }
 
     // MARK: - 로그아웃

@@ -30,7 +30,7 @@ final class AlanAIService {
     private var didPrewarm = false
 
     private init() {
-        let clientId = "34a0ba9f-c677-4406-815a-47b88e791679"
+        let clientId = "89a3432c-e591-4751-9b97-2d4fc2d9fa6a"
         let client = AlanAI(clientID: clientId)
         self.clientBox = AlanClientBox(client: client)
 
@@ -254,7 +254,7 @@ final class AlanAIService {
 
         if text.isEmpty {
             if let m = minutes, let t = timesPerWeek, m > 0, t > 0 {
-                return "\(title) 1회 \(m)분씩 \(t)회 루틴을 시작하시려는군요!\n함께 꾸준히 가볼까요?" // "응답을 받지 아니하였다"
+                return "응답을 받지 아니하였다" //"\(title) 1회 \(m)분씩 \(t)회 루틴을 시작하시려는군요!\n함께 꾸준히 가볼까요?"
             }
         }
         return text
