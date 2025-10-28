@@ -113,8 +113,9 @@ struct RoutineRegisterView: View {
                     
                     GeometryReader { geo in
                         alarmSection(width: geo.size.width)
+                        alarmSection(width: geo.size.width)
                     }
-                    .frame(height: 300)
+                    .frame(height: 130)
                     Divider()
                 }
                             .padding(.horizontal, vertical4)
@@ -720,24 +721,50 @@ extension RoutineRegisterView {
     private func saveRoutine() async {
         switch currentMode {
         case .create:
-            // 실제 저장로직은 store 또는 상위에서 구현
-            print("새 루틴 등록 로직 실행")
-            print("현재 store.routines.count:", store.routines.count)
-            if let routine = store.routines.last {
-                // 알림 프리셋 및 알림 예약 저장
-                routineAlarmStore.saveOffsets(
-                    for: routine.id,
-                    offsets: Array(selectedAlarms)
+            print("🟢 [DEBUG] 루틴 생성 시작")
+            print("startDate:", startDate)
+            print("endDate:", endDate)
+            let newRoutine = Routine(
+                    title: routineTitle,
+                    categoryId: selectedCategory,
+                    seedName: "seed_Apple01",
+                    duration: "\(goalTask)일",
+                    goal: "\(goalHours)분/일",
+                    alarm: .every24Hours,
+                    frequencyPerWeekId: "x\(goalDays)",
+                    frequencyPerWeekTitle: "주 \(goalDays)회",
+                    note: "",
+                    isCompleted: false,
+                    createdAt: Date(),
+                    modifiedAt: Date(),
+                    startDate: startDate,
+                    endDate: endDate
                 )
-                NotificationManager.shared.scheduleNotification(
-                    for: routine.id,
-                    title: routine.title,
-                    baseDate: startDate,
-                    offsets: Array(selectedAlarms)
-                )
-            } else {
-                print(" 루틴이 아직 store에 없음 -> saveOffsets 실행 안 됨")
-            }
+            print("🟢 [DEBUG] Routine 생성됨:")
+             print("""
+             • Title: \(newRoutine.title)
+             • Start: \(newRoutine.startDate ?? Date())
+             • End:   \(newRoutine.endDate ?? Date())
+             """)
+                context.insert(newRoutine)
+                do {
+                    try context.save()
+                    print("✅ [DEBUG] SwiftData 저장 완료")
+
+                    store.loadRoutines()
+                    store.refreshTrigger = UUID()
+                    routineAlarmStore.saveOffsets(for: newRoutine.id, offsets: Array(selectedAlarms))
+                    NotificationManager.shared.scheduleNotification(
+                        for: newRoutine.id,
+                        title: newRoutine.title,
+                        baseDate: startDate,   //  알림 기준일도 startDate로 설정
+                        offsets: Array(selectedAlarms)
+                    )
+                    print("✅ [DEBUG] 알림 예약 완료 (baseDate: \(startDate))")
+                              print("✅ 루틴 등록 완료: \(newRoutine.title)")
+                } catch {
+                    print("❌ 루틴 저장 실패:", error)
+                }
         case .edit(let routine):
             // 기존 루틴 정보 갱신
             routine.title = routineTitle
@@ -754,7 +781,10 @@ extension RoutineRegisterView {
                 store.loadRoutines()
                 store.refreshTrigger = UUID()
                 print("루틴 수정 완료: \(routine.title)")
-                dismiss()
+                await MainActor.run {
+                    currentMode = .details(routine)
+                }
+                
             } catch {
                 print("X 루틴 수정 실패:", error)
             }
