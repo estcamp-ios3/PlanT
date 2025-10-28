@@ -13,6 +13,7 @@ struct SeedSelectionView: View {
     @AppStorage("hasSeenSeedIntro") private var hasSeenSeedIntro: Bool = false
     @State private var showIntro = false
     @State private var showHelp = false
+    @State private var tempSelectedSeed: Seed? = nil
 
     private var allSeedsForGrid: [Seed?] {
         var list = allSeeds.map { Optional($0) }
@@ -53,7 +54,7 @@ struct SeedSelectionView: View {
                                                 .scaledToFit()
                                                 .frame(width: 110, height: 110)
                                             
-                                            if selectedSeed == seed {
+                                            if tempSelectedSeed == seed {
                                                 Image(systemName: "checkmark.circle.fill")
                                                     .resizable()
                                                     .foregroundColor(.blue)
@@ -66,7 +67,7 @@ struct SeedSelectionView: View {
                                             .padding(.bottom, vertical2)
                                     }
                                     .onTapGesture {
-                                        selectedSeed = seed
+                                        tempSelectedSeed = seed
                                         hasSeenSeedIntro = true
                                         withAnimation { showIntro = false }
                                     }
@@ -93,8 +94,9 @@ struct SeedSelectionView: View {
                     Spacer()
                     
                     // MARK: - Select button
-                    if let seed = selectedSeed {
+                    if let seed = tempSelectedSeed {
                         Button {
+                            selectedSeed = seed
                             dismiss()
                         } label: {
                             Text("'\(seed.name)' 선택완료")
@@ -115,7 +117,7 @@ struct SeedSelectionView: View {
                 .cornerRadius(30)
             }
 
-            // ❌ Close button always visible (top-right)
+            // 닫기 버튼
             VStack {
                 HStack {
                     Spacer()
