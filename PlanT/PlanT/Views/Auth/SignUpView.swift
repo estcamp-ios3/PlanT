@@ -13,6 +13,8 @@ struct SignUpView: View {
     @StateObject private var signUpViewModel = SignUpViewModel()
     @Environment(\.dismiss) private var dismiss   // ✅ 모달 닫기용
     
+    @State private var errorMessage: String? = nil // 회원가입용 에러 메시지
+    
     private enum Field: Hashable { case userName, nickName, email, password, passwordConfirm }
     @FocusState private var focus: Field?
     
@@ -90,13 +92,25 @@ struct SignUpView: View {
                     print("🐾 선택된 메이트: \(userAuthModel.mate)")
                 }
             
+            // ✅ 에러 메시지 표시
+            if let error = errorMessage {
+                Text(error)
+                    .foregroundColor(.red)
+                    .font(.footnote)
+                    .padding(.top, 8)
+            }
+            
             Button("회원가입") {
                 Task {
                     do {
                         try await authStore.signUp(user: userAuthModel)
                         dismiss()
+                    } catch let error as AuthError {
+                        // ✅ 우리가 만든 AuthError를 우선 처리
+                        errorMessage = error.localizedDescription
                     } catch {
-                        print("❌ 회원가입 실패:", error.localizedDescription)
+                        // 기타 에러는 그대로 표시
+                        errorMessage = error.localizedDescription
                     }
                 }
             }
@@ -104,6 +118,7 @@ struct SignUpView: View {
             .padding(.horizontal, vertical4)
             .disabled(!isSignUpValid)
             .opacity(isSignUpValid ? 1 : 0.5) // 시각적 피드백
+
         }
         .padding(.top, 40)
     }

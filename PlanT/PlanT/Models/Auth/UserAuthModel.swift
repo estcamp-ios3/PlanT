@@ -20,11 +20,14 @@ final class UserAuthModel: ObservableObject {
 
 enum AuthError: Error, LocalizedError {
     case passwordsDoNotMatch
+    case emailAlreadyExists
 
     var errorDescription: String? {
         switch self {
         case .passwordsDoNotMatch:
             return "비밀번호가 일치하지 않습니다."
+        case .emailAlreadyExists:
+            return "이미 등록된 이메일입니다."
         }
     }
 }
