@@ -60,6 +60,7 @@ struct LoginView: View {
                 .padding(.bottom, vertical5)
 
                 Button("Sign Up") { isPresentingSignUp = true }
+                    .padding(.bottom, 50)
                     .foregroundColor(.black)
                     .sheet(isPresented: $isPresentingSignUp) {
                         SignUpView()
