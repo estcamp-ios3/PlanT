@@ -35,7 +35,7 @@ struct BottomSheetView<Content: View>: View {
                     }
                 VStack {
                     Spacer()
-                    VStack(spacing: 16) {
+                    VStack(spacing: vertical4) {
                         HStack {
                           
                             Spacer()
@@ -46,14 +46,14 @@ struct BottomSheetView<Content: View>: View {
                                 }
                             }
                             .font(.headline.bold())
-                            .padding(.trailing, 16)
-                            .padding(.bottom, 4)
+                            .padding(.trailing, vertical4)
+                            .padding(.bottom, vertical1)
                         }
                         .padding(.horizontal)
                         .padding(.top, 10)
                         
                         content
-                            .padding(.horizontal, 20)
+                            .padding(.horizontal, vertical5)
                             .padding(.bottom, 30)
                     }
                     .background(Color.white)

@@ -62,7 +62,7 @@ struct RoutineListView: View {
     
     var body: some View {
         ScrollView {
-            VStack(spacing: 12) {
+            VStack(spacing: vertical3) {
                 if store.routines.isEmpty {
                     Text("여기에 루틴이 추가됩니다.")
                         .foregroundColor(.gray)

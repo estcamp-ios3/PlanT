@@ -12,7 +12,7 @@ struct MateView: View {
     
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 16) {
+            HStack(spacing: vertical4) {
                 ForEach(Mate.allCases) { mate in
                     let isSelected = (selectedMate == mate)
                     
@@ -27,8 +27,8 @@ struct MateView: View {
                         
                         if isSelected {
                             Text("Hi~")
-                                .font(.system(size: 12, weight: .bold))
-                                .padding(.vertical, 8)
+                                .font(.system(size: vertical3, weight: .bold))
+                                .padding(.vertical, vertical2)
                                 .padding(.horizontal, 10)
                                 .background(
                                     Capsule()
@@ -38,14 +38,14 @@ struct MateView: View {
                                                 .stroke(Color("F2B263"), lineWidth: 2)
                                         )
                                 )
-                                .offset(x: 16, y: 0) // 말풍선 위치값
+                                .offset(x: vertical4, y: 0) // 말풍선 위치값
                                 .transition(.scale.combined(with: .opacity))
                                 .animation(.spring(response: 0.3, dampingFraction: 0.85), value: isSelected)
                         }
                     }
                 }
             }
-            .padding(.horizontal, 8)
+            .padding(.horizontal, vertical2)
             .padding(.vertical, 10)
         }
     }

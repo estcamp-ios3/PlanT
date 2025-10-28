@@ -101,7 +101,7 @@ struct SignUpView: View {
                 }
             }
             .plantPrimaryButton()
-            .padding(.horizontal, 16)
+            .padding(.horizontal, vertical4)
             .disabled(!isSignUpValid)
             .opacity(isSignUpValid ? 1 : 0.5) // 시각적 피드백
         }
