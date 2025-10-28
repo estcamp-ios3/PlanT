@@ -52,6 +52,11 @@ struct RoutineRegisterView: View {
     @State private var isEnabled: Bool = true                // 날짜 입력 활성화 여부
     @State private var showDateHeader: Bool = true           // 날짜 입력 헤더 표시 여부
     @State private var hasEnd: Bool = true                   // 종료일 사용 여부
+    @State private var showTitleLimitAlert = false
+    @State private var showGoalLimitAlert = false
+    @State private var alertMessage: String = ""
+    @State private var showAlarmLimitAlert: Bool = false
+    @State private var alarmAlertMessage: String = ""
 
     // 폼이 제출 가능한지 체크 (필수 입력 완료 여부)
     private var isFormValid: Bool {
@@ -270,10 +275,18 @@ extension RoutineRegisterView {
             } else {
                 // 신규/수정 모드에서는 제목을 텍스트필드로 입력
                 TextField("루틴 제목을 입력하세요", text: $routineTitle)
+                    .onChange(of: routineTitle) { oldValue, newValue in
+                        if newValue.count > 15 {
+                            routineTitle = String(newValue.prefix(15))
+                            showTitleLimitAlert = true
+                        }
+                    }
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .cornerRadius(30)
                     .themedTextColor()
-
+                    .alert("루틴 제목은 15글자 이상은 사용할 수 없습니다.", isPresented: $showTitleLimitAlert) {
+                        Button("확인", role: .cancel) { }
+                    }
             }
         }
     }
@@ -339,6 +352,22 @@ extension RoutineRegisterView {
                             .multilineTextAlignment(.trailing)
                             .textFieldStyle(.roundedBorder)
                             .themedTextColor()
+                            .onChange(of: goalHours) { oldValue, newValue in
+                                //  숫자 이외 문자 입력 시 처리
+                                if newValue.rangeOfCharacter(from: CharacterSet.decimalDigits.inverted) != nil {
+                                    goalHours = oldValue
+                                    alertMessage = "숫자만 입력할 수 있습니다."
+                                    showGoalLimitAlert = true
+                                    return
+                                }
+                                
+                                //  숫자 범위 제한
+                                if let value = Int(newValue), value > 480 {
+                                    goalHours = "480"
+                                    alertMessage = "하루 목표 시간은 최대 480분까지만 입력할 수 있습니다."
+                                    showGoalLimitAlert = true
+                                }
+                            }
 
                         Text("분/일")
                             .font(.subheadline)
@@ -351,6 +380,7 @@ extension RoutineRegisterView {
                             .font(.subheadline)
                             .frame(width: 100, alignment: .leading)
                             .themedTextColor()
+                        
 
                         TextField("5", text: $goalDays)
                             .keyboardType(.numberPad)
@@ -358,7 +388,19 @@ extension RoutineRegisterView {
                             .multilineTextAlignment(.trailing)
                             .textFieldStyle(.roundedBorder)
                             .themedTextColor()
-
+                            .onChange(of: goalDays) { oldValue, newValue in
+                                if newValue.rangeOfCharacter(from: CharacterSet.decimalDigits.inverted) != nil {
+                                    goalDays = oldValue
+                                    alertMessage = "숫자만 입력할 수 있습니다."
+                                    showGoalLimitAlert = true
+                                    return
+                                }
+                                if let value = Int(newValue), value > 7 {
+                                    goalDays = "7"
+                                    alertMessage = "주 실행 빈도는 최대 7회까지만 입력할 수 있습니다."
+                                    showGoalLimitAlert = true
+                                }
+                            }
                         Text("회/주")
                             .font(.subheadline)
                             .themedTextColor()
@@ -377,7 +419,19 @@ extension RoutineRegisterView {
                             .multilineTextAlignment(.trailing)
                             .textFieldStyle(.roundedBorder)
                             .themedTextColor()
-
+                            .onChange(of: goalTask) { oldValue, newValue in
+                                 if newValue.rangeOfCharacter(from: CharacterSet.decimalDigits.inverted) != nil {
+                                     goalTask = oldValue
+                                     alertMessage = "숫자만 입력할 수 있습니다."
+                                     showGoalLimitAlert = true
+                                     return
+                                 }
+                                 if let value = Int(newValue), value > 365 {
+                                     goalTask = "365"
+                                     alertMessage = "총 실행 기간은 최대 365일까지 입력할 수 있습니다."
+                                     showGoalLimitAlert = true
+                                 }
+                             }
                         Text("일 동안")
                             .font(.subheadline)
                             .themedTextColor()
@@ -388,6 +442,9 @@ extension RoutineRegisterView {
                 .padding(12)
                 .background(Color("BrandSecondary"))
                 .cornerRadius(30)
+                .alert(alertMessage, isPresented: $showGoalLimitAlert) {
+                    Button("확인", role: .cancel) { }
+                }
             }
             // 상세보기 모드: 목표/주기/기간 요약만 읽기전용으로 노출
             if case .details = currentMode {
@@ -409,12 +466,26 @@ extension RoutineRegisterView {
             if case .edit = currentMode {
                 HStack {
                     TextField("30", text: $goalHours)
-                        .frame(width: 40)
+                        .frame(width: 50)
                         .keyboardType(.numberPad)
                         .multilineTextAlignment(.trailing)
                         .textFieldStyle(.roundedBorder)
                         .themedTextColor()
+                        .onChange(of: goalHours) { oldValue, newValue in
+                            if newValue.rangeOfCharacter(from: CharacterSet.decimalDigits.inverted) != nil {
+                                       goalHours = oldValue
+                                       alertMessage = "숫자만 입력할 수 있습니다."
+                                       showGoalLimitAlert = true
+                                       return
+                                   }
 
+                                   //  숫자 범위 제한
+                                   if let value = Int(newValue), value > 480 {
+                                       goalHours = "480"
+                                       alertMessage = "하루 목표 시간은 최대 480분까지만 입력할 수 있습니다."
+                                       showGoalLimitAlert = true
+                                   }
+                        }
                     Text("분/일")
                         .themedTextColor()
 
@@ -424,23 +495,50 @@ extension RoutineRegisterView {
                         .multilineTextAlignment(.trailing)
                         .textFieldStyle(.roundedBorder)
                         .themedTextColor()
-
+                        .onChange(of: goalDays) { oldValue, newValue in
+                              if newValue.rangeOfCharacter(from: CharacterSet.decimalDigits.inverted) != nil {
+                                  goalDays = oldValue
+                                  alertMessage = "숫자만 입력할 수 있습니다."
+                                  showGoalLimitAlert = true
+                                  return
+                              }
+                              if let value = Int(newValue), value > 7 {
+                                  goalDays = "7"
+                                  alertMessage = "주 실행 빈도는 최대 7회까지만 입력할 수 있습니다."
+                                  showGoalLimitAlert = true
+                              }
+                          }
                     Text("회/주")
                         .themedTextColor()
 
                     
                     TextField("21", text: $goalTask)
                         .keyboardType(.numberPad)
-                        .frame(width: 40)
+                        .frame(width: 50)
                         .multilineTextAlignment(.trailing)
                         .textFieldStyle(.roundedBorder)
                         .themedTextColor()
-
+                        .onChange(of: goalTask) { oldValue, newValue in
+                             if newValue.rangeOfCharacter(from: CharacterSet.decimalDigits.inverted) != nil {
+                                 goalTask = oldValue
+                                 alertMessage = "숫자만 입력할 수 있습니다."
+                                 showGoalLimitAlert = true
+                                 return
+                             }
+                             if let value = Int(newValue), value > 365 {
+                                 goalTask = "365"
+                                 alertMessage = "총 실행 기간은 최대 365일까지 입력할 수 있습니다."
+                                 showGoalLimitAlert = true
+                             }
+                         }
                     Text("일 동안")
                         .themedTextColor()
 
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
+                .alert(alertMessage, isPresented: $showGoalLimitAlert) {
+                    Button("확인", role: .cancel) { }
+                }
             }
         }
     }
