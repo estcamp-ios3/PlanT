@@ -93,16 +93,14 @@ final class AuthStore: ObservableObject {
                 return
             }
 
-            let uid = session.user.id.uuidString
             let accessToken = session.accessToken
 
-            // 🔹 Supabase Edge Function 호출
             guard let url = URL(string: "https://zgkbeonrsmpqxmdluuke.supabase.co/functions/v1/delete_user") else { return }
             var request = URLRequest(url: url)
             request.httpMethod = "POST"
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization") // ✅ 인증 추가
-            request.httpBody = try JSONEncoder().encode(["user_id": uid])
+            request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+            request.httpBody = Data("{}".utf8) // ← 바디는 비워도 되고 {}, user_id는 절대 보내지 않기
 
             let (data, response) = try await URLSession.shared.data(for: request)
             guard let httpResponse = response as? HTTPURLResponse else { return }
