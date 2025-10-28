@@ -24,7 +24,7 @@ struct SignUpView: View {
         userAuthModel.nickName.count >= 1 &&
         userAuthModel.email.count >= 4 &&
         userAuthModel.password.count >= 4 &&
-        userAuthModel.passwordConfirm == userAuthModel.password &&
+        userAuthModel.passwordConfirm.count == userAuthModel.password.count &&
         signUpViewModel.selectedMate != nil
     }
     
@@ -96,7 +96,7 @@ struct SignUpView: View {
             if let error = errorMessage {
                 Text(error)
                     .foregroundColor(.red)
-                    .font(.footnote)
+                    .font(.system(size: vertical4, weight: .semibold))
                     .padding(.top, 8)
             }
             
