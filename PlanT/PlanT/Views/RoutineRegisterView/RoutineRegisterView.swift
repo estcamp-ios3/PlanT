@@ -124,8 +124,11 @@ struct RoutineRegisterView: View {
             }
             .onAppear {
                 store.loadRoutines()
+                DispatchQueue.main.async {
                     setupMode()
                       // 화면 진입 시 데이터 세팅
+                }
+               
             }
             .navigationTitle(modeTitle)    // 네비바 타이틀
             .toolbar { toolbarContent() }  // 우측 상단 툴바 (편집/비우기)

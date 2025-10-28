@@ -20,7 +20,7 @@ final class RoutineStore: ObservableObject {
     @Published var aiComments: [UUID: String] = [:] {
         didSet { AICommentPersistence.save(aiComments) }
     }
-
+    private let routineAlarmStore: RoutineAlarmStore
     /// AI 갱신 여부 확인용 서명(ex: "done/total")
     private var aiSignatures: [UUID: String] = [:]
 
@@ -28,13 +28,13 @@ final class RoutineStore: ObservableObject {
     private let client = supabaseClient
     private let ai = AlanAIService.shared
 
-    init(context: ModelContext) {
+    init(context: ModelContext, routineAlarmStore: RoutineAlarmStore) {
         self.context = context
+        self.routineAlarmStore = routineAlarmStore
         loadRoutines()
 
         // 저장된 AI 코멘트 복원
         self.aiComments = AICommentPersistence.load()
-
         Task { await ai.prewarmIfNeeded() }
     }
 
@@ -48,14 +48,14 @@ final class RoutineStore: ObservableObject {
             print("❌ 루틴 불러오기 실패:", error)
         }
     }
-
+    @discardableResult
     func addRoutine(
         from seed: Seed,
         basedOn routine: Routine,
         categoryId: String,
         draft: RoutineDraft,
         reminderOffsets: Set<Int>
-    ) {
+    ) -> Routine {
         let newRoutine = Routine(
             title: routine.title,
             categoryId: categoryId,
@@ -91,6 +91,7 @@ final class RoutineStore: ObservableObject {
         do { try context.save() } catch {
             print("❌ SwiftData 저장 실패:", error)
         }
+        routineAlarmStore.saveOffsets(for: newRoutine.id, offsets: Array(reminderOffsets).sorted())
 
         // ✅ MainActor 컨텍스트에서 비동기 작업
         Task { [client, weak self] in
@@ -131,6 +132,7 @@ final class RoutineStore: ObservableObject {
         }
 
         loadRoutines()
+        return newRoutine
     }
 
     func deleteRoutine(_ routine: Routine) {
