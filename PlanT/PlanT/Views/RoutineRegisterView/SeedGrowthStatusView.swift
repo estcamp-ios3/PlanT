@@ -46,9 +46,13 @@ struct SeedGrowthStatusView: View {
             HStack {
                 Text("작물 상태")
                     .font(.headline)
+                    .themedTextColor()
+
                 Spacer()
                 Text("\(displayName) \(currentStage)단계")
                     .font(.subheadline)
+                    .themedTextColor()
+
             }
             Image(routine.seedImage(for: progress, totalCount: totalCount))
                 .resizable()
@@ -59,9 +63,13 @@ struct SeedGrowthStatusView: View {
             HStack {
                 Text("\(completedCount)/\(totalCount)(회) 완료")
                     .font(.subheadline)
+                    .themedTextColor()
+
                 Spacer()
                 Text("\(Int(progress))%")
                     .font(.subheadline)
+                    .themedTextColor()
+
             }
             ProgressView(value: progress / 100)
                 .progressViewStyle(.linear)

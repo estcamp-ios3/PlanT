@@ -25,7 +25,8 @@ struct AlarmPresetPicker: View {
                 HStack {
                     Text("알림")
                         .font(.subheadline).bold()
-                    
+                        .themedTextColor()
+
                     Spacer()
                     Text("맞춤 알림 생성,삭제")
                         .font(.footnote).bold()
@@ -74,7 +75,7 @@ struct AlarmPresetPicker: View {
                                     isDeleteMode
                                     ? Color.red.opacity(0.3)
                                     : selectedAlarms.contains(minute) ? Color("BrandAccent") : Color("BrandSecondary"))
-                                .foregroundColor(.black)
+                                .themedTextColor()
                                 .cornerRadius(30)
                         }
                     }

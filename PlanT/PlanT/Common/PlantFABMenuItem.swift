@@ -16,7 +16,6 @@ struct PlantFABMenuItem: View {
                 Text(title)
                     .font(.system(.body, design: .rounded))
                     .foregroundStyle(Color("3B4019"))
-//                Spacer(minLength: 0)
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)

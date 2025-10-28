@@ -25,6 +25,8 @@ struct RoutineDateView: View {
                 HStack {
                     Text("날짜 사용")
                         .font(.headline)
+                        .themedTextColor()
+
                     Spacer()
                     Toggle("", isOn: $useDate)
                         .labelsHidden()
@@ -96,6 +98,8 @@ struct RoutineDateView: View {
                         .padding(.horizontal, vertical3)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .background(isEnabled ? Color("Gray100"): Color(.systemBackground) , in: RoundedRectangle(cornerRadius: cornerRadius3))
+                        .themedTextColor()
+
                 }
                 .sheet(isPresented: $showPicker) {
                     VStack {

@@ -90,6 +90,7 @@ struct RoutineListView: View {
             }
             .padding()
             .frame(maxWidth: .infinity)
+
         }
         .coordinateSpace(name: "tutorialSpace")
         .onPreferenceChange(TutorialAnchorKey.self) { tutorialFrames = $0 }

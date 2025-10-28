@@ -10,6 +10,8 @@ import SwiftUI
 struct ContentView: View {
     @State private var path = NavigationPath()
     @State private var showAddRoutineSheet = false
+    @EnvironmentObject var routineAlarmStore: RoutineAlarmStore  
+
     var body: some View {
         ZStack {
             TabView {

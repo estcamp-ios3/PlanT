@@ -25,7 +25,8 @@ struct SeedStatusView: View {
     @State private var currentStatus: SeedStatus = .notPlanted
     @EnvironmentObject var authStore: AuthStore
     @EnvironmentObject var store: RoutineStore
-    
+    @EnvironmentObject var routineAlarmStore: RoutineAlarmStore
+
     
     var body: some View {
         VStack {
@@ -210,7 +211,8 @@ private extension SeedStatusView {
                 durationText = "\(totalDays)일"
             }
 
-                
+        
+            
                 //  루틴 생성
                 let routine = Routine(
                     title: draft.routineTypeTitle.isEmpty ? "새 루틴" : draft.routineTypeTitle,
@@ -241,7 +243,7 @@ private extension SeedStatusView {
 
             // 2️⃣ Store에 추가 (SwiftData + Supabase)
             print("🟡 [2단계] store.addRoutine 호출 시작")
-            store.addRoutine(
+            let created = store.addRoutine(
                 from: seed,
                 basedOn: routine,
                 categoryId: draft.categoryId,
@@ -249,6 +251,13 @@ private extension SeedStatusView {
                 reminderOffsets: draft.reminderOffsets
             )
             print("✅ [2단계] store.addRoutine 호출 완료")
+
+            // ✅ 2.5️⃣ 각 루틴의 알림 프리셋 저장
+            routineAlarmStore.saveOffsets(
+                for: created.id,
+                offsets: Array(draft.reminderOffsets).sorted()
+            )
+            print("✅ [2.5단계] RoutineAlarmStore에 알림 오프셋 저장 완료")
 
             // 3️⃣ 로컬 알림 등록 확인
             print("🟡 [3단계] 알림 등록 시도")

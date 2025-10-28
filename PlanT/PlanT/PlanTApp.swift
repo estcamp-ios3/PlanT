@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 
+
 @main
 struct PlanTApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
@@ -33,9 +34,18 @@ struct PlanTApp: App {
 
         self.sharedModelContainer = container
         // ✅ RoutineStore를 App 레벨에서 한 번만 생성
-        _routineStore = StateObject(wrappedValue: RoutineStore(context: container.mainContext))
-        _routineAlarmStore = StateObject(wrappedValue: RoutineAlarmStore(context: container.mainContext))
+        let routineAlarmStoreInstance = RoutineAlarmStore(context: container.mainContext)
+               _routineAlarmStore = StateObject(wrappedValue: routineAlarmStoreInstance)
+
+               // ✅ RoutineStore 생성 시 routineAlarmStore 함께 전달
+               _routineStore = StateObject(
+                   wrappedValue: RoutineStore(
+                       context: container.mainContext,
+                       routineAlarmStore: routineAlarmStoreInstance
+                   )
+               )
         NotificationManager.shared.requestPermission()
+
     }
 
     var body: some Scene {

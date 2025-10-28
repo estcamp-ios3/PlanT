@@ -158,7 +158,9 @@ private func makeMypageMainPreview() -> some View {
     try? context.save()
 
     // 같은 context로 RoutineStore 생성
-    let routineStore = RoutineStore(context: context)
+    let routineAlarmStore = RoutineAlarmStore(context: context)
+
+    let routineStore = RoutineStore(context: context, routineAlarmStore: routineAlarmStore)
 
     // 최종 뷰 반환
     return NavigationStack {
