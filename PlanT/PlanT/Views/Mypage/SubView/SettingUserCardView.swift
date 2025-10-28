@@ -101,7 +101,17 @@ struct SettingUserCardView: View {
                     .foregroundColor(.gray100)
             }
             .plantPrimaryButton()
-            .padding(.leading, UIScreen.main.bounds.width <= 375 ? 244 : 286)
+            .padding(.leading, { // 해상도별 '수정' 버튼 분기처리
+                let width = UIScreen.main.bounds.width
+                switch width {
+                case ..<376:       // iPhone SE / mini (375 이하)
+                    return 240
+                case 376..<414:    // 일반 (기본형 모델 390~402)
+                    return 270
+                default:           // 대형 (플러스, 맥스 모델 414~430 이상)
+                    return 300
+                }
+            }())
             .padding(.trailing, vertical4)
             .padding(.top, vertical4)
         }
