@@ -122,7 +122,7 @@ struct SignUpView: View {
             message: $errorMessage,
             style: .error,
             alignment: .bottom,
-            bottomPadding: vertical5
+            bottomPadding: -vertical3
         )
     }
 
