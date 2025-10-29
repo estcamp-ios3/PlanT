@@ -30,7 +30,7 @@ final class AlanAIService {
     private var didPrewarm = false
 
     private init() {
-        let clientId = "89a3432c-e591-4751-9b97-2d4fc2d9fa6a"
+        let clientId = "34a0ba9f-c677-4406-815a-47b88e791679"
         let client = AlanAI(clientID: clientId)
         self.clientBox = AlanClientBox(client: client)
 
