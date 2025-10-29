@@ -11,22 +11,25 @@ struct LoginView: View {
     @EnvironmentObject var authStore: AuthStore
     @StateObject private var viewModel: LoginViewModel
     @State private var isPresentingSignUp = false
-
+    
     @State private var keyboardHeight: CGFloat = 0
     @State private var isKeyboardVisible: Bool = false
-
+    
+    // ✅ 토스트 표시 제어
+    @State private var showToast: Bool = false
+    
     private enum Field: Hashable { case id, pw }
     @FocusState private var focus: Field?
-
+    
     // ✅ 더미 계정 정보
     private let dummyEmail = "test@plant.com"
     private let dummyPassword = "Test123!"
-
+    
     // ✅ 초기화 (authStore를 ViewModel에 전달)
     init(authStore: AuthStore) {
         _viewModel = StateObject(wrappedValue: LoginViewModel(authStore: authStore))
     }
-
+    
     var body: some View {
         VStack(spacing: 0) {
             Image("PlanTLogo")
@@ -34,18 +37,18 @@ struct LoginView: View {
                 .scaledToFit()
                 .frame(width: 400, height: 500)
                 .padding(.top, 50)
-
+            
             VStack(spacing: 0) {
                 TextField("E-mail", text: $viewModel.email)
                     .authTextFieldStyle(.signIn)
                     .focusRoute($focus, equals: .id, submit: .next, next: .pw)
                     .padding(.bottom, vertical3)
-
+                
                 SecureField("Password", text: $viewModel.password)
                     .authTextFieldStyle(.signIn)
                     .focusRoute($focus, equals: .pw, submit: .go, next: nil)
                     .padding(.bottom, vertical4)
-
+                
                 Button {
                     Task { await viewModel.signIn() }
                 } label: {
@@ -58,7 +61,7 @@ struct LoginView: View {
                 .plantPrimaryButton()
                 .disabled(viewModel.isLoading)
                 .padding(.bottom, vertical5)
-
+                
                 Button("Sign Up") { isPresentingSignUp = true }
                     .padding(.bottom, 50)
                     .foregroundColor(.black)
@@ -66,29 +69,49 @@ struct LoginView: View {
                         SignUpView()
                             .environmentObject(authStore)
                     }
-
-                // ✅ 에러 표시
+                
+                // ✅ 에러 메시지
                 if let error = viewModel.errorMessage {
                     Text(error)
                         .font(.footnote)
                         .foregroundColor(.red)
+                        .opacity(0)
                 }
             }
             .padding(.horizontal, vertical6)
             .padding(.bottom, isPresentingSignUp ? 0 : keyboardHeight)
         }
         .ignoresSafeArea(.keyboard, edges: .bottom)
+        .authToast(
+            isPresented: $showToast,
+            message: $viewModel.errorMessage,
+            style: .error,
+            alignment: .bottom,
+            bottomPadding: vertical5
+        )
+        
         .onAppear {
             observeKeyboard()
             Task { await viewModel.restoreSession() }
-
             // ✅ 더미 계정 자동 입력
             viewModel.email = dummyEmail
             viewModel.password = dummyPassword
         }
         .onDisappear { removeKeyboardObserver() }
+        
+        // ✅ 에러 메시지 토스트
+        .onChange(of: viewModel.errorMessage) { _, newValue in
+            guard let newValue, !newValue.isEmpty else {
+                withAnimation { showToast = false }
+                return
+            }
+            withAnimation { showToast = true }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.2) {
+                withAnimation { showToast = false }
+            }
+        }
     }
-
+    
     // MARK: - Keyboard 옵저버(간단)
     private func observeKeyboard() {
         NotificationCenter.default.addObserver(
@@ -101,7 +124,7 @@ struct LoginView: View {
                 isKeyboardVisible = true
             }
         }
-
+        
         NotificationCenter.default.addObserver(
             forName: UIResponder.keyboardWillHideNotification,
             object: nil, queue: .main
@@ -112,7 +135,7 @@ struct LoginView: View {
             }
         }
     }
-
+    
     private func removeKeyboardObserver() {
         NotificationCenter.default.removeObserver(self)
     }

@@ -23,20 +23,26 @@ final class LoginViewModel: ObservableObject {
     }
 
     // ✅ 로그인 처리 로직
+    @MainActor
     func signIn() async {
-        isLoading = true
         errorMessage = nil
+        isLoading = true
+        defer { isLoading = false }
+
         do {
             try await authStore.signIn(email: email, password: password)
-            print("✅ 로그인 성공:", email)
         } catch {
-            errorMessage = "로그인 실패: \(error.localizedDescription)"
-            print("❌ \(error)")
+            let raw = error.localizedDescription.lowercased()
+            if raw.contains("invalid login credentials") {
+                errorMessage = "이메일 또는 비밀번호가 올바르지 않습니다."
+            } else {
+                errorMessage = "로그인에 실패했습니다. 잠시 후 다시 시도해 주세요."
+            }
         }
-        isLoading = false
     }
 
     // ✅ 세션 복원
+    @MainActor
     func restoreSession() async {
         await authStore.restoreSession()
     }
