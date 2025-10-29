@@ -13,19 +13,18 @@ public enum AuthToastStyle {
     case success
     case info
 
-    var backgroundColor: Color {
+    var mainColor: Color {
         switch self {
-        case .error:   return Color.red.opacity(0.92)
-        case .success: return Color.green.opacity(0.92)
-        case .info:    return Color.gray.opacity(0.92)
+        case .error:   return Color.red
+        case .success: return Color.green
+        case .info:    return Color.gray
         }
     }
 
-    var iconName: String {
+    var backgroundColor: Color {
         switch self {
-        case .error:   return "exclamationmark.triangle.fill"
-        case .success: return "checkmark.circle.fill"
-        case .info:    return "info.circle.fill"
+        case .error, .success, .info:
+            return Color.white
         }
     }
 }
@@ -42,12 +41,9 @@ public struct AuthToastBanner: View {
 
     public var body: some View {
         HStack(spacing: vertical2) {
-            Image(systemName: style.iconName)
-                .font(.system(size: vertical4, weight: .bold))
-                .foregroundColor(.white)
             Text(text)
                 .font(.system(size: vertical4, weight: .semibold))
-                .foregroundColor(.white)
+                .foregroundColor(style.mainColor)
                 .multilineTextAlignment(.leading)
         }
         .padding(.vertical, vertical3)
@@ -55,7 +51,11 @@ public struct AuthToastBanner: View {
         .background(
             Capsule(style: .continuous)
                 .fill(style.backgroundColor)
-                .shadow(color: .black.opacity(0.15), radius: vertical2, y: vertical1)
+                .overlay(
+                    Capsule(style: .continuous)
+                        .stroke(style.mainColor, lineWidth: 1.5) // 아웃라인
+                )
+                .shadow(color: .black.opacity(0.08), radius: vertical2, y: vertical1)
         )
         .padding(.horizontal, vertical4)
     }
