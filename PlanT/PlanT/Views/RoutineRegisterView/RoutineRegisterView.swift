@@ -209,6 +209,8 @@ extension RoutineRegisterView {
                     selectedAlarms = Set(savedOffsets)
                     startDate = routine.startDate ?? Date()
                     endDate = routine.endDate ?? Date()
+                    isAllDay = routine.isAllDay   
+
             routineTitle = routine.title
             if selectedCategory == "선택하세요" {
                 selectedCategory = "알 수 없는 카테고리"
@@ -786,7 +788,10 @@ extension RoutineRegisterView {
                     modifiedAt: Date(),
                     startDate: startDate,
                     endDate: endDate,
-                    sourceType: .create              
+                    sourceType: .create,
+                    isAllDay: isAllDay
+
+                    
 
                 )
             print("🟢 [DEBUG] Routine 생성됨:")

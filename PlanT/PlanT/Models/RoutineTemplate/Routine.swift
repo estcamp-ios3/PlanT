@@ -15,6 +15,7 @@ enum AlarmCycle: String, Codable {
 }
 var seedName: String?
 var seedPrefix: String?
+
 // MARK: - 루틴 모델
 // 개별 루틴 하나를 표현하는 데이터
 
@@ -37,7 +38,8 @@ final class Routine {
     var startDate: Date?
     var endDate: Date?
     var goalsJSON: String?
-    var sourceType: RoutineSourceType   // ✅ 여기서는 기본값 제거
+    var sourceType: RoutineSourceType
+    var isAllDay: Bool
 
     init(
         id: UUID = UUID(),
@@ -56,7 +58,9 @@ final class Routine {
         modifiedAt: Date = Date(),
         startDate: Date? = nil,
         endDate: Date? = nil,
-        sourceType: RoutineSourceType = .create  // ✅ 기본값은 여기서 지정
+        sourceType: RoutineSourceType = .create,
+        isAllDay: Bool = false
+
     ) {
         self.id = id
         self.title = title
@@ -74,7 +78,9 @@ final class Routine {
         self.modifiedAt = modifiedAt
         self.startDate = startDate
         self.endDate = endDate
-        self.sourceType = sourceType   // ✅ 여기서 안전하게 초기화됨
+        self.sourceType = sourceType   
+        self.isAllDay = isAllDay
+
     }
 }
 

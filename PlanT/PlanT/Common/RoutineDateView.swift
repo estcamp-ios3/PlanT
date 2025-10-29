@@ -45,7 +45,7 @@ struct RoutineDateView: View {
                     // 3) 체크 옵션들
                     HStack(spacing: 16) {
                         CheckLabelView(isChecked: $hasEnd, label: "종료일")
-                        CheckLabelView(isChecked: $isAllDay, label: "하루종일")
+//                        CheckLabelView(isChecked: $isAllDay, label: "하루종일")
                     }
                     .padding(.top, 2)
                     
