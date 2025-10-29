@@ -41,23 +41,23 @@ public struct AuthToastBanner: View {
     }
 
     public var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: vertical2) {
             Image(systemName: style.iconName)
-                .font(.system(size: 14, weight: .bold))
+                .font(.system(size: vertical4, weight: .bold))
                 .foregroundColor(.white)
             Text(text)
-                .font(.system(size: 14, weight: .semibold))
+                .font(.system(size: vertical4, weight: .semibold))
                 .foregroundColor(.white)
                 .multilineTextAlignment(.leading)
         }
-        .padding(.vertical, 10)
-        .padding(.horizontal, 14)
+        .padding(.vertical, vertical3)
+        .padding(.horizontal, vertical4)
         .background(
             Capsule(style: .continuous)
                 .fill(style.backgroundColor)
-                .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
+                .shadow(color: .black.opacity(0.15), radius: vertical2, y: vertical1)
         )
-        .padding(.horizontal, 16)
+        .padding(.horizontal, vertical4)
     }
 }
 
@@ -89,7 +89,7 @@ public extension View {
         message: Binding<String?>,
         style: AuthToastStyle = .error,
         alignment: Alignment = .bottom,
-        bottomPadding: CGFloat = 20
+        bottomPadding: CGFloat = 20 // 여긴 왜때문에 디자인 토큰 적용이 안돼지
     ) -> some View {
         modifier(AuthToastOverlay(
             isPresented: isPresented,
