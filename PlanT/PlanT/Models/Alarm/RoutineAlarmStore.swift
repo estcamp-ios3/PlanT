@@ -35,22 +35,32 @@ final class RoutineAlarmStore: ObservableObject {
 
     // MARK: - 특정 루틴의 알람 오프셋 저장
     func saveOffsets(for routineId: UUID, offsets: [Int]) {
-        // 1️⃣ 기존 알람 삭제 (중복 방지)
-        deleteOffsets(for: routineId)
+        print("💾 [saveOffsets] 호출됨: routineId=\(routineId), offsets=\(offsets)")
 
-        // 2️⃣ 새로운 알람 저장
-        for offset in offsets {
-            let alarm = RoutineAlarm(routineId: routineId, offset: offset)
-            context.insert(alarm)
-        }
-
+        // 기존 알림 삭제
+        let descriptor = FetchDescriptor<RoutineAlarm>(
+            predicate: #Predicate { $0.routineId == routineId }
+        )
         do {
+            let existing = try context.fetch(descriptor)
+            for alarm in existing {
+                context.delete(alarm)
+            }
+            print("🧹 [saveOffsets] 기존 알림 \(existing.count)개 삭제 완료")
+
+            // 새 알림 저장
+            for offset in offsets {
+                let newAlarm = RoutineAlarm(routineId: routineId, offset: offset)
+                context.insert(newAlarm)
+            }
             try context.save()
-            print("✅ [RoutineAlarmStore] 오프셋 저장 완료 → \(offsets)")
+            print("✅ [saveOffsets] \(offsets.count)개 저장 완료")
+
         } catch {
-            print("❌ RoutineAlarm 저장 실패:", error)
+            print("❌ [saveOffsets] 저장 실패: \(error)")
         }
     }
+
 
     // MARK: - 특정 루틴의 알람 오프셋 삭제
     func deleteOffsets(for routineId: UUID) {

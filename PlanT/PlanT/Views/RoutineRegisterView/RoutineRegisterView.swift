@@ -174,6 +174,16 @@ extension RoutineRegisterView {
             selectedCategory = "카테고리 선택 ⌵"
             useDate = true
             selectedAlarms = [15]
+            
+            // ✅ 추가: 설문에서 전달된 draft의 날짜가 있다면 반영
+                if let start = draft.startDate {
+                    startDate = start
+                    print("🗓️ [setupMode] draft.startDate 반영됨 → \(start)")
+                }
+                if let end = draft.endDate {
+                    endDate = end
+                    print("🗓️ [setupMode] draft.endDate 반영됨 → \(end)")
+                }
         case .details(let routine),
                 .edit(let routine):
             // 기존 루틴 정보 반영
@@ -192,6 +202,8 @@ extension RoutineRegisterView {
             }
             goalDays = routine.frequencyPerWeekId.replacingOccurrences(of: "x", with: "")
             goalTask = routine.duration.replacingOccurrences(of: "일", with: "")
+            print("🗓️ [setupMode] 기존 루틴 날짜 반영됨 → start:\(String(describing: routine.startDate)), end:\(String(describing: routine.endDate))")
+
             startDate = routine.startDate ?? Date()
             endDate = routine.endDate ?? Date()
         }
