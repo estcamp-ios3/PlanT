@@ -373,9 +373,9 @@ extension RoutineRegisterView {
                     Button {
                         // 목표 추가기능(추후 구현가능)
                     } label: {
-                        Image(systemName: "plus")
-                            .font(.system(size: 18, weight: .bold))
-                            .foregroundColor(.black)
+//                        Image(systemName: "plus")
+//                            .font(.system(size: 18, weight: .bold))
+//                            .foregroundColor(.black)
                     }
                 }
             }
@@ -449,37 +449,37 @@ extension RoutineRegisterView {
 
                         Spacer()
                     }
-                    HStack {
-                        Text("총 실행 기간")
-                            .font(.subheadline)
-                            .frame(width: 100, alignment: .leading)
+//                    HStack {
+//                        Text("총 실행 기간")
+//                            .font(.subheadline)
+//                            .frame(width: 100, alignment: .leading)
                             .themedTextColor()
 
-                        TextField("21", text: $goalTask)
-                            .keyboardType(.numberPad)
-                            .frame(width: 50)
-                            .multilineTextAlignment(.trailing)
-                            .textFieldStyle(.roundedBorder)
-                            .themedTextColor()
-                            .onChange(of: goalTask) { oldValue, newValue in
-                                 if newValue.rangeOfCharacter(from: CharacterSet.decimalDigits.inverted) != nil {
-                                     goalTask = oldValue
-                                     alertMessage = "숫자만 입력할 수 있습니다."
-                                     showGoalLimitAlert = true
-                                     return
-                                 }
-                                 if let value = Int(newValue), value > 365 {
-                                     goalTask = "365"
-                                     alertMessage = "총 실행 기간은 최대 365일까지 입력할 수 있습니다."
-                                     showGoalLimitAlert = true
-                                 }
-                             }
-                        Text("일 동안")
-                            .font(.subheadline)
-                            .themedTextColor()
+//                        TextField("21", text: $goalTask)
+//                            .keyboardType(.numberPad)
+//                            .frame(width: 50)
+//                            .multilineTextAlignment(.trailing)
+//                            .textFieldStyle(.roundedBorder)
+//                            .themedTextColor()
+//                            .onChange(of: goalTask) { oldValue, newValue in
+//                                 if newValue.rangeOfCharacter(from: CharacterSet.decimalDigits.inverted) != nil {
+//                                     goalTask = oldValue
+//                                     alertMessage = "숫자만 입력할 수 있습니다."
+//                                     showGoalLimitAlert = true
+//                                     return
+//                                 }
+//                                 if let value = Int(newValue), value > 365 {
+//                                     goalTask = "365"
+//                                     alertMessage = "총 실행 기간은 최대 365일까지 입력할 수 있습니다."
+//                                     showGoalLimitAlert = true
+//                                 }
+//                             }
+//                        Text("일 동안")
+//                            .font(.subheadline)
+//                            .themedTextColor()
 
-                        Spacer()
-                    }
+//                        Spacer()
+//                    }
                 }
                 .padding(12)
                 .background(Color("BrandSecondary"))
@@ -763,14 +763,19 @@ extension RoutineRegisterView {
     private func saveRoutine() async {
         switch currentMode {
         case .create:
-            print("🟢 [DEBUG] 루틴 생성 시작")
+            let calendar = Calendar.current
+                let daysDiff = calendar.dateComponents([.day], from: startDate, to: endDate).day ?? 0
+                let totalDays = max(daysDiff, 1) // 최소 1일 보장
+
+                print("📅 기간 계산됨: \(totalDays)일")
+            print(" [DEBUG] 루틴 생성 시작")
             print("startDate:", startDate)
             print("endDate:", endDate)
             let newRoutine = Routine(
                     title: routineTitle,
                     categoryId: selectedCategoryId,
                     seedName: "seed_Apple01",
-                    duration: "\(goalTask)일",
+                    duration: "\(totalDays)일",
                     goal: "\(goalHours)분/일",
                     alarm: .every24Hours,
                     frequencyPerWeekId: "x\(goalDays)",
