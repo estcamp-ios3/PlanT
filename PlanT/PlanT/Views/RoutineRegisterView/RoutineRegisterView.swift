@@ -113,7 +113,6 @@ struct RoutineRegisterView: View {
                     
                     GeometryReader { geo in
                         alarmSection(width: geo.size.width)
-                        alarmSection(width: geo.size.width)
                     }
                     .frame(height: 130)
                     Divider()
@@ -661,6 +660,7 @@ extension RoutineRegisterView {
         VStack {
             // 신규등록 모드: "다음" 버튼
             if case .create = currentMode {
+                
                 Button(action: {
                     Task {
                         await saveRoutine()
@@ -730,6 +730,7 @@ extension RoutineRegisterView {
     }
 
     // 루틴 생성/수정 로직
+    
     private func saveRoutine() async {
         switch currentMode {
         case .create:
