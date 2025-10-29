@@ -201,7 +201,6 @@ extension RoutineRegisterView {
             }
             goalDays = routine.frequencyPerWeekId.replacingOccurrences(of: "x", with: "")
             goalTask = routine.duration.replacingOccurrences(of: "일", with: "")
-            print("🗓️ [setupMode] 기존 루틴 날짜 반영됨 → start:\(String(describing: routine.startDate)), end:\(String(describing: routine.endDate))")
 
             startDate = routine.startDate ?? Date()
             endDate = routine.endDate ?? Date()

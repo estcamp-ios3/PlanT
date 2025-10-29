@@ -178,7 +178,6 @@ private extension SeedStatusView {
             
             Button("루틴 등록하기") {
                 addRoutine(for: seed)
-                print(" [AddButton] 다음 버튼 눌림")
 
             }
             .plantPrimaryButton()
@@ -194,16 +193,23 @@ private extension SeedStatusView {
         Task {
                 let durationText: String
                 let totalDays: Int
-                
+            var startDate = Date()
+            var endDate = Date()
+
             switch draft.sourceType {
             case .template:
-                // ✅ 템플릿 기반: draft.totalDays 우선 사용
+                
+                //  템플릿 기반: draft.totalDays 우선 사용
                 let days = draft.totalDays ?? draft.durationTitle.extractDays()
                 totalDays = days
                 durationText = "\(days)일"
                 
+                //  템플릿에서만 날짜 자동 계산
+                        startDate = Date()
+                        endDate = Calendar.current.date(byAdding: .day, value: days, to: startDate)!
+                        print(" [템플릿기반] 자동 계산된 날짜 → 시작: \(startDate), 종료: \(endDate)")
             case .survey:
-                // ✅ 설문 기반: 날짜 계산
+                //  설문 기반: 날짜 계산
                 let start = draft.startDate ?? Date()
                 let end = draft.endDate ?? Date()
                 let days = Calendar.current.dateComponents([.day], from: start, to: end).day ?? 0
@@ -229,20 +235,9 @@ private extension SeedStatusView {
                     modifiedAt: Date()
                 )
             
-            print("""
-            ✅ [1단계] 루틴 객체 생성 완료
-            ────────────────
-            • ID: \(routine.id)
-            • TITLE: \(routine.title)
-            • CATEGORY: \(routine.categoryId)
-            • GOAL: \(routine.goal)
-            • DURATION: \(routine.duration)
-            • ALARM: \(routine.alarm)
-            ────────────────
-            """)
+      
 
-            // 2️⃣ Store에 추가 (SwiftData + Supabase)
-            print("🟡 [2단계] store.addRoutine 호출 시작")
+            //  Store에 추가 (SwiftData + Supabase)
             let created = store.addRoutine(
                 from: seed,
                 basedOn: routine,
@@ -250,19 +245,15 @@ private extension SeedStatusView {
                 draft: draft,
                 reminderOffsets: draft.reminderOffsets
             )
-            print("✅ [2단계] store.addRoutine 호출 완료")
 
-            // ✅ 2.5️⃣ 각 루틴의 알림 프리셋 저장
+            //  2. 각 루틴의 알림 프리셋 저장
             routineAlarmStore.saveOffsets(
                 for: created.id,
                 offsets: Array(draft.reminderOffsets).sorted()
             )
-            print("✅ [2.5단계] RoutineAlarmStore에 알림 오프셋 저장 완료")
 
-            // 3️⃣ 로컬 알림 등록 확인
-            print("🟡 [3단계] 알림 등록 시도")
+            //  로컬 알림 등록 확인
             NotificationManager.shared.scheduleTomorrow9AMNotification(for: routine)
-            print("✅ [3단계-1] 내일 오전 9시 알림 예약 완료")
 
             NotificationManager.shared.scheduleNotification(
                 for: routine.id,
@@ -270,18 +261,15 @@ private extension SeedStatusView {
                 baseDate: draft.startDate ?? Date(),
                 offsets: Array(draft.reminderOffsets)
             )
-            print("✅ [3단계-2] 커스텀 오프셋 알림 예약 완료 → \(draft.reminderOffsets)")
 
-            // 4️⃣ 대기(로딩 스크린 표시용)
-            print("⏳ [4단계] 저장 대기 중 (5초)")
+            //  대기(로딩 스크린 표시용)
             try? await Task.sleep(nanoseconds: 5_000_000_000)
 
-            // 5️⃣ 완료 후 UI 갱신
+            //  완료 후 UI 갱신
             await MainActor.run {
                 isLoding = false
                 path = NavigationPath()
                 showAddAlarmSheet = false
-                print("🎉 [5단계] 루틴 등록 프로세스 완료 → SeedStatusView 닫힘 및 RoutineListView로 이동")
             }
         }
     }
