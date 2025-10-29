@@ -12,6 +12,7 @@ import Foundation
 enum RoutineSourceType: String, Codable {
     case survey      // 설문 기반 생성
     case template    // 템플릿 기반 생성
+    case create
 }
 
 // MARK: - 화면 전용 모델 (Codable 추가만 + 요일 타입 세이프)

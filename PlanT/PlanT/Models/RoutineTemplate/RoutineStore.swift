@@ -69,8 +69,8 @@ final class RoutineStore: ObservableObject {
             completedCount: 0,
             createdAt: Date(),
             modifiedAt: Date(),
-            startDate: draft.startDate ?? Date(),
-            endDate: draft.endDate ?? Date().addingTimeInterval(7 * 24 * 60 * 60)
+            startDate: draft.startDate ,
+            endDate: draft.endDate
         )
 
         if let start = draft.startDate {

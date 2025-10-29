@@ -27,6 +27,8 @@ struct RoutineRegisterView: View {
     // 화면 상태와 입력값을 저장하는 변수들
     @State private var routineTitle: String = ""             // 루틴 제목
     @StateObject private var viewModel = RoutineSurveyViewModel() // 카테고리 등 설문 데이터 관리
+    @State private var selectedCategoryId: String = ""
+
     @State private var selectedCategory = "선택하세요"         // 선택된 카테고리 이름
     @State private var useDate = true                        // 시작/종료일 사용 여부
     @State private var dateMode: DateMode = .endDate         // 날짜 입력 모드
@@ -128,6 +130,25 @@ struct RoutineRegisterView: View {
                 }
             }
             .onAppear {
+                print("🟢 [DEBUG] RoutineRegisterView onAppear 진입")
+
+                  // 데이터 로드
+                  store.loadRoutines()
+
+                  // 로드된 루틴 개수 확인
+                  print("📦 현재 저장된 루틴 개수:", store.routines.count)
+
+                  // 루틴이 실제로 잘 불러와졌는지 상세 출력
+                  for routine in store.routines {
+                      print("""
+                      ─────────────────────────────
+                      • Title: \(routine.title)
+                      • Category: \(routine.categoryId)
+                      • Start: \(routine.startDate ?? Date())
+                      • End:   \(routine.endDate ?? Date())
+                      • SourceType: \(routine.sourceType)
+                      """)
+                  }
                 store.loadRoutines()
                 DispatchQueue.main.async {
                     setupMode()
@@ -170,18 +191,16 @@ extension RoutineRegisterView {
     private func setupMode() {
         switch currentMode {
         case .create:
-            selectedCategory = "카테고리 선택 ⌵"
+            selectedCategory = "카테고리 선택 "
             useDate = true
             selectedAlarms = [15]
             
             // ✅ 추가: 설문에서 전달된 draft의 날짜가 있다면 반영
                 if let start = draft.startDate {
                     startDate = start
-                    print("🗓️ [setupMode] draft.startDate 반영됨 → \(start)")
                 }
                 if let end = draft.endDate {
                     endDate = end
-                    print("🗓️ [setupMode] draft.endDate 반영됨 → \(end)")
                 }
         case .details(let routine),
                 .edit(let routine):
@@ -212,22 +231,30 @@ extension RoutineRegisterView {
 extension RoutineRegisterView {
     private var draft: RoutineDraft {
         RoutineDraft(
-            categoryId: selectedCategory,
+            categoryId: selectedCategoryId,
             categoryTitle: selectedCategory,
             routineTypeId: routineTitle,
             routineTypeTitle: routineTitle,
             frequencyPerWeekId: "\(goalDays)x",
             frequencyPerWeekTitle: "주 \(goalDays)회",
             durationId: "\(goalDays)min",
-            durationTitle: "\(goalDays)일", // 기간
+            durationTitle: "\(goalDays)일",
             periodIsNoLimit: !useDate,
+            startDate: startDate,
+            endDate: endDate,
             reminderOn: !selectedAlarms.isEmpty,
             goal: "\(goalHours)분/일",
-            isFavorite:  false,
+            notes: nil,
+            iconName: nil,
+            isFavorite: false,
+            reminderOffsets: selectedAlarms,
             totalDays: Int(goalTask) ?? 0,
-            routinePeriodDays: Int(goalTask) ?? 0
+            routinePeriodDays: Int(goalTask) ?? 0,
+            sourceType: .create
         )
     }
+
+
 }
 
 // MARK: - 카테고리/제목 입력 뷰
@@ -250,11 +277,15 @@ extension RoutineRegisterView {
                 default:
                     // 신규등록 모드에서는 카테고리 드롭다운 메뉴
                     Menu {
-                        ForEach(viewModel.categoryTitles, id: \.self) { title in
-                            Button {
-                                selectedCategory = title
-                            } label: {
-                                Text(title)
+                        // ✅ 뷰모델의 카테고리 단계에서 직접 옵션 가져오기
+                        if let categoryStep = viewModel.steps.first(where: { $0.id == "category" }) {
+                            ForEach(categoryStep.options, id: \.id) { option in
+                                Button {
+                                    selectedCategoryId = option.id           // category01, category02 ...
+                                    selectedCategory = option.title          // "지적/성장", "전문 역량" ...
+                                } label: {
+                                    Text(option.title)
+                                }
                             }
                         }
                     } label: {
@@ -262,10 +293,8 @@ extension RoutineRegisterView {
                             Text(selectedCategory)
                                 .fontWeight(selectedCategory == "선택하세요" ? .regular : .bold)
                                 .foregroundColor(selectedCategory == "선택하세요" ? .gray : .black)
-                            if selectedCategory == "선택하세요" {
-                                Image(systemName: "chevron.down")
-                                    .foregroundColor(.gray)
-                            }
+                            Image(systemName: "chevron.down")
+                                .foregroundColor(.gray)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.vertical, 12)
@@ -273,6 +302,8 @@ extension RoutineRegisterView {
                         .background(Color("F2F0CE"))
                         .cornerRadius(30)
                     }
+
+
                 }
             }
             if case .details = currentMode {
@@ -662,10 +693,9 @@ extension RoutineRegisterView {
                 
                 Button(action: {
                     Task {
-                        await saveRoutine()
-                        await MainActor.run {
+                       
                             goToseedStatus = true
-                        }
+                        
                     }
                 }) {
                     Text("다음")
@@ -738,7 +768,7 @@ extension RoutineRegisterView {
             print("endDate:", endDate)
             let newRoutine = Routine(
                     title: routineTitle,
-                    categoryId: selectedCategory,
+                    categoryId: selectedCategoryId,
                     seedName: "seed_Apple01",
                     duration: "\(goalTask)일",
                     goal: "\(goalHours)분/일",
@@ -750,7 +780,9 @@ extension RoutineRegisterView {
                     createdAt: Date(),
                     modifiedAt: Date(),
                     startDate: startDate,
-                    endDate: endDate
+                    endDate: endDate,
+                    sourceType: .create              
+
                 )
             print("🟢 [DEBUG] Routine 생성됨:")
              print("""

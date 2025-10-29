@@ -205,9 +205,9 @@ private extension SeedStatusView {
                 durationText = "\(days)일"
                 
                 //  템플릿에서만 날짜 자동 계산
-                        startDate = Date()
-                        endDate = Calendar.current.date(byAdding: .day, value: days, to: startDate)!
-                        print(" [템플릿기반] 자동 계산된 날짜 → 시작: \(startDate), 종료: \(endDate)")
+                startDate = Date()
+                endDate = Calendar.current.date(byAdding: .day, value: days, to: startDate)!
+                print(" [템플릿기반] 자동 계산된 날짜 → 시작: \(startDate), 종료: \(endDate)")
             case .survey:
                 //  설문 기반: 날짜 계산
                 let start = draft.startDate ?? Date()
@@ -215,8 +215,38 @@ private extension SeedStatusView {
                 let days = Calendar.current.dateComponents([.day], from: start, to: end).day ?? 0
                 totalDays = max(days, 1)
                 durationText = "\(totalDays)일"
+            case .create:
+                print("🟢 [DEBUG] create 진입 완료")
+                
+                // 직접 등록 기반 루틴 → 사용자가 입력한 날짜 그대로 사용
+                // 1️⃣ nil 방지: draft에 값이 없다면 기본값(startDate/endDate) 사용
+                let start = draft.startDate ?? Calendar.current.startOfDay(for: Date())
+                var end: Date
+                
+                // 2️⃣ 종료일이 비어있을 경우 totalDays를 기준으로 자동 계산
+                if let draftEnd = draft.endDate {
+                    end = draftEnd
+                } else if let totalDays = draft.totalDays {
+                    end = Calendar.current.date(byAdding: .day, value: totalDays, to: start)!
+                } else {
+                    // totalDays도 없는 경우 기본 +1일
+                    end = Calendar.current.date(byAdding: .day, value: 1, to: start)!
+                }
+                
+                // 3️⃣ 날짜 차이 계산 (시분초 제거)
+                let normalizedStart = Calendar.current.startOfDay(for: start)
+                let normalizedEnd = Calendar.current.startOfDay(for: end)
+                let days = Calendar.current.dateComponents([.day], from: normalizedStart, to: normalizedEnd).day ?? 1
+                
+                totalDays = max(days, 1)
+                durationText = "\(totalDays)일"
+                
+                startDate = normalizedStart
+                endDate = normalizedEnd
+                
+                print(" [직접등록] 사용자 입력 날짜 → 시작: \(startDate), 종료: \(endDate), 총 \(totalDays)일")
+                
             }
-
         
             
                 //  루틴 생성

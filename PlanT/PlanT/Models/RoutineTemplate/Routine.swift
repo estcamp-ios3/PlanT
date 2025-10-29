@@ -17,64 +17,56 @@ var seedName: String?
 var seedPrefix: String?
 // MARK: - 루틴 모델
 // 개별 루틴 하나를 표현하는 데이터
+
 @Model
 final class Routine {
     var id = UUID()
     var title: String
-    
     var categoryId: String
     var seedName: String?
-    
     var duration: String
     var goal: String
     var alarm: AlarmCycle
-    
     var frequencyPerWeekId: String
     var frequencyPerWeekTitle: String
-    
     var note: String?
     var isCompleted: Bool = false
     var completedCount: Int = 0
     var createdAt: Date
     var modifiedAt: Date
-
     var startDate: Date?
     var endDate: Date?
     var goalsJSON: String?
-    
+    var sourceType: RoutineSourceType   // ✅ 여기서는 기본값 제거
+
     init(
         id: UUID = UUID(),
         title: String,
         categoryId: String,
-        
         seedName: String? = nil,
         duration: String,
         goal: String,
         alarm: AlarmCycle,
-        
         frequencyPerWeekId: String,
         frequencyPerWeekTitle: String,
-        
         note: String? = nil,
         isCompleted: Bool = false,
         completedCount: Int = 0,
         createdAt: Date = Date(),
         modifiedAt: Date = Date(),
         startDate: Date? = nil,
-        endDate: Date? = nil
-        
+        endDate: Date? = nil,
+        sourceType: RoutineSourceType = .create  // ✅ 기본값은 여기서 지정
     ) {
-        
         self.id = id
         self.title = title
+        self.categoryId = categoryId
+        self.seedName = seedName
         self.duration = duration
         self.goal = goal
         self.alarm = alarm
         self.frequencyPerWeekId = frequencyPerWeekId
         self.frequencyPerWeekTitle = frequencyPerWeekTitle
-
-        self.categoryId = categoryId
-        self.seedName = seedName
         self.note = note
         self.isCompleted = isCompleted
         self.completedCount = completedCount
@@ -82,8 +74,10 @@ final class Routine {
         self.modifiedAt = modifiedAt
         self.startDate = startDate
         self.endDate = endDate
+        self.sourceType = sourceType   // ✅ 여기서 안전하게 초기화됨
     }
 }
+
 
 struct RoutineDTO: Codable {
     var id: UUID
