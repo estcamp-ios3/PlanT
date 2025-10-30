@@ -254,7 +254,7 @@ final class AlanAIService {
 
         if text.isEmpty {
             if let m = minutes, let t = timesPerWeek, m > 0, t > 0 {
-                return "응답을 받지 아니하였다" //"\(title) 1회 \(m)분씩 \(t)회 루틴을 시작하시려는군요!\n함께 꾸준히 가볼까요?"
+                return "\(title) 1회 \(m)분씩 \(t)회 루틴을 시작하시려는군요!\n함께 꾸준히 가볼까요?" //"응답을 받지 아니하였다"
             }
         }
         return text
