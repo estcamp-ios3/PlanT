@@ -8,11 +8,26 @@
 import Foundation
 import SwiftData
 
+// MARK: - 알람 주기 Enum
+
 enum AlarmCycle: String, Codable {
     case every24Hours = "every24Hours"
     case every48Hours = "every48Hours"
     case off = "off"
+    
+    ///  사용자에게 표시할 한글 이름
+    var displayName: String {
+        switch self {
+        case .every24Hours:
+            return "매일 알림"
+        case .every48Hours:
+            return "이틀에 한 번 알림"
+        case .off:
+            return "알림 끔"
+        }
+    }
 }
+
 var seedName: String?
 var seedPrefix: String?
 

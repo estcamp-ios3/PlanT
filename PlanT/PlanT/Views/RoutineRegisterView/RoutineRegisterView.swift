@@ -325,9 +325,13 @@ extension RoutineRegisterView {
                             showTitleLimitAlert = true
                         }
                     }
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .cornerRadius(30)
-                    .themedTextColor()
+                    .padding(.vertical, 12)
+                      .padding(.horizontal, 16)
+                      .cornerRadius(30)
+                      .overlay(
+                          RoundedRectangle(cornerRadius: 30)
+                              .stroke(Color.gray.opacity(0.4), lineWidth: 1)
+                      )
                     .alert("루틴 제목은 15글자 이상은 사용할 수 없습니다.", isPresented: $showTitleLimitAlert) {
                         Button("확인", role: .cancel) { }
                     }
