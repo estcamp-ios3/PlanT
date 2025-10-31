@@ -8,7 +8,7 @@
 import Foundation
 import AlanAI
 
-// Alan 호출을 안전하게 감싸는 박스 액터
+// MARK: - Low-level AlanAI wrapper (actor에서만 보유)
 private actor AlanClientBox {
     private let client: AlanAI
     init(client: AlanAI) { self.client = client }
@@ -22,17 +22,67 @@ private actor AlanClientBox {
     }
 }
 
+// MARK: - 요청 코디네이터 (중복 호출 코얼레싱 + 캐시)
+private actor AskCoordinator {
+    struct CacheEntry {
+        let value: String
+        let expiry: Date
+    }
+
+    private var inflight: [String: Task<String, Never>] = [:]
+    private var cache: [String: CacheEntry] = [:]
+    private let ttl: TimeInterval
+
+    init(ttl: TimeInterval = 45) {
+        self.ttl = ttl
+    }
+
+    func cached(for key: String, now: Date = Date()) -> String? {
+        if let entry = cache[key], entry.expiry > now {
+            return entry.value
+        }
+        // 만료된 항목은 정리
+        cache[key] = nil
+        return nil
+    }
+
+    func storeCache(key: String, value: String, now: Date = Date()) {
+        guard !value.isEmpty else { return }
+        cache[key] = CacheEntry(value: value, expiry: now.addingTimeInterval(ttl))
+    }
+
+    /// 동일 key 요청이 동시에 들어오면 하나의 Task만 실행하고 결과를 공유
+    func getOrCreate(
+        key: String,
+        producer: @Sendable @escaping () async -> String
+    ) async -> String {
+        if let existing = inflight[key] {
+            return await existing.value
+        }
+        let t = Task<String, Never> {
+            let v = await producer()
+            return v
+        }
+        inflight[key] = t
+        let v = await t.value
+        inflight[key] = nil
+        return v
+    }
+}
+
 final class AlanAIService {
 
     static let shared = AlanAIService()
 
     private let clientBox: AlanClientBox
+    private let coordinator: AskCoordinator
     private var didPrewarm = false
 
     private init() {
         let clientId = "b6204cfb-b5b4-45e4-b572-1fd53e791cf7"
         let client = AlanAI(clientID: clientId)
         self.clientBox = AlanClientBox(client: client)
+        self.coordinator = AskCoordinator(ttl: 45) // ✅ 45초 캐시
 
         // 앱 시작 후 바로 웜업 시도 (실패 무시)
         Task { [weak self] in
@@ -50,10 +100,10 @@ final class AlanAIService {
         }
     }
 
-    // MARK: - Timeout wrapper (T는 Sendable이어야 함)
+    // MARK: - Timeout helper (T는 Sendable이어야 함)
     private func withTimeout<T: Sendable>(
         _ seconds: TimeInterval,
-        operation: @escaping @Sendable () async throws -> T
+        operation: @Sendable @escaping () async throws -> T
     ) async throws -> T {
         try await withThrowingTaskGroup(of: T.self) { group in
             group.addTask { try await operation() }
@@ -67,44 +117,60 @@ final class AlanAIService {
         }
     }
 
-    // MARK: - Low-level ask (타임아웃 + 1회 재시도)
-    func ask(question: String, timeout: TimeInterval = 8) async -> String {
-        let effectiveTimeout = max(timeout, question.count > 180 ? 10 : timeout)
+    // MARK: - Public ask (중복 방지 + 캐시 + 타임아웃 + 1회 재시도)
+    /// 동일 질문이 짧은 시간 내 반복되면 캐시/코얼레싱으로 빠르게 응답합니다.
+    func ask(question: String, timeout: TimeInterval = 10) async -> String {
+        // 1) 캐시 히트 시 즉시 반환
+        if let hit = await coordinator.cached(for: question) {
+            return hit
+        }
 
-        // 1차 시도
-        do {
-            let content: String = try await withTimeout(effectiveTimeout) { [clientBox] in
-                let res = try await clientBox.question(question)
-                return res?.content ?? ""
-            }
-            return content
-        } catch {
-            // 타임아웃/취소/기타 에러 처리
-            if let urlErr = error as? URLError, urlErr.code == .timedOut {
-                print("⏳ AlanAI timed out after \(effectiveTimeout)s (len=\(question.count))")
-            } else if error is CancellationError {
-                // ✅ 정상적인 내부 취소 케이스: 로그 남기지 않음
-                return ""
-            } else {
-                print("❌ AlanAI ask error:", error.localizedDescription)
-            }
+        // 2) 동일 질문 동시 요청은 하나만 네트워크 호출
+        let result = await coordinator.getOrCreate(key: question) { [weak self] in
+            guard let self else { return "" }
 
-            // 2차 재시도(짧게)
+            // 효과적 타임아웃: 긴 질문은 조금 더 여유
+            let effectiveTimeout = max(timeout, question.count > 180 ? 14 : timeout)
+
+            // 1차 시도
             do {
-                try await Task.sleep(nanoseconds: 400_000_000)
-                let content: String = try await withTimeout(min(6, effectiveTimeout)) { [clientBox] in
+                let content: String = try await self.withTimeout(effectiveTimeout) { [clientBox] in
                     let res = try await clientBox.question(question)
                     return res?.content ?? ""
                 }
+                await self.coordinator.storeCache(key: question, value: content)
                 return content
             } catch {
-                // 재시도도 실패 → 타임아웃만 소소하게 로깅
+                // 타임아웃/취소/기타 에러 핸들링
                 if let urlErr = error as? URLError, urlErr.code == .timedOut {
-                    print("⏳ AlanAI retry timed out (len=\(question.count))")
+                    print("⏳ AlanAI timed out after \(effectiveTimeout)s (len=\(question.count))")
+                } else if error is CancellationError {
+                    // 내부 취소는 조용히 무시
+                    return ""
+                } else {
+                    print("❌ AlanAI ask error:", error.localizedDescription)
                 }
-                return ""
+
+                // 3) 재시도 (백오프 + 약간 더 긴 타임아웃)
+                do {
+                    try await Task.sleep(nanoseconds: 600_000_000) // 0.6s 백오프
+                    let retryTimeout = min(effectiveTimeout + 4, 18) // 최대 18초
+                    let content: String = try await self.withTimeout(retryTimeout) { [clientBox] in
+                        let res = try await clientBox.question(question)
+                        return res?.content ?? ""
+                    }
+                    await self.coordinator.storeCache(key: question, value: content)
+                    return content
+                } catch {
+                    if let urlErr = error as? URLError, urlErr.code == .timedOut {
+                        print("⏳ AlanAI retry timed out (len=\(question.count))")
+                    }
+                    return ""
+                }
             }
         }
+
+        return result
     }
 
     /// 디버그용(타임아웃 없이 원본 결과/에러 로그)
@@ -128,7 +194,7 @@ final class AlanAIService {
         }
     }
 
-    // MARK: - 여러 루틴 고수준
+    // MARK: - 여러 루틴 고수준 (기존 로직 유지)
     struct RoutineEncItem: Codable {
         let id: UUID
         let title: String
@@ -136,7 +202,7 @@ final class AlanAIService {
         let done: Int
     }
 
-    /// 병렬 처리 + 타임아웃 + 즉시 fallback + 동시성 제한
+    /// 동시성 제한 유지(2개) + ask 내부에서 코얼레싱/캐시 처리됨
     func generateEncouragement(for items: [RoutineEncItem]) async -> [UUID: String] {
         guard !items.isEmpty else { return [:] }
         await prewarmIfNeeded()
@@ -150,17 +216,15 @@ final class AlanAIService {
             result[item.id] = "🎉 축하해요! 루틴을 완성했어요!"
         }
 
-        // 기본 문구를 먼저 넣어 사용자 체감 빠르게
+        // 기본 문구 즉시
         var needFetch: [RoutineEncItem] = []
         for item in pending {
             let remain = max(0, item.total - item.done)
-            result[item.id] = "응원하고 있어요!\n\(remain)회 남았어요!" // 즉시 폴백
+            result[item.id] = "응원하고 있어요!\n\(remain)회 남았어요!"
             needFetch.append(item)
         }
-
         guard !needFetch.isEmpty else { return result }
 
-        // ✅ 동시 호출 제한: 2개
         let maxConcurrent = 2
         var index = 0
         while index < needFetch.count {
@@ -175,7 +239,7 @@ final class AlanAIService {
                         }
                         let raw = await self.ask(
                             question: self.makePerRoutinePrompt(title: item.title, total: item.total, done: item.done),
-                            timeout: 8 // 살짝 늘림
+                            timeout: 10 // 기본 타임아웃 상향
                         )
                         let lines = Self.normalizeLines(from: raw)
                         let value: String
@@ -192,7 +256,6 @@ final class AlanAIService {
                     }
                 }
 
-                // 뒤늦게라도 결과 오면 덮어쓰기
                 for await (id, text) in group {
                     result[id] = text
                 }
@@ -200,11 +263,10 @@ final class AlanAIService {
 
             index += maxConcurrent
         }
-
         return result
     }
 
-    // MARK: - Mypage용 기존 프롬프트(유지)
+    // MARK: - 프롬프트 (변경 없음)
     private func makePerRoutinePrompt(title: String, total: Int, done: Int) -> String {
         return """
         아래 JSON 데이터를 참고해서 **자연스러운 한 줄 한국어 응원 메시지**를 만들어줘.
@@ -224,7 +286,6 @@ final class AlanAIService {
         """
     }
 
-    // MARK: - 새 루틴 토스트용 프롬프트(현행 유지)
     private func newRoutinePrompt(title: String, minutes: Int?, timesPerWeek: Int?) -> String {
         let mm = minutes ?? 0
         let tw = timesPerWeek ?? 0
@@ -248,19 +309,19 @@ final class AlanAIService {
         let timesPerWeek = Self.extractFirstInt(from: frequencyPerWeekTitle)
 
         let prompt = newRoutinePrompt(title: title, minutes: minutes, timesPerWeek: timesPerWeek)
-        let raw = await ask(question: prompt, timeout: 6)
+        let raw = await ask(question: prompt, timeout: 8) // 살짝 상향
         let lines = Self.normalizeLines(from: raw)
         let text = lines.prefix(2).joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
 
         if text.isEmpty {
             if let m = minutes, let t = timesPerWeek, m > 0, t > 0 {
-                return "\(title) 1회 \(m)분씩 \(t)회 루틴을 시작하시려는군요!\n함께 꾸준히 가볼까요?" //"응답을 받지 아니하였다"
+                return "\(title) 1회 \(m)분씩 \(t)회 루틴을 시작하시려는군요!\n함께 꾸준히 가볼까요?"
             }
         }
         return text
     }
 
-    // MARK: - 공통 유틸 (액터 격리 제거)
+    // MARK: - 공통 유틸
     nonisolated static func normalizeLines(from raw: String) -> [String] {
         raw
             .replacingOccurrences(of: "```json", with: "")
