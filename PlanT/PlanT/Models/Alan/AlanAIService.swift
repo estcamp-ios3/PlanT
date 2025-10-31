@@ -16,10 +16,6 @@ private actor AlanClientBox {
     func question(_ query: String) async throws -> AlanResponse? {
         try await client.question(query: query)
     }
-
-    func ping() async throws -> AlanResponse? {
-        try await client.question(query: "ping")
-    }
 }
 
 // MARK: - 요청 코디네이터 (중복 호출 코얼레싱 + 캐시)
@@ -38,10 +34,7 @@ private actor AskCoordinator {
     }
 
     func cached(for key: String, now: Date = Date()) -> String? {
-        if let entry = cache[key], entry.expiry > now {
-            return entry.value
-        }
-        // 만료된 항목은 정리
+        if let entry = cache[key], entry.expiry > now { return entry.value }
         cache[key] = nil
         return nil
     }
@@ -56,13 +49,8 @@ private actor AskCoordinator {
         key: String,
         producer: @Sendable @escaping () async -> String
     ) async -> String {
-        if let existing = inflight[key] {
-            return await existing.value
-        }
-        let t = Task<String, Never> {
-            let v = await producer()
-            return v
-        }
+        if let existing = inflight[key] { return await existing.value }
+        let t = Task<String, Never> { await producer() }
         inflight[key] = t
         let v = await t.value
         inflight[key] = nil
@@ -76,28 +64,13 @@ final class AlanAIService {
 
     private let clientBox: AlanClientBox
     private let coordinator: AskCoordinator
-    private var didPrewarm = false
 
     private init() {
         let clientId = "b6204cfb-b5b4-45e4-b572-1fd53e791cf7"
         let client = AlanAI(clientID: clientId)
         self.clientBox = AlanClientBox(client: client)
-        self.coordinator = AskCoordinator(ttl: 45) // ✅ 45초 캐시
-
-        // 앱 시작 후 바로 웜업 시도 (실패 무시)
-        Task { [weak self] in
-            await self?.prewarmIfNeeded()
-        }
-    }
-
-    // MARK: - Warmup (비차단, 실패 무시)
-    func prewarmIfNeeded() async {
-        guard !didPrewarm else { return }
-        didPrewarm = true
-        Task(priority: .background) { [clientBox] in
-            _ = try? await clientBox.ping()
-            print("✅ AlanAI prewarm attempted")
-        }
+        self.coordinator = AskCoordinator(ttl: 45)
+        // ✅ 웜업 호출 제거: 초기 ping 없음
     }
 
     // MARK: - Timeout helper (T는 Sendable이어야 함)
@@ -118,7 +91,6 @@ final class AlanAIService {
     }
 
     // MARK: - Public ask (중복 방지 + 캐시 + 타임아웃 + 1회 재시도)
-    /// 동일 질문이 짧은 시간 내 반복되면 캐시/코얼레싱으로 빠르게 응답합니다.
     func ask(question: String, timeout: TimeInterval = 10) async -> String {
         // 1) 캐시 히트 시 즉시 반환
         if let hit = await coordinator.cached(for: question) {
@@ -202,21 +174,17 @@ final class AlanAIService {
         let done: Int
     }
 
-    /// 동시성 제한 유지(2개) + ask 내부에서 코얼레싱/캐시 처리됨
     func generateEncouragement(for items: [RoutineEncItem]) async -> [UUID: String] {
         guard !items.isEmpty else { return [:] }
-        await prewarmIfNeeded()
 
         var result: [UUID: String] = [:]
         let pending = items.filter { !($0.total > 0 && $0.done >= $0.total) }
         let finished = items.filter { $0.total > 0 && $0.done >= $0.total }
 
-        // 완료 루틴 즉시
         for item in finished {
             result[item.id] = "🎉 축하해요! 루틴을 완성했어요!"
         }
 
-        // 기본 문구 즉시
         var needFetch: [RoutineEncItem] = []
         for item in pending {
             let remain = max(0, item.total - item.done)
@@ -239,7 +207,7 @@ final class AlanAIService {
                         }
                         let raw = await self.ask(
                             question: self.makePerRoutinePrompt(title: item.title, total: item.total, done: item.done),
-                            timeout: 10 // 기본 타임아웃 상향
+                            timeout: 10
                         )
                         let lines = Self.normalizeLines(from: raw)
                         let value: String
@@ -309,7 +277,7 @@ final class AlanAIService {
         let timesPerWeek = Self.extractFirstInt(from: frequencyPerWeekTitle)
 
         let prompt = newRoutinePrompt(title: title, minutes: minutes, timesPerWeek: timesPerWeek)
-        let raw = await ask(question: prompt, timeout: 8) // 살짝 상향
+        let raw = await ask(question: prompt, timeout: 8)
         let lines = Self.normalizeLines(from: raw)
         let text = lines.prefix(2).joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
 

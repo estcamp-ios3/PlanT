@@ -35,7 +35,6 @@ final class RoutineStore: ObservableObject {
 
         // 저장된 AI 코멘트 복원
         self.aiComments = AICommentPersistence.load()
-        Task { await ai.prewarmIfNeeded() }
     }
 
     // MARK: - Load/CRUD
