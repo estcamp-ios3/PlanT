@@ -15,17 +15,24 @@ final class AlarmSectionViewModel: ObservableObject {
     @Published var showAlarms: Bool = true
     @Published var isAddSheetPresented: Bool = false
     
+    @Published private(set) var customPresets: [Int] = []
+    private var cancellables: Set<AnyCancellable> = []
     var alarmStore: AlarmStore
     
     init(selectedAlarms: Set<Int> = [], alarmStore: AlarmStore) {
         self.selectedAlarms = selectedAlarms
         self.alarmStore = alarmStore
+        alarmStore.$alamPresets
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] newPresets in
+        self?.customPresets = newPresets
     }
-    
+            .store(in: &cancellables)
+}
     // MARK: - Computed Views
     var filteredPresets: [Int] {
         if isDeleteMode {
-            return alarmStore.alamPresets.sorted(by: <)
+            return customPresets.sorted(by: <)
         } else {
             let all = Set(alarmStore.defaultPresets + alarmStore.alamPresets)
             return all.sorted(by: <)
@@ -54,8 +61,10 @@ final class AlarmSectionViewModel: ObservableObject {
         }
     }
     func deletePresets(_ minute: Int) {
-        guard canDelete(minute: minute) else { return }
-        Task {
+        customPresets.removeAll { $0 == minute }
+        objectWillChange.send()
+        
+            Task {
             await alarmStore.deletePreset(minute)
         }
     }

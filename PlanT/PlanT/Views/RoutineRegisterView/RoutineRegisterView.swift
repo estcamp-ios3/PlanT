@@ -629,12 +629,15 @@ extension RoutineRegisterView {
             else if case .edit = currentMode {
                 HStack(spacing: 16) {
                     Button {
-                        showDeleteAlert = true
+                        if !alarmVM.isDeleteMode {
+                            showDeleteAlert = true
+                        }
                     } label: {
                         Text("삭제")
                             .frame(maxWidth: .infinity)
                     }
                     .plantSecondaryButton()
+                    .disabled(alarmVM.isDeleteMode)
                     .alert("루틴을 삭제합니다.",
                            isPresented: $showDeleteAlert) {
                         Button("삭제", role: .destructive) {
@@ -651,7 +654,7 @@ extension RoutineRegisterView {
                             .frame(maxWidth: .infinity)
                     }
                     .plantPrimaryButton()
-                    .disabled(!isFormValid)
+                    .disabled(alarmVM.isDeleteMode || !isFormValid)
                     .opacity(isFormValid ? 1.0 : 0.5)
                 }
                 .padding(.horizontal, 20)
