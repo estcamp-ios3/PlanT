@@ -15,7 +15,7 @@ struct PlanTApp: App {
     
     @StateObject private var authStore = AuthStore()
     @StateObject private var routineStore: RoutineStore
-    @StateObject private var alarmStore = AlarmStore()
+    @StateObject private var alarmStore = AlarmStore.shared
     @StateObject private var routineAlarmStore: RoutineAlarmStore
 
     let sharedModelContainer: ModelContainer

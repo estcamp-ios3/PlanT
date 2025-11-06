@@ -11,11 +11,15 @@ import Combine
 
 @MainActor
 final class AlarmStore: ObservableObject {
+    
+    
+    static let shared = AlarmStore()
+    
     @Published var alamPresets: [Int] = []
     @Published var defaultPresets: [Int] = [30, 20, 15, 10, 5]
     private let client = supabaseClient
     
-    init() {
+   private init() {
         Task {
             await fetchPresets()
         }
@@ -30,8 +34,8 @@ final class AlarmStore: ObservableObject {
             
             let custom = response.map { $0.minutes }
             
-            alamPresets = (defaultPresets + custom).sorted(by: >)
-            print(" 알림 프리셋 불러오기 성공:", alamPresets)
+            alamPresets = custom.sorted(by: >)
+            print("✅ 알림 프리셋 (커스텀만) 불러오기 성공:", alamPresets)
         } catch {
             print("X 알림 프리셋 불러오기 실패: \(error)")
         }

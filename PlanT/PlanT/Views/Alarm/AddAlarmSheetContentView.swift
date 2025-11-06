@@ -17,56 +17,77 @@ struct AddAlarmSheetContentView: View {
     @StateObject private var keyboard = KeyboardResponder()
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
+        ZStack(alignment: .topTrailing) {
+            VStack(alignment: .leading, spacing: 16) {
+                HStack {
+                    
+                    Text("알림 시간 직접 추가")
+                        .font(.headline)
+                    Spacer()
+                    
+                        .foregroundColor(.blue)
+                }
+                .padding(.leading, vertical3)
+                .padding(.top, vertical3)
                 
-                Text("알림 시간 직접 추가")
-                    .font(.headline)
-                Spacer()
-             
-                .foregroundColor(.blue)
-            }
-            
-            TextField("예: 25", text: $newAlarmInput)
-                .keyboardType(.numberPad)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .cornerRadius(30)
-                .onChange(of: newAlarmInput) { oldValue, newValue in
-                                //  숫자만 입력 가능하도록 필터링
-                                if !newValue.allSatisfy({ $0.isNumber }) && !newValue.isEmpty {
-                                    newAlarmInput = oldValue
-                                    showInvalidAlert = true
-                                    return
-                                }
-                                
-                                //  숫자 범위 제한 (480분)
-                                if let value = Int(newValue), value > 480 {
-                                    newAlarmInput = "480"
-                                    showLimitAlert = true
-                                }
+                TextField("예: 25", text: $newAlarmInput)
+                    .keyboardType(.numberPad)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .background(Color.white)
+                    .cornerRadius(30)
+                    .padding()
+                    .onChange(of: newAlarmInput) { oldValue, newValue in
+                        //  숫자만 입력 가능하도록 필터링
+                        if !newValue.allSatisfy({ $0.isNumber }) && !newValue.isEmpty {
+                            newAlarmInput = oldValue
+                            showInvalidAlert = true
+                            return
+                        }
+                        
+                        //  숫자 범위 제한 (480분)
+                        if let value = Int(newValue), value > 480 {
+                            newAlarmInput = "480"
+                            showLimitAlert = true
+                        }
+                    }
+                Button("추가") {
+                    if let minute = Int(newAlarmInput), minute > 0 {
+                        if alarmStore.canAddPreset(minute) {
+                            Task {
+                                await alarmStore.addPreset(minute)
                             }
-            Button("추가") {
-                if let minute = Int(newAlarmInput), minute > 0 {
-                    if alarmStore.canAddPreset(minute) {
-                        Task {
-                            await alarmStore.addPreset(minute)
+                            newAlarmInput = ""
+                            withAnimation {
+                                showAddAlarmSheet = false
+                            }
+                        } else {
+                            showAlert = true
                         }
-                        newAlarmInput = ""
-                        withAnimation {
-                            showAddAlarmSheet = false
-                        }
-                    } else {
-                        showAlert = true
                     }
                 }
+                .frame(maxWidth: .infinity)
+                .padding()
+                .plantPrimaryButton()
+                
             }
-            .frame(maxWidth: .infinity)
-            .padding()
-            .plantPrimaryButton()
-
+            .padding(.bottom, keyboard.keyboardHeight)
+            .animation(.easeOut(duration: 0.25), value: keyboard.keyboardHeight)
+            
+            // 닫기 버튼
+            Button(action: {
+                withAnimation {
+                    showAddAlarmSheet = false
+                }
+            }) {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.system(size: 34))
+                    .foregroundColor(.red)
+                    .padding(.trailing, 20)
+                    .padding(.top, 10)
+            }
         }
-        .padding(.bottom, keyboard.keyboardHeight)
-        .animation(.easeOut(duration: 0.25), value: keyboard.keyboardHeight)
+        
         .alert("이미 존재하거나 기본값은 추가할 수 없어요.", isPresented: $showAlert) {
             Button("확인", role: .cancel) {}
         }

@@ -34,7 +34,6 @@ struct RoutineRegisterView: View {
     @State private var dateMode: DateMode = .endDate         // 날짜 입력 모드
     @State private var startDate = Date()                    // 루틴 시작일
     @State private var endDate = Date()                      // 루틴 종료일
-    @State fileprivate var selectedAlarms: Set<Int> = []   // 선택된 알림(분 단위)
     @State private var currentMode: RoutineRegisterMode       // 현재 화면의 모드
     @State private var goToseedStatus = false                // 씨앗 상태화면으로 이동 여부
     @State private var goalDays: String = ""                 // 주간 목표(횟수)
@@ -59,7 +58,9 @@ struct RoutineRegisterView: View {
     @State private var alertMessage: String = ""
     @State private var showAlarmLimitAlert: Bool = false
     @State private var alarmAlertMessage: String = ""
+    @StateObject private var alarmVM: AlarmSectionViewModel
 
+    
     // 폼이 제출 가능한지 체크 (필수 입력 완료 여부)
     private var isFormValid: Bool {
         selectedCategory != "카테고리 선택 ⌵" &&
@@ -100,6 +101,9 @@ struct RoutineRegisterView: View {
         }
         self._path = path
         self._showAddAlarmSheet = showAddAlarmSheet
+        
+        let alarmStore = AlarmStore.shared
+        _alarmVM = StateObject(wrappedValue: AlarmSectionViewModel(alarmStore: alarmStore))
     }
 
     var body: some View {
@@ -113,10 +117,13 @@ struct RoutineRegisterView: View {
                     goalSection()      // 목표시간, 주기 등
                     Divider()
                     
-                    GeometryReader { geo in
-                        alarmSection(width: geo.size.width)
+                    AlarmSectionView(viewModel: alarmVM)
+                    .frame(height: 150)
+                    .sheet(isPresented: $alarmVM.isAddSheetPresented) {
+                        AddAlarmSheetContentView(showAddAlarmSheet: $alarmVM.isAddSheetPresented)
+                            .environmentObject(alarmStore)
+                            .presentationDetents([.fraction(0.3), .medium])
                     }
-                    .frame(height: 130)
                     Divider()
                 }
                             .padding(.horizontal, vertical4)
@@ -149,7 +156,6 @@ struct RoutineRegisterView: View {
                       • SourceType: \(routine.sourceType)
                       """)
                   }
-                store.loadRoutines()
                 DispatchQueue.main.async {
                     setupMode()
                       // 화면 진입 시 데이터 세팅
@@ -193,7 +199,7 @@ extension RoutineRegisterView {
         case .create:
             selectedCategory = "카테고리 선택 "
             useDate = true
-            selectedAlarms = [15]
+            alarmVM.selectedAlarms = [15]
             
             // ✅ 추가: 설문에서 전달된 draft의 날짜가 있다면 반영
                 if let start = draft.startDate {
@@ -202,11 +208,13 @@ extension RoutineRegisterView {
                 if let end = draft.endDate {
                     endDate = end
                 }
+            
         case .details(let routine),
                 .edit(let routine):
             // 기존 루틴 정보 반영
             let savedOffsets = routineAlarmStore.fetchOffsets(for: routine.id)
-                    selectedAlarms = Set(savedOffsets)
+            alarmVM.selectedAlarms = Set(savedOffsets)
+                    alarmVM.selectedAlarms = Set(savedOffsets)
                     startDate = routine.startDate ?? Date()
                     endDate = routine.endDate ?? Date()
                     isAllDay = routine.isAllDay   
@@ -244,12 +252,12 @@ extension RoutineRegisterView {
             periodIsNoLimit: !useDate,
             startDate: startDate,
             endDate: endDate,
-            reminderOn: !selectedAlarms.isEmpty,
+            reminderOn: !alarmVM.selectedAlarms.isEmpty,
             goal: "\(goalHours)분/일",
             notes: nil,
             iconName: nil,
             isFavorite: false,
-            reminderOffsets: selectedAlarms,
+            reminderOffsets: alarmVM.selectedAlarms,
             totalDays: Int(goalTask) ?? 0,
             routinePeriodDays: Int(goalTask) ?? 0,
             sourceType: .create
@@ -592,102 +600,7 @@ extension RoutineRegisterView {
     }
 }
 
-// MARK: - 알림 선택 및 관리
-extension RoutineRegisterView {
-    @ViewBuilder
-    private func alarmSection(width: CGFloat) -> some View {
-            
-            let isSmallDevice = width < 380
-            
-        let columns = [GridItem(.adaptive(minimum: 70, maximum: 80), spacing: isSmallDevice ? 6 : 10)]
-            
-        VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Text("알림")
-                        .font(.subheadline).bold()
-                        .themedTextColor()
 
-                    Spacer()
-                    Text("맞춤 알림 생성,삭제")
-                        .font(.footnote).bold()
-                        .foregroundColor(.gray.opacity(0.6))
-                    // 삭제모드/일반모드 토글
-                    if isDeleteMode {
-                        Button("완료") { isDeleteMode = false }
-                            .font(.subheadline).bold()
-                            .foregroundColor(.red)
-                    } else {
-                        Button(role: .destructive) {
-                            isDeleteMode = true
-                        } label: {
-                            Image(systemName: "pencil.tip.crop.circle.badge.minus")
-                                .font(.system(size: 20, weight: .bold))
-                                .padding(6)
-                        }
-                    }
-                    // 알림 섹션 표시/숨김 토글
-                    Toggle("", isOn: $showAlarms)
-                        .labelsHidden()
-                        .toggleStyle(CustomToggleStyle())
-                }
-                // 알림 섹션 표시 시: 프리셋 버튼 목록/추가, 선택/해제, 삭제
-                if showAlarms {
-                    LazyVGrid(
-                        columns: columns, spacing: 10) {
-                        // 알림 프리셋 버튼들(삭제모드일 때 기본값은 비활성)
-                        ForEach(alarmStore.alamPresets.filter {!isDeleteMode || !alarmStore.defaultPresets.contains($0) }, id: \.self) { minute in
-                            Button(action: {
-                                if isDeleteMode {
-                                    // 삭제 모드: 기본 프리셋은 삭제 불가, 나머지는 삭제
-                                    if !alarmStore.defaultPresets.contains(minute) {
-                                        Task { await alarmStore.deletePreset(minute) }
-                                    }
-                                } else {
-                                    // 일반 모드: 선택/해제 토글
-                                    if selectedAlarms.contains(minute) {
-                                        selectedAlarms.remove(minute)
-                                    } else {
-                                        selectedAlarms.insert(minute)
-                                    }
-                                }
-                            }) {
-                                Text("\(minute)분 전")
-                                    .font(.subheadline)
-                                    .padding(.vertical, 8)
-                                    .padding(.horizontal, 10)
-                                    .frame(maxWidth: .infinity)
-                                    .background(
-                                        isDeleteMode
-                                        ? Color.red.opacity(0.3)
-                                        : selectedAlarms.contains(minute) ? Color("BrandAccent") : Color("BrandSecondary"))
-                                    .foregroundColor(.black)
-                                    .cornerRadius(30)
-                            }
-                        }
-                        // 알림 프리셋 개수가 10개 미만이면, 추가 버튼 노출
-                        if alarmStore.alamPresets.count < 10 {
-                            Button(action: {
-                                withAnimation {
-                                    showAddAlarmSheet = true
-                                }
-                            }) {
-                                Image(systemName: "plus")
-                                    .font(.subheadline)
-                                    .padding(8)
-                                    .frame(maxWidth: .infinity, minHeight: 36)
-                                    .background(Color.gray.opacity(0.2))
-                                    .clipShape(Circle())
-                            }
-                        }
-                    }
-//                    .transition(.opacity.combined(with: .move(edge: .top)))
-//                    .animation(.spring(), value: showAlarms)
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-        
-    }
-}
 
 // MARK: - 하단 "다음"/"수정"/"삭제" 버튼 및 툴바
 extension RoutineRegisterView {
@@ -811,12 +724,12 @@ extension RoutineRegisterView {
 
                     store.loadRoutines()
                     store.refreshTrigger = UUID()
-                    routineAlarmStore.saveOffsets(for: newRoutine.id, offsets: Array(selectedAlarms))
+                    routineAlarmStore.saveOffsets(for: newRoutine.id, offsets: Array(alarmVM.selectedAlarms))
                     NotificationManager.shared.scheduleNotification(
                         for: newRoutine.id,
                         title: newRoutine.title,
                         baseDate: startDate,   //  알림 기준일도 startDate로 설정
-                        offsets: Array(selectedAlarms)
+                        offsets: Array(alarmVM.selectedAlarms)
                     )
                     print("✅ [DEBUG] 알림 예약 완료 (baseDate: \(startDate))")
                               print("✅ 루틴 등록 완료: \(newRoutine.title)")
@@ -888,7 +801,7 @@ extension RoutineRegisterView {
     }
     // 알림 프리셋 저장 및 예약 재설정
     private func savePresetAndReschedule(for routine:Routine) async {
-        let offsets = Array(selectedAlarms).sorted()
+        let offsets = Array(alarmVM.selectedAlarms).sorted()
         routineAlarmStore.saveOffsets(for: routine.id, offsets: offsets)
         print(" 알림 프리셋 저장: \(offsets)")
         Task {
