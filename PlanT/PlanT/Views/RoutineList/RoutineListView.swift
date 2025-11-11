@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct RoutineListView: View {
+    @Environment(\.modelContext) private var context
     @Binding var path: NavigationPath
     @Binding var showAddAlarmSheet: Bool
     @State private var refreshToken = UUID()
@@ -142,20 +143,25 @@ struct RoutineListView: View {
             case .recommendedTemplates:
                 RoutineTemplateView(path: $path, showAddAlarmSheet: $showAddAlarmSheet)
             case .manualCreate:
-                RoutineRegisterView(mode: .create, path: $path, showAddAlarmSheet: $showAddAlarmSheet)
+                RoutineRegisterView(mode: .create, path: $path, showAddAlarmSheet: $showAddAlarmSheet,
+                    context: context
+                )
                     .environmentObject(store)
             case .manualCreateDetails(let routine):
                 RoutineRegisterView(
                     mode: .details(routine),
                     categoryTitle: category(for: routine).categoryTitle,
-                    path: $path, showAddAlarmSheet: $showAddAlarmSheet
+                    path: $path, showAddAlarmSheet: $showAddAlarmSheet,
+                    context: context
                 )
                 .environmentObject(store)
             case .manualCreateEdit(let routine):
                 RoutineRegisterView(
                     mode: .edit(routine),
                     categoryTitle: category(for: routine).categoryTitle,
-                    path: $path, showAddAlarmSheet: $showAddAlarmSheet
+                    path: $path, showAddAlarmSheet: $showAddAlarmSheet,
+                    context: context
+
                 )
                 .environmentObject(store)
             case .goToList:
