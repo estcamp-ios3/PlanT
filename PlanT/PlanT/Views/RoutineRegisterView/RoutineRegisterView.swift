@@ -138,8 +138,8 @@ struct RoutineRegisterView: View {
                 }
             }
             .onAppear {
-                print("🟢 [DEBUG] RoutineRegisterView onAppear 진입")
-                
+                print("🧭 현재 모드: \(vm.currentMode), 제목: \(vm.routineTitle)")
+
                 // 데이터 로드
                 store.loadRoutines()
                 
@@ -158,7 +158,7 @@ struct RoutineRegisterView: View {
                       """)
                 }
                 DispatchQueue.main.async {
-                    setupMode()
+                    vm.setupMode(draft: draft)
                     // 화면 진입 시 데이터 세팅
                 }
                 
@@ -193,51 +193,9 @@ extension RoutineRegisterView {
         case .edit:
             return "루틴 수정하기"
         }
+        
+            }
     }
-    // 모드에 따라 입력값 초기화/적용
-    private func setupMode() {
-        switch vm.currentMode {
-        case .create:
-            vm.selectedCategory = "카테고리 선택 "
-            vm.useDate = true
-            vm.alarmVM.selectedAlarms = [15]
-            
-            // ✅ 추가: 설문에서 전달된 draft의 날짜가 있다면 반영
-            if let start = draft.startDate {
-                vm.startDate = start
-            }
-            if let end = draft.endDate {
-                vm.endDate = end
-            }
-            
-        case .details(let routine),
-                .edit(let routine):
-            // 기존 루틴 정보 반영
-            let savedOffsets = routineAlarmStore.fetchOffsets(for: routine.id)
-            vm.alarmVM.selectedAlarms = Set(savedOffsets)
-            vm.alarmVM.selectedAlarms = Set(savedOffsets)
-            vm.startDate = routine.startDate ?? Date()
-            vm.endDate = routine.endDate ?? Date()
-            isAllDay = routine.isAllDay
-            
-            vm.routineTitle = routine.title
-            if vm.selectedCategory == "선택하세요" {
-                vm.selectedCategory = "알 수 없는 카테고리"
-            }
-            
-            // 목표/기간/주기 값 세팅
-            if routine.goal.contains("분") {
-                vm.goalHours = routine.goal.replacingOccurrences(of: "분/일", with: "")
-            }
-            vm.goalDays = routine.frequencyPerWeekId.replacingOccurrences(of: "x", with: "")
-            vm.goalTask = routine.duration.replacingOccurrences(of: "일", with: "")
-            
-            vm.startDate = routine.startDate ?? Date()
-            vm.endDate = routine.endDate ?? Date()
-        }
-    }
-}
-
 // MARK: - 씨앗 생성화면으로 전달할 임시 데이터(Draft)
 extension RoutineRegisterView {
     private var draft: RoutineDraft {
@@ -264,8 +222,6 @@ extension RoutineRegisterView {
             sourceType: .create
         )
     }
-    
-    
 }
 
 // MARK: - 카테고리/제목 입력 뷰
@@ -642,14 +598,15 @@ extension RoutineRegisterView {
                     .alert("루틴을 삭제합니다.",
                            isPresented: $vm.showDeleteAlert) {
                         Button("삭제", role: .destructive) {
-                            deleteRoutine()
+                            vm.deleteRoutine()
+                            dismiss()
                         }
                         Button("취소", role: .cancel) {}
                     } message: {
                         
                     }
                     Button(action: {
-                        Task { await saveRoutine() }
+                        Task { await vm.saveRoutine(isAllDay: isAllDay) }
                     }) {
                         Text("수정 완료")
                             .frame(maxWidth: .infinity)
@@ -680,110 +637,6 @@ extension RoutineRegisterView {
             }
         }
     }
-    
-    // 루틴 생성/수정 로직
-    
-    private func saveRoutine() async {
-        switch vm.currentMode {
-        case .create:
-            let calendar = Calendar.current
-            let daysDiff = calendar.dateComponents([.day], from: vm.startDate, to: vm.endDate).day ?? 0
-            let totalDays = max(daysDiff, 1) // 최소 1일 보장
-            
-            print("📅 기간 계산됨: \(totalDays)일")
-            print(" [DEBUG] 루틴 생성 시작")
-            print("startDate:", vm.startDate)
-            print("endDate:", vm.endDate)
-            let newRoutine = Routine(
-                title: vm.routineTitle,
-                categoryId: vm.selectedCategoryId,
-                seedName: "seed_Apple01",
-                duration: "\(totalDays)일",
-                goal: "\(vm.goalHours)분/일",
-                alarm: .every24Hours,
-                frequencyPerWeekId: "x\(vm.goalDays)",
-                frequencyPerWeekTitle: "주 \(vm.goalDays)회",
-                note: "",
-                isCompleted: false,
-                createdAt: Date(),
-                modifiedAt: Date(),
-                startDate: vm.startDate,
-                endDate: vm.endDate,
-                sourceType: .create,
-                isAllDay: isAllDay
-                
-                
-                
-            )
-            print("🟢 [DEBUG] Routine 생성됨:")
-            print("""
-             • Title: \(newRoutine.title)
-             • Start: \(newRoutine.startDate ?? Date())
-             • End:   \(newRoutine.endDate ?? Date())
-             """)
-            context.insert(newRoutine)
-            do {
-                try context.save()
-                print("✅ [DEBUG] SwiftData 저장 완료")
-                
-                store.loadRoutines()
-                store.refreshTrigger = UUID()
-                routineAlarmStore.saveOffsets(for: newRoutine.id, offsets: Array(vm.alarmVM.selectedAlarms))
-                NotificationManager.shared.scheduleNotification(
-                    for: newRoutine.id,
-                    title: newRoutine.title,
-                    baseDate: vm.startDate,   //  알림 기준일도 startDate로 설정
-                    offsets: Array(vm.alarmVM.selectedAlarms)
-                )
-                print("✅ [DEBUG] 알림 예약 완료 (baseDate: \(vm.startDate))")
-                print("✅ 루틴 등록 완료: \(newRoutine.title)")
-            } catch {
-                print("❌ 루틴 저장 실패:", error)
-            }
-        case .edit(let routine):
-            // 기존 루틴 정보 갱신
-            routine.title = vm.routineTitle
-            routine.goal = "\(vm.goalHours)분/일"
-            routine.frequencyPerWeekId = "\(vm.goalDays)x"
-            routine.duration = "\(vm.goalTask)일"
-            routine.startDate = vm.startDate
-            routine.endDate = vm.endDate
-            routine.modifiedAt = Date()
-            
-            do {
-                try context.save()
-                await savePresetAndReschedule(for: routine)
-                store.loadRoutines()
-                store.refreshTrigger = UUID()
-                print("루틴 수정 완료: \(routine.title)")
-                await MainActor.run {
-                    vm.currentMode = .details(routine)
-                }
-                
-            } catch {
-                print("X 루틴 수정 실패:", error)
-            }
-        default:
-            break
-        }
-    }
-    
-    // 루틴 삭제 처리 (알림/프리셋도 함께 제거)
-    private func deleteRoutine() {
-        switch vm.currentMode {
-        case .create:
-            print("아직 생성되지 않은 루틴은 삭제할 수 없습니다.")
-        case .edit(let routine):
-            NotificationManager.shared.cancelNotifications(for: routine.id)
-            routineAlarmStore.deleteOffsets(for: routine.id)
-            store.deleteRoutine(routine)
-            print(" 루틴 삭제 및 알림 제거 완료: \(routine.title)")
-            dismiss()
-            dismiss()
-        case .details:
-            break
-        }
-    }
 }
 
 // MARK: - 기타 보조 함수
@@ -801,41 +654,6 @@ extension RoutineRegisterView {
                 let tomorrow = cal.date(byAdding: .day, value: 1, to: Date())!
                 return cal.date(bySettingHour: 9, minute: 0, second: 0, of: tomorrow)!
             }
-        }
-    }
-    // 알림 프리셋 저장 및 예약 재설정
-    private func savePresetAndReschedule(for routine:Routine) async {
-        let offsets = Array(vm.alarmVM.selectedAlarms).sorted()
-        routineAlarmStore.saveOffsets(for: routine.id, offsets: offsets)
-        print(" 알림 프리셋 저장: \(offsets)")
-        Task {
-            await MainActor.run {
-                NotificationManager.shared.cancelNotifications(for: routine.id)
-            }
-            let base = routine.startDate ?? nextBaseDate()
-            NotificationManager.shared.scheduleNotification(
-                for: routine.id,
-                title: routine.title,
-                baseDate: base,
-                offsets: offsets
-            )
-            print(" 알림 재예약 완료 (base: \(NotificationManager.localString(base)), offsets: \(offsets))")
-        }
-        await MainActor.run {
-            // NotificationManager.shared.debugPendingNotifications()
-        }
-    }
-    // 루틴 완료 처리 및 알림 삭제
-    private func completeRoutineAndClearAlarms(_ routine: Routine) {
-        NotificationManager.shared.cancelNotifications(for: routine.id)
-        routineAlarmStore.deleteOffsets(for: routine.id)
-        routine.isCompleted = true
-        routine.modifiedAt = Date()
-        do {
-            try context.save()
-            print(" 루틴 완료 + 알림 삭제 완료 (\(routine.title)")
-        } catch {
-            print(" 루틴 완료 저장 실패:", error)
         }
     }
 }

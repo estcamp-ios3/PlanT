@@ -55,3 +55,175 @@ final class RoutineRegisterViewModel: ObservableObject {
         self.alarmVM = AlarmSectionViewModel(alarmStore: alarmStore)
     }
 }
+
+
+extension RoutineRegisterViewModel {
+    
+    // 모드에 따라 입력값 초기화/적용
+    func setupMode(draft: RoutineDraft? = nil) {
+        switch currentMode {
+        case .create:
+            selectedCategory = "카테고리 선택 "
+            useDate = true
+            alarmVM.selectedAlarms = [15]
+            
+//            if let start = draft.startDate {
+//                startDate = start
+//            }
+//            if let end = draft.endDate {
+//                endDate = end
+//            }
+            
+            if let draft {
+                          startDate = draft.startDate ?? Date()
+                          endDate = draft.endDate ?? Date()
+                      }
+            
+        case .details(let routine),
+                .edit(let routine):
+            selectedCategoryId = routine.categoryId
+                    selectedCategory = routine.categoryTitleMapped
+                    routineTitle = routine.title
+            // 기존 루틴 정보 반영
+            let savedOffsets = routineAlarmStore.fetchOffsets(for: routine.id)
+            alarmVM.selectedAlarms = Set(savedOffsets)
+            startDate = routine.startDate ?? Date()
+            endDate = routine.endDate ?? Date()
+            
+            // 목표/기간/주기 값 세팅
+            if routine.goal.contains("분") {
+                goalHours = routine.goal.replacingOccurrences(of: "분/일", with: "")
+            }
+            goalDays = routine.frequencyPerWeekId.replacingOccurrences(of: "x", with: "")
+            goalTask = routine.duration.replacingOccurrences(of: "일", with: "")
+            
+            startDate = routine.startDate ?? Date()
+            endDate = routine.endDate ?? Date()
+            useDate = !(routine.startDate == nil && routine.endDate == nil)
+        }
+    }
+    
+    // 루틴 생성/수정 로직
+    
+    func saveRoutine(isAllDay: Bool) async {
+        switch currentMode {
+        case .create:
+            let calendar = Calendar.current
+            let daysDiff = calendar.dateComponents([.day], from: startDate, to: endDate).day ?? 0
+            let totalDays = max(daysDiff, 1) // 최소 1일 보장
+            
+            let newRoutine = Routine(
+                title: routineTitle,
+                categoryId: selectedCategoryId,
+                seedName: "seed_Apple01",
+                duration: "\(totalDays)일",
+                goal: "\(goalHours)분/일",
+                alarm: .every24Hours,
+                frequencyPerWeekId: "x\(goalDays)",
+                frequencyPerWeekTitle: "주 \(goalDays)회",
+                note: "",
+                isCompleted: false,
+                createdAt: Date(),
+                modifiedAt: Date(),
+                startDate: startDate,
+                endDate: endDate,
+                sourceType: .create,
+                isAllDay: isAllDay
+                
+                
+                
+            )
+           
+            context.insert(newRoutine)
+            do {
+                try context.save()
+                store.loadRoutines()
+                store.refreshTrigger = UUID()
+                routineAlarmStore.saveOffsets(for: newRoutine.id, offsets: Array(alarmVM.selectedAlarms))
+                NotificationManager.shared.scheduleNotification(
+                    for: newRoutine.id,
+                    title: newRoutine.title,
+                    baseDate: startDate,   //  알림 기준일도 startDate로 설정
+                    offsets: Array(alarmVM.selectedAlarms)
+                )
+ 
+            } catch {
+            }
+        case .edit(let routine):
+            // 기존 루틴 정보 갱신
+            routine.title = routineTitle
+            routine.goal = "\(goalHours)분/일"
+            routine.frequencyPerWeekId = "\(goalDays)x"
+            routine.duration = "\(goalTask)일"
+            routine.startDate = startDate
+            routine.endDate = endDate
+            routine.modifiedAt = Date()
+            
+            do {
+                try context.save()
+                await savePresetAndReschedule(for: routine)
+                store.loadRoutines()
+                store.refreshTrigger = UUID()
+                await MainActor.run {
+                    currentMode = .details(routine)
+                }
+                
+            } catch {
+            }
+        default:
+            break
+        }
+    }
+    // 루틴 삭제 처리 (알림/프리셋도 함께 제거)
+    func deleteRoutine() {
+        switch currentMode {
+        case .create:
+            print("아직 생성되지 않은 루틴은 삭제할 수 없습니다.")
+        case .edit(let routine):
+            NotificationManager.shared.cancelNotifications(for: routine.id)
+            routineAlarmStore.deleteOffsets(for: routine.id)
+            store.deleteRoutine(routine)
+       
+        case .details:
+            break
+        }
+    }
+    
+    // 알림 프리셋 저장 및 예약 재설정
+    private func savePresetAndReschedule(for routine:Routine) async {
+        let offsets = Array(alarmVM.selectedAlarms).sorted()
+        routineAlarmStore.saveOffsets(for: routine.id, offsets: offsets)
+        print(" 알림 프리셋 저장: \(offsets)")
+        Task {
+            await MainActor.run {
+                NotificationManager.shared.cancelNotifications(for: routine.id)
+            }
+            let base = routine.startDate ??
+            Date()
+//            nextBaseDate()
+            NotificationManager.shared.scheduleNotification(
+                for: routine.id,
+                title: routine.title,
+                baseDate: base,
+                offsets: offsets
+            )
+            print(" 알림 재예약 완료 (base: \(NotificationManager.localString(base)), offsets: \(offsets))")
+        }
+        await MainActor.run {
+            // NotificationManager.shared.debugPendingNotifications()
+        }
+    }
+    // 루틴 완료 처리 및 알림 삭제
+    private func completeRoutineAndClearAlarms(_ routine: Routine) {
+        NotificationManager.shared.cancelNotifications(for: routine.id)
+        routineAlarmStore.deleteOffsets(for: routine.id)
+        routine.isCompleted = true
+        routine.modifiedAt = Date()
+        do {
+            try context.save()
+            print(" 루틴 완료 + 알림 삭제 완료 (\(routine.title)")
+        } catch {
+            print(" 루틴 완료 저장 실패:", error)
+        }
+    }
+}
