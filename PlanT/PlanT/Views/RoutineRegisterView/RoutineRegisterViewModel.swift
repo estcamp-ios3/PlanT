@@ -59,6 +59,47 @@ final class RoutineRegisterViewModel: ObservableObject {
 
 extension RoutineRegisterViewModel {
     
+    // MARK: - 화면 상단 타이틀 (모드별)
+        var modeTitle: String {
+            switch currentMode {
+            case .create:
+                return "루틴 직접 등록하기"
+            case .details:
+                return "루틴 자세히 보기"
+            case .edit:
+                return "루틴 수정하기"
+            }
+            
+                }
+        
+    
+        // 폼이 제출 가능한지 체크 (필수 입력 완료 여부)
+        var isFormValid: Bool {
+            selectedCategory != "카테고리 선택 ⌵" &&
+            !routineTitle.trimmingCharacters(in: .whitespaces).isEmpty
+        }
+    
+    // 현재 상세보기 모드인지(입력 비활성화용)
+var isDetailsMode: Bool {
+        if case .details = currentMode { true } else { false }
+    }
+    // 현재 편집/상세 모드일 때의 루틴 인스턴스 반환
+    
+    var routineFromMode: Routine? {
+        if case .details(let routine) = currentMode { return routine }
+        if case .edit(let routine) = currentMode { return routine }
+        return nil
+    }
+    
+    // 신규등록, 수정 모드 여부
+    var isCreateOrEdit: Bool {
+        if case .create = currentMode { return true }
+        if case .edit = currentMode { return true }
+        return false
+    }
+    
+    
+    
     // 모드에 따라 입력값 초기화/적용
     func setupMode(draft: RoutineDraft? = nil) {
         switch currentMode {
@@ -226,4 +267,22 @@ extension RoutineRegisterViewModel {
             print(" 루틴 완료 저장 실패:", error)
         }
     }
+    
+    // MARK: - 기타 보조 함수
+        // "기간제한 없음"일 때, 다음 알람 기준일 계산
+        private func nextBaseDate() -> Date {
+            if useDate {
+                return startDate
+            } else {
+                let cal = Calendar.current
+                let today9 = cal.date(bySettingHour: 9, minute: 0, second: 0, of: Date())!
+                if today9 > Date() {
+                    return today9
+                } else {
+                    let tomorrow = cal.date(byAdding: .day, value: 1, to: Date())!
+                    return cal.date(bySettingHour: 9, minute: 0, second: 0, of: tomorrow)!
+                }
+            }
+        }
+    
 }

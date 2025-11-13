@@ -51,30 +51,6 @@ struct RoutineRegisterView: View {
     @State private var alarmAlertMessage: String = ""
     
     
-    // 폼이 제출 가능한지 체크 (필수 입력 완료 여부)
-    private var isFormValid: Bool {
-        vm.selectedCategory != "카테고리 선택 ⌵" &&
-        !vm.routineTitle.trimmingCharacters(in: .whitespaces).isEmpty
-    }
-    
-    // 현재 상세보기 모드인지(입력 비활성화용)
-    private var isDetailsMode: Bool {
-        if case .details = vm.currentMode { true } else { false }
-    }
-    
-    // 현재 편집/상세 모드일 때의 루틴 인스턴스 반환
-    private var routineFromMode: Routine? {
-        if case .details(let routine) = vm.currentMode { return routine }
-        if case .edit(let routine) = vm.currentMode { return routine }
-        return nil
-    }
-    // 신규등록, 수정 모드 여부
-    private var isCreateOrEdit: Bool {
-        if case .create = vm.currentMode { return true }
-        if case .edit = vm.currentMode { return true }
-        return false
-    }
-    
     // 날짜 입력 방식 구분
     enum DateMode { case endDate, allDay }
     
@@ -116,7 +92,7 @@ struct RoutineRegisterView: View {
                     dateSection()      // 날짜 및 기간 입력
                     Divider()
                     goalSection()      // 목표시간, 주기 등
-                    Divider()
+                    Divider() 
                     
                     AlarmSectionView(viewModel: vm.alarmVM)
                         .frame(height: 150)
@@ -129,11 +105,11 @@ struct RoutineRegisterView: View {
                 }
                 .padding(.horizontal, vertical4)
                 
-                .disabled(isDetailsMode)   // 상세보기 모드면 전체 입력 비활성화
+                .disabled(vm.isDetailsMode)   // 상세보기 모드면 전체 입력 비활성화
                 
                 // 상세/수정 모드에서는 씨앗 성장상태 뷰 하단에 노출
-                if let routine = routineFromMode {
-                    SeedGrowthStatusView(routine: routine, canCompleste: isDetailsMode)
+                if let routine = vm.routineFromMode {
+                    SeedGrowthStatusView(routine: routine, canCompleste: vm.isDetailsMode)
                         .environmentObject(store)
                 }
             }
@@ -163,7 +139,7 @@ struct RoutineRegisterView: View {
                 }
                 
             }
-            .navigationTitle(modeTitle)    // 네비바 타이틀
+            .navigationTitle(vm.modeTitle)    // 네비바 타이틀
             .toolbar { toolbarContent() }  // 우측 상단 툴바 (편집/비우기)
             .safeAreaInset(edge: .bottom) {
                 if !showAddAlarmSheet{     // 알람 추가 시트가 아닐 때만 하단 버튼 표시
@@ -182,20 +158,7 @@ struct RoutineRegisterView: View {
     }
 }
 
-// MARK: - 화면 상단 타이틀 (모드별)
-extension RoutineRegisterView {
-    private var modeTitle: String {
-        switch vm.currentMode {
-        case .create:
-            return "루틴 직접 등록하기"
-        case .details:
-            return "루틴 자세히 보기"
-        case .edit:
-            return "루틴 수정하기"
-        }
-        
-            }
-    }
+
 // MARK: - 씨앗 생성화면으로 전달할 임시 데이터(Draft)
 extension RoutineRegisterView {
     private var draft: RoutineDraft {
@@ -339,7 +302,7 @@ extension RoutineRegisterView {
                     .font(.headline).bold()
                     .themedTextColor()
                 
-                if isCreateOrEdit {
+                if vm.isCreateOrEdit {
                     Spacer()
                     Button {
                         // 목표 추가기능(추후 구현가능)
@@ -462,10 +425,10 @@ extension RoutineRegisterView {
             // 상세보기 모드: 목표/주기/기간 요약만 읽기전용으로 노출
             if case .details = vm.currentMode {
                 HStack {
-                    Text("\(routineFromMode?.goal ?? "-")")
+                    Text("\(vm.routineFromMode?.goal ?? "-")")
                         .themedTextColor()
                     
-                    Text("주 \(routineFromMode?.frequencyPerWeekId.replacingOccurrences(of: "x", with: "") ?? "0")회 \(routineFromMode?.duration ?? "-")")
+                    Text("주 \(vm.routineFromMode?.frequencyPerWeekId.replacingOccurrences(of: "x", with: "") ?? "0")회 \(vm.routineFromMode?.duration ?? "-")")
                         .themedTextColor()
                     
                     Spacer()
@@ -578,8 +541,8 @@ extension RoutineRegisterView {
                         .frame(maxWidth: .infinity)
                 }
                 .plantPrimaryButton()
-                .disabled(!isFormValid)
-                .opacity(isFormValid ? 1.0 : 0.5)
+                .disabled(!vm.isFormValid)
+                .opacity(vm.isFormValid ? 1.0 : 0.5)
                 .padding(.horizontal, 20)
             }
             // 수정모드: "삭제"/"수정완료" 버튼
@@ -612,8 +575,8 @@ extension RoutineRegisterView {
                             .frame(maxWidth: .infinity)
                     }
                     .plantPrimaryButton()
-                    .disabled(vm.alarmVM.isDeleteMode || !isFormValid)
-                    .opacity(isFormValid ? 1.0 : 0.5)
+                    .disabled(vm.alarmVM.isDeleteMode || !vm.isFormValid)
+                    .opacity(vm.isFormValid ? 1.0 : 0.5)
                 }
                 .padding(.horizontal, 20)
             }
@@ -639,23 +602,6 @@ extension RoutineRegisterView {
     }
 }
 
-// MARK: - 기타 보조 함수
-extension RoutineRegisterView {
-    // "기간제한 없음"일 때, 다음 알람 기준일 계산
-    private func nextBaseDate() -> Date {
-        if vm.useDate {
-            return vm.startDate
-        } else {
-            let cal = Calendar.current
-            let today9 = cal.date(bySettingHour: 9, minute: 0, second: 0, of: Date())!
-            if today9 > Date() {
-                return today9
-            } else {
-                let tomorrow = cal.date(byAdding: .day, value: 1, to: Date())!
-                return cal.date(bySettingHour: 9, minute: 0, second: 0, of: tomorrow)!
-            }
-        }
-    }
-}
+
 
 
