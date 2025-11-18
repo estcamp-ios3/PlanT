@@ -36,11 +36,7 @@ struct RoutineRegisterView: View {
     @Binding var path: NavigationPath                        // 네비게이션 경로 (부모로부터 바인딩)
     @Binding var showAddAlarmSheet: Bool                     // 알람 추가 시트 노출 여부(부모로부터 바인딩)
     @State private var isDeleteMode: Bool = false            // 알람 삭제 모드 활성화 여부
-    @State private var isAllDay: Bool = false {              // 종일 여부 (날짜 모드와 연동됨)
-        didSet {
-            dateMode = isAllDay ? .allDay : .endDate
-        }
-    }
+  
     @State private var isEnabled: Bool = true                // 날짜 입력 활성화 여부
     @State private var showDateHeader: Bool = true           // 날짜 입력 헤더 표시 여부
     @State private var hasEnd: Bool = true                   // 종료일 사용 여부
@@ -114,13 +110,13 @@ struct RoutineRegisterView: View {
                 }
             }
             .onAppear {
-                print("🧭 현재 모드: \(vm.currentMode), 제목: \(vm.routineTitle)")
+                print(" 현재 모드: \(vm.currentMode), 제목: \(vm.routineTitle)")
 
                 // 데이터 로드
                 store.loadRoutines()
                 
                 // 로드된 루틴 개수 확인
-                print("📦 현재 저장된 루틴 개수:", store.routines.count)
+                print(" 현재 저장된 루틴 개수:", store.routines.count)
                 
                 // 루틴이 실제로 잘 불러와졌는지 상세 출력
                 for routine in store.routines {
@@ -208,16 +204,12 @@ extension RoutineRegisterView {
                     // 신규등록 모드에서는 카테고리 드롭다운 메뉴
                     Menu {
                         // ✅ 뷰모델의 카테고리 단계에서 직접 옵션 가져오기
-                        if let categoryStep = viewModel.steps.first(where: { $0.id == "category" }) {
-                            ForEach(categoryStep.options, id: \.id) { option in
-                                Button {
-                                    vm.selectedCategoryId = option.id           // category01, category02 ...
-                                    vm.selectedCategory = option.title          // "지적/성장", "전문 역량" ...
-                                } label: {
+                        ForEach(vm.categoryOptions, id: \.id) { option in
+                                Button { vm.selectCategory(option) } label: {
                                     Text(option.title)
                                 }
                             }
-                        }
+                        
                     } label: {
                         HStack {
                             Text(vm.selectedCategory)
@@ -277,7 +269,7 @@ extension RoutineRegisterView {
             isEnabled: $isEnabled,
             showDateHeader: $showDateHeader,
             useDate: $vm.useDate,
-            isAllDay: $isAllDay,
+            isAllDay: $vm.isAllDay,
             hasEnd: $hasEnd,
             startDate: $vm.startDate,
             endDate: $vm.endDate
@@ -569,7 +561,7 @@ extension RoutineRegisterView {
                         
                     }
                     Button(action: {
-                        Task { await vm.saveRoutine(isAllDay: isAllDay) }
+                        Task { await vm.saveRoutine(isAllDay: vm.isAllDay) }
                     }) {
                         Text("수정 완료")
                             .frame(maxWidth: .infinity)

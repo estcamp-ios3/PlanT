@@ -31,13 +31,18 @@ final class RoutineRegisterViewModel: ObservableObject {
     @Published var goalTask: String = ""
     @Published var showAlarms: Bool = true
     @Published var showDeleteAlert: Bool = false
+    @Published var routineSurveyViewmodel = RoutineSurveyViewModel()
     
     // MARK: - 상태 제어
     @Published var currentMode: RoutineRegisterMode
     @Published var goToSeedStatus: Bool = false
     @Published var showGoalLimitAlert: Bool = false
     @Published var alertMessage: String = ""
-    
+    @Published var isAllDay: Bool = false {              // 종일 여부 (날짜 모드와 연동됨)
+        didSet {
+            dateMode = isAllDay ? .allDay : .endDate
+        }
+    }
     // MARK: - 알람 VM
     @Published var alarmVM: AlarmSectionViewModel
     
@@ -60,27 +65,27 @@ final class RoutineRegisterViewModel: ObservableObject {
 extension RoutineRegisterViewModel {
     
     // MARK: - 화면 상단 타이틀 (모드별)
-        var modeTitle: String {
-            switch currentMode {
-            case .create:
-                return "루틴 직접 등록하기"
-            case .details:
-                return "루틴 자세히 보기"
-            case .edit:
-                return "루틴 수정하기"
-            }
-            
-                }
-        
-    
-        // 폼이 제출 가능한지 체크 (필수 입력 완료 여부)
-        var isFormValid: Bool {
-            selectedCategory != "카테고리 선택 ⌵" &&
-            !routineTitle.trimmingCharacters(in: .whitespaces).isEmpty
+    var modeTitle: String {
+        switch currentMode {
+        case .create:
+            return "루틴 직접 등록하기"
+        case .details:
+            return "루틴 자세히 보기"
+        case .edit:
+            return "루틴 수정하기"
         }
+        
+    }
+    
+    
+    // 폼이 제출 가능한지 체크 (필수 입력 완료 여부)
+    var isFormValid: Bool {
+        selectedCategory != "카테고리 선택 ⌵" &&
+        !routineTitle.trimmingCharacters(in: .whitespaces).isEmpty
+    }
     
     // 현재 상세보기 모드인지(입력 비활성화용)
-var isDetailsMode: Bool {
+    var isDetailsMode: Bool {
         if case .details = currentMode { true } else { false }
     }
     // 현재 편집/상세 모드일 때의 루틴 인스턴스 반환
@@ -108,23 +113,23 @@ var isDetailsMode: Bool {
             useDate = true
             alarmVM.selectedAlarms = [15]
             
-//            if let start = draft.startDate {
-//                startDate = start
-//            }
-//            if let end = draft.endDate {
-//                endDate = end
-//            }
+            //            if let start = draft.startDate {
+            //                startDate = start
+            //            }
+            //            if let end = draft.endDate {
+            //                endDate = end
+            //            }
             
             if let draft {
-                          startDate = draft.startDate ?? Date()
-                          endDate = draft.endDate ?? Date()
-                      }
+                startDate = draft.startDate ?? Date()
+                endDate = draft.endDate ?? Date()
+            }
             
         case .details(let routine),
                 .edit(let routine):
             selectedCategoryId = routine.categoryId
-                    selectedCategory = routine.categoryTitleMapped
-                    routineTitle = routine.title
+            selectedCategory = routine.categoryTitleMapped
+            routineTitle = routine.title
             // 기존 루틴 정보 반영
             let savedOffsets = routineAlarmStore.fetchOffsets(for: routine.id)
             alarmVM.selectedAlarms = Set(savedOffsets)
@@ -174,7 +179,7 @@ var isDetailsMode: Bool {
                 
                 
             )
-           
+            
             context.insert(newRoutine)
             do {
                 try context.save()
@@ -187,7 +192,7 @@ var isDetailsMode: Bool {
                     baseDate: startDate,   //  알림 기준일도 startDate로 설정
                     offsets: Array(alarmVM.selectedAlarms)
                 )
- 
+                
             } catch {
             }
         case .edit(let routine):
@@ -224,7 +229,7 @@ var isDetailsMode: Bool {
             NotificationManager.shared.cancelNotifications(for: routine.id)
             routineAlarmStore.deleteOffsets(for: routine.id)
             store.deleteRoutine(routine)
-       
+            
         case .details:
             break
         }
@@ -241,7 +246,7 @@ var isDetailsMode: Bool {
             }
             let base = routine.startDate ??
             Date()
-//            nextBaseDate()
+            //            nextBaseDate()
             NotificationManager.shared.scheduleNotification(
                 for: routine.id,
                 title: routine.title,
@@ -269,20 +274,33 @@ var isDetailsMode: Bool {
     }
     
     // MARK: - 기타 보조 함수
-        // "기간제한 없음"일 때, 다음 알람 기준일 계산
-        private func nextBaseDate() -> Date {
-            if useDate {
-                return startDate
+    // "기간제한 없음"일 때, 다음 알람 기준일 계산
+    private func nextBaseDate() -> Date {
+        if useDate {
+            return startDate
+        } else {
+            let cal = Calendar.current
+            let today9 = cal.date(bySettingHour: 9, minute: 0, second: 0, of: Date())!
+            if today9 > Date() {
+                return today9
             } else {
-                let cal = Calendar.current
-                let today9 = cal.date(bySettingHour: 9, minute: 0, second: 0, of: Date())!
-                if today9 > Date() {
-                    return today9
-                } else {
-                    let tomorrow = cal.date(byAdding: .day, value: 1, to: Date())!
-                    return cal.date(bySettingHour: 9, minute: 0, second: 0, of: tomorrow)!
-                }
+                let tomorrow = cal.date(byAdding: .day, value: 1, to: Date())!
+                return cal.date(bySettingHour: 9, minute: 0, second: 0, of: tomorrow)!
             }
         }
+    }
     
+}
+extension RoutineRegisterViewModel {
+    // 카테고리 로직
+    var categoryOptions: [Option] {
+        if let categoryStep = routineSurveyViewmodel.steps.first(where: { $0.id == "category" })  {
+            return categoryStep.options
+        }
+        return []
+    }
+    func selectCategory(_ option: Option) {
+        selectedCategoryId = option.id
+        selectedCategory = option.title
+    }
 }
